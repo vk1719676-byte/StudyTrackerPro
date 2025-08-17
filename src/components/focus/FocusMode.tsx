@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -9,7 +9,7 @@ interface FocusModeProps {
   onClose: () => void;
 }
 
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak';
+type TimerMode = 'focus' | 'shortBreak' | 'longBreak' | 'custom';
 
 interface StudySession {
   id: string;
@@ -28,64 +28,43 @@ interface LofiTrack {
   duration: string;
 }
 
-const POMODORO_SETTINGS = {
+const DEFAULT_POMODORO_SETTINGS = {
   focus: 25,
   shortBreak: 5,
-  longBreak: 15
+  longBreak: 15,
+  custom: 30
 };
 
 const LOFI_TRACKS: LofiTrack[] = [
   {
     id: '1',
-    title: 'Chill Lofi ',
-    artist: 'Study Tracker',
+    title: 'Chill Lofi Study',
+    artist: 'Focus Beats',
     url: 'https://s107-isny.freeconvert.com/task/689311370f7f547d80af53d5/lofi-study-beat-24-255269.mp3',
     duration: '3:24'
   },
   {
     id: '2',
-    title: 'Study Romance',
-    artist: 'Chill Café',
+    title: 'Peaceful Focus',
+    artist: 'Study Vibes',
     url: 'https://s85-ious.freeconvert.com/task/68931137ecabe1ff1900a73c/lofi-study-beat-21-255266.mp3',
     duration: '4:15'
   },
   {
     id: '3',
-    title: 'Heartbeat Study',
-    artist: 'Warm Vinyl',
+    title: 'Deep Concentration',
+    artist: 'Calm Waves',
     url: 'https://s97-ious.freeconvert.com/task/6893113835e5168e5f1e6893/lofi-study-beat-5-245776.mp3',
     duration: '3:45'
-  },
-  {
-    id: '4',
-    title: 'Coffee & Cuddles',
-    artist: 'Sunset Lounge',
-    url: 'https://s96-ious.freeconvert.com/task/68931138ecabe1ff1900a857/lofi-beat-to-study-299573.mp3',
-    duration: '4:32'
-  },
-  {
-    id: '5',
-    title: 'Love Notes',
-    artist: 'Dreamy Beats',
-    url: 'https://s34-hzfi.freeconvert.com/task/689311390f7f547d80af556a/flamenco-lofi-instrumental-minimal-study-music-slow-299575.mp3',
-    duration: '3:58'
-  },
-  {
-    id: '6',
-    title: 'Sweet Study Session',
-    artist: 'Mellow Mood',
-    url: 'https://s71-hzde.freeconvert.com/task/6893113e7cbbeebdc7bfef0b/chill-lofi-study-music-381035.mp3',
-    duration: '4:28'
   }
 ];
 
 const STUDY_TIPS = [
   "Take deep breaths and stay hydrated! 💧",
-  "Remember to review what you've learned in the last session 📚",
+  "Review what you've learned before starting new material 📚",
   "Great progress! You're building strong study habits 🌟",
-  "Take a moment to stretch your body and rest your eyes 👀",
-  "You're doing amazing! Keep up the momentum 🚀",
-  "Consider switching subjects to keep your mind fresh 🔄"
+  "Take a moment to stretch and rest your eyes 👀",
+  "You're doing amazing! Keep up the momentum 🚀"
 ];
 
 const BREAK_ACTIVITIES = [
@@ -93,14 +72,14 @@ const BREAK_ACTIVITIES = [
   "💧 Drink some water and have a healthy snack",
   "👀 Look away from your screen and rest your eyes",
   "🧘‍♀️ Do some light stretching or breathing exercises",
-  "🎵 Listen to your favorite song to recharge",
-  "☀️ Step outside for some fresh air if possible"
+  "🎵 Listen to your favorite song to recharge"
 ];
 
 export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(0);
   const [mode, setMode] = useState<TimerMode>('focus');
+  const [pomodoroSettings, setPomodoroSettings] = useState(DEFAULT_POMODORO_SETTINGS);
   const [pomodoroCount, setPomodoroCount] = useState(0);
   const [sessionsCompleted, setSessionsCompleted] = useState(0);
   const [currentStreak, setCurrentStreak] = useState(0);
@@ -109,18 +88,19 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [currentSubject, setCurrentSubject] = useState('');
   const [currentTask, setCurrentTask] = useState('');
   const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
+  const [showCustomTimer, setShowCustomTimer] = useState(false);
   
   // Music player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
   const [volume, setVolume] = useState(0.6);
   const [isMuted, setIsMuted] = useState(false);
-  const [showMusicPlayer, setShowMusicPlayer] = useState(true);
+  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
   
   const intervalRef = useRef<NodeJS.Timeout>();
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const targetTime = POMODORO_SETTINGS[mode];
+  const targetTime = pomodoroSettings[mode];
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -133,7 +113,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       setStudyHistory(data.studyHistory || []);
       setPomodoroCount(data.pomodoroCount || 0);
       setVolume(data.musicVolume || 0.6);
-      setShowMusicPlayer(data.showMusicPlayer !== undefined ? data.showMusicPlayer : true);
+      setShowMusicPlayer(data.showMusicPlayer || false);
+      setPomodoroSettings(data.pomodoroSettings || DEFAULT_POMODORO_SETTINGS);
     }
   }, []);
 
@@ -154,7 +135,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       studyHistory,
       pomodoroCount,
       musicVolume: volume,
-      showMusicPlayer
+      showMusicPlayer,
+      pomodoroSettings
     };
     localStorage.setItem('studentFocusTimer', JSON.stringify(data));
   };
@@ -202,7 +184,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       mode
     };
 
-    if (mode === 'focus') {
+    if (mode === 'focus' || mode === 'custom') {
       const newCount = pomodoroCount + 1;
       setPomodoroCount(newCount);
       setSessionsCompleted(prev => prev + 1);
@@ -211,14 +193,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       const tipIndex = Math.floor(Math.random() * STUDY_TIPS.length);
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('🎉 Focus Session Complete!', {
-          body: `Great work! ${STUDY_TIPS[tipIndex]} Session ${newCount}/4 in this cycle.`,
+          body: `Great work! ${STUDY_TIPS[tipIndex]}`,
           icon: '/vite.svg'
         });
       }
 
-      if (newCount % 4 === 0) {
+      if (mode === 'focus' && newCount % 4 === 0) {
         setMode('longBreak');
-      } else {
+      } else if (mode === 'focus') {
         setMode('shortBreak');
       }
     } else {
@@ -290,7 +272,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
 
   const startFocus = () => {
     setIsRunning(true);
-    console.log(`${mode} session started - timer running in background`);
   };
 
   const pauseFocus = () => {
@@ -311,6 +292,18 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     if (!isRunning) {
       setMode(newMode);
       setTime(0);
+      if (newMode === 'custom') {
+        setShowCustomTimer(true);
+      }
+    }
+  };
+
+  const handleCustomTimerChange = (minutes: number) => {
+    if (minutes > 0 && minutes <= 180) { // Max 3 hours
+      setPomodoroSettings(prev => ({
+        ...prev,
+        custom: minutes
+      }));
     }
   };
 
@@ -330,8 +323,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const getTodaysPomodoros = () => {
     const today = new Date().toDateString();
     return studyHistory.filter(session => 
-      session.mode === 'focus' && 
-      session.completedAt.toDateString === today
+      (session.mode === 'focus' || session.mode === 'custom') && 
+      new Date(session.completedAt).toDateString() === today
     ).length;
   };
 
@@ -340,7 +333,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   };
 
   const getRandomTip = () => {
-    if (mode === 'focus') return STUDY_TIPS[Math.floor(Math.random() * STUDY_TIPS.length)];
+    if (mode === 'focus' || mode === 'custom') return STUDY_TIPS[Math.floor(Math.random() * STUDY_TIPS.length)];
     return BREAK_ACTIVITIES[Math.floor(Math.random() * BREAK_ACTIVITIES.length)];
   };
 
@@ -353,15 +346,17 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 min-w-[240px]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <div className={`p-1 rounded ${mode === 'focus' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
-                {mode === 'focus' ? (
+              <div className={`p-1 rounded ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                {(mode === 'focus' || mode === 'custom') ? (
                   <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 ) : (
                   <Coffee className="w-4 h-4 text-green-600 dark:text-green-400" />
                 )}
               </div>
               <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {mode === 'focus' ? 'Studying' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+                {mode === 'focus' ? 'Focus' : 
+                 mode === 'custom' ? 'Custom' :
+                 mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
               </span>
             </div>
             <div className="flex gap-1">
@@ -394,33 +389,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-1000 ${
-                mode === 'focus' ? 'bg-blue-600 dark:bg-blue-400' : 'bg-green-600 dark:bg-green-400'
+                (mode === 'focus' || mode === 'custom') ? 'bg-blue-600 dark:bg-blue-400' : 'bg-green-600 dark:bg-green-400'
               }`}
               style={{ width: `${Math.min(getProgress(), 100)}%` }}
             />
           </div>
-
-          {/* Mini Music Controls */}
-          {isPlaying && (
-            <div className="flex items-center gap-2 mb-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-              <div className="flex items-center gap-1">
-                <Music className="w-3 h-3 text-purple-600" />
-                <button
-                  onClick={toggleMusic}
-                  className="p-1 hover:bg-purple-100 dark:hover:bg-purple-800/50 rounded"
-                >
-                  {isPlaying ? (
-                    <Pause className="w-3 h-3 text-purple-600" />
-                  ) : (
-                    <Play className="w-3 h-3 text-purple-600" />
-                  )}
-                </button>
-              </div>
-              <div className="flex-1 text-xs text-purple-700 dark:text-purple-300 truncate">
-                {LOFI_TRACKS[currentTrack].title}
-              </div>
-            </div>
-          )}
 
           <div className="flex items-center justify-between text-xs">
             <div className={`font-medium ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
@@ -451,13 +424,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
 
       {isOpen && !isMinimized && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+          <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 space-y-6">
               {/* Header */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-3 rounded-lg ${mode === 'focus' ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
-                    {mode === 'focus' ? (
+                  <div className={`p-3 rounded-lg ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                    {(mode === 'focus' || mode === 'custom') ? (
                       <Brain className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                     ) : (
                       <Coffee className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -465,10 +438,12 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {mode === 'focus' ? 'Focus Time' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+                      {mode === 'focus' ? 'Focus Time' : 
+                       mode === 'custom' ? 'Custom Timer' :
+                       mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {mode === 'focus' ? 'Time to concentrate and learn!' : 'Take a well-deserved break!'}
+                      {(mode === 'focus' || mode === 'custom') ? 'Time to concentrate and learn!' : 'Take a well-deserved break!'}
                     </p>
                   </div>
                 </div>
@@ -481,177 +456,78 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Lofi Music Player */}
-              {showMusicPlayer && (
-                <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-5 border border-purple-100 dark:border-purple-800">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                        <Radio className="w-5 h-5 text-purple-600" />
+              {/* Mode Switcher with Custom Timer */}
+              <div className="space-y-4">
+                <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
+                  {(['focus', 'shortBreak', 'longBreak', 'custom'] as TimerMode[]).map((timerMode) => (
+                    <button
+                      key={timerMode}
+                      onClick={() => switchMode(timerMode)}
+                      disabled={isRunning}
+                      className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
+                        mode === timerMode
+                          ? (timerMode === 'focus' || timerMode === 'custom')
+                            ? 'bg-blue-600 text-white shadow-sm'
+                            : 'bg-green-600 text-white shadow-sm'
+                          : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700'
+                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    >
+                      {timerMode === 'focus' ? `Focus (${pomodoroSettings.focus}m)` : 
+                       timerMode === 'shortBreak' ? `Break (${pomodoroSettings.shortBreak}m)` : 
+                       timerMode === 'longBreak' ? `Long (${pomodoroSettings.longBreak}m)` :
+                       `Custom (${pomodoroSettings.custom}m)`}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom Timer Settings */}
+                {(showCustomTimer || mode === 'custom') && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-3">
+                      <Settings className="w-5 h-5 text-blue-600" />
+                      <span className="font-medium text-blue-800 dark:text-blue-400">
+                        Custom Timer Settings
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Custom Duration (minutes)
+                        </label>
+                        <Input
+                          type="number"
+                          value={pomodoroSettings.custom.toString()}
+                          onChange={(value) => handleCustomTimerChange(parseInt(value) || 30)}
+                          min="1"
+                          max="180"
+                          disabled={isRunning}
+                          className="text-center"
+                        />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-                          Lofi Love Study Music
-                        </h3>
-                        <p className="text-sm text-purple-600 dark:text-purple-400">
-                          Romantic & relaxing beats for your study sessions 💕
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowMusicPlayer(false)}
-                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      <Minimize2 className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Current Track Display */}
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center">
-                        <Music className="w-6 h-6 text-white" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                          {LOFI_TRACKS[currentTrack].title}
-                        </h4>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {LOFI_TRACKS[currentTrack].artist} • {LOFI_TRACKS[currentTrack].duration}
-                        </p>
-                      </div>
-                      <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        isPlaying 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                      }`}>
-                        {isPlaying ? '♪ Playing' : 'Paused'}
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Quick Presets
+                        </label>
+                        <div className="flex gap-2">
+                          {[15, 30, 45, 60].map((preset) => (
+                            <button
+                              key={preset}
+                              onClick={() => handleCustomTimerChange(preset)}
+                              disabled={isRunning}
+                              className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50"
+                            >
+                              {preset}m
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  {/* Music Controls */}
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <button
-                      onClick={previousTrack}
-                      className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
-                      title="Previous Track"
-                    >
-                      <SkipBack className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    </button>
-                    
-                    <button
-                      onClick={toggleMusic}
-                      className="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-full transition-colors"
-                      title={isPlaying ? 'Pause' : 'Play'}
-                    >
-                      {isPlaying ? (
-                        <Pause className="w-6 h-6" />
-                      ) : (
-                        <Play className="w-6 h-6 ml-1" />
-                      )}
-                    </button>
-                    
-                    <button
-                      onClick={nextTrack}
-                      className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
-                      title="Next Track"
-                    >
-                      <SkipForward className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                    </button>
-                  </div>
-
-                  {/* Volume Control */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={toggleMute}
-                      className="p-2 hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-colors"
-                      title={isMuted ? 'Unmute' : 'Mute'}
-                    >
-                      {isMuted ? (
-                        <VolumeX className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      ) : (
-                        <Volume2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      )}
-                    </button>
-                    <div className="flex-1">
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={isMuted ? 0 : volume}
-                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                        className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                        disabled={isMuted}
-                      />
-                    </div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400 w-8 text-center">
-                      {Math.round((isMuted ? 0 : volume) * 100)}%
-                    </span>
-                  </div>
-
-                  {/* Track List Preview */}
-                  <div className="mt-4 max-h-32 overflow-y-auto">
-                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                      Lofi Love Playlist ({LOFI_TRACKS.length} tracks)
-                    </div>
-                    <div className="space-y-1">
-                      {LOFI_TRACKS.map((track, index) => (
-                        <button
-                          key={track.id}
-                          onClick={() => setCurrentTrack(index)}
-                          className={`w-full text-left px-2 py-1 rounded text-xs transition-colors ${
-                            currentTrack === index
-                              ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
-                              : 'hover:bg-white dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
-                          }`}
-                        >
-                          <span className="font-medium">{track.title}</span>
-                          <span className="text-gray-500 dark:text-gray-500 ml-2">by {track.artist}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Show Music Player Button (when hidden) */}
-              {!showMusicPlayer && (
-                <button
-                  onClick={() => setShowMusicPlayer(true)}
-                  className="w-full p-3 bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg border-2 border-dashed border-purple-200 dark:border-purple-700 transition-colors"
-                >
-                  <div className="flex items-center justify-center gap-2 text-purple-600 dark:text-purple-400">
-                    <Music className="w-5 h-5" />
-                    <span className="font-medium">Show Lofi Love Music Player</span>
-                  </div>
-                </button>
-              )}
-
-              {/* Mode Switcher */}
-              <div className="flex gap-2 p-1 bg-gray-100 dark:bg-gray-800 rounded-lg">
-                {(['focus', 'shortBreak', 'longBreak'] as TimerMode[]).map((timerMode) => (
-                  <button
-                    key={timerMode}
-                    onClick={() => switchMode(timerMode)}
-                    disabled={isRunning}
-                    className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-all ${
-                      mode === timerMode
-                        ? timerMode === 'focus'
-                          ? 'bg-blue-600 text-white shadow-sm'
-                          : 'bg-green-600 text-white shadow-sm'
-                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700'
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                  >
-                    {timerMode === 'focus' ? 'Focus (25m)' : 
-                     timerMode === 'shortBreak' ? 'Break (5m)' : 'Long Break (15m)'}
-                  </button>
-                ))}
+                )}
               </div>
 
-              {/* Study Subject & Task (only during focus mode) */}
-              {mode === 'focus' && (
+              {/* Study Subject & Task (only during focus/custom modes) */}
+              {(mode === 'focus' || mode === 'custom') && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -703,7 +579,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                       strokeDasharray={`${2 * Math.PI * 65}`}
                       strokeDashoffset={`${2 * Math.PI * 65 * (1 - getProgress() / 100)}`}
                       className={`transition-all duration-1000 ${
-                        mode === 'focus' 
+                        (mode === 'focus' || mode === 'custom')
                           ? 'text-blue-600 dark:text-blue-400' 
                           : 'text-green-600 dark:text-green-400'
                       }`}
@@ -731,7 +607,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     </span>
                   </div>
                   
-                  {mode !== 'focus' && (
+                  {(mode === 'shortBreak' || mode === 'longBreak') && (
                     <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
                       <div className="flex items-center gap-2 mb-2">
                         <Lightbulb className="w-4 h-4 text-green-600" />
@@ -753,10 +629,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   <Button
                     onClick={startFocus}
                     icon={Play}
-                    className={`flex-1 ${mode === 'focus' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
-                    disabled={time >= targetTime * 60 || (mode === 'focus' && !currentSubject.trim())}
+                    className={`flex-1 ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
+                    disabled={time >= targetTime * 60 || ((mode === 'focus' || mode === 'custom') && !currentSubject.trim())}
                   >
-                    {mode === 'focus' ? 'Start Studying' : 'Start Break'}
+                    {(mode === 'focus' || mode === 'custom') ? 'Start Session' : 'Start Break'}
                   </Button>
                 ) : (
                   <Button
@@ -790,53 +666,93 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 </Button>
               )}
 
+              {/* Compact Music Player Toggle */}
+              <div className="flex items-center justify-between">
+                <Button
+                  onClick={() => setShowMusicPlayer(!showMusicPlayer)}
+                  icon={Music}
+                  variant="ghost"
+                  className="text-purple-600"
+                >
+                  {showMusicPlayer ? 'Hide Music' : 'Show Music'}
+                </Button>
+                
+                {showMusicPlayer && (
+                  <div className="flex items-center gap-2">
+                    <button onClick={previousTrack} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                      <SkipBack className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button onClick={toggleMusic} className="p-2 bg-purple-600 text-white rounded-lg">
+                      {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                    <button onClick={nextTrack} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                      <SkipForward className="w-4 h-4 text-gray-600" />
+                    </button>
+                    <button onClick={toggleMute} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
+                      {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Volume Control (when music player is shown) */}
+              {showMusicPlayer && (
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+                  <div className="text-sm text-center text-purple-700 dark:text-purple-300 mb-2">
+                    {LOFI_TRACKS[currentTrack].title} - {LOFI_TRACKS[currentTrack].artist}
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.1"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                    className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                    disabled={isMuted}
+                  />
+                </div>
+              )}
+
               {/* Stats Dashboard */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Target className="w-5 h-5 text-blue-600" />
-                  </div>
+                  <Target className="w-5 h-5 text-blue-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-blue-900 dark:text-blue-400">
                     {pomodoroCount}
                   </div>
                   <div className="text-xs text-blue-700 dark:text-blue-300">
-                    Pomodoros Today
+                    Today
                   </div>
                 </div>
 
                 <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Flame className="w-5 h-5 text-orange-600" />
-                  </div>
+                  <Flame className="w-5 h-5 text-orange-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-orange-900 dark:text-orange-400">
                     {currentStreak}
                   </div>
                   <div className="text-xs text-orange-700 dark:text-orange-300">
-                    Current Streak
+                    Streak
                   </div>
                 </div>
 
                 <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
+                  <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-green-900 dark:text-green-400">
                     {sessionsCompleted}
                   </div>
                   <div className="text-xs text-green-700 dark:text-green-300">
-                    Total Sessions
+                    Total
                   </div>
                 </div>
 
                 <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                  <div className="flex items-center justify-center mb-2">
-                    <Trophy className="w-5 h-5 text-purple-600" />
-                  </div>
+                  <Trophy className="w-5 h-5 text-purple-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-purple-900 dark:text-purple-400">
                     {Math.round(getDailyProgress())}%
                   </div>
                   <div className="text-xs text-purple-700 dark:text-purple-300">
-                    Daily Goal
+                    Goal
                   </div>
                 </div>
               </div>
@@ -844,12 +760,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
               {/* Daily Goal Setting */}
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Target className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Daily Study Goal
-                    </span>
-                  </div>
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Daily Study Goal
+                  </span>
                   <div className="flex items-center gap-2">
                     <Input
                       type="number"
@@ -859,7 +772,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                       min="1"
                       max="12"
                     />
-                    <span className="text-xs text-gray-500">pomodoros</span>
+                    <span className="text-xs text-gray-500">sessions</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -868,43 +781,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     style={{ width: `${getDailyProgress()}%` }}
                   />
                 </div>
-                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  <span>{pomodoroCount} completed</span>
-                  <span>{dailyGoal} goal</span>
-                </div>
               </div>
 
-              {/* Pomodoro Cycle Progress */}
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="p-1 bg-blue-100 dark:bg-blue-900/30 rounded">
-                    <BookOpen className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <span className="font-medium text-blue-800 dark:text-blue-400">
-                    Pomodoro Cycle Progress
-                  </span>
-                </div>
-                <div className="flex gap-2 mb-2">
-                  {[1, 2, 3, 4].map((cycle) => (
-                    <div
-                      key={cycle}
-                      className={`flex-1 h-3 rounded-full ${
-                        cycle <= (pomodoroCount % 4 === 0 ? 4 : pomodoroCount % 4)
-                          ? 'bg-blue-600 dark:bg-blue-400'
-                          : 'bg-gray-200 dark:bg-gray-700'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <div className="text-xs text-blue-700 dark:text-blue-300 text-center">
-                  {pomodoroCount % 4 === 0 && pomodoroCount > 0 
-                    ? 'Cycle complete! Time for a long break 🎉' 
-                    : `${(pomodoroCount % 4)} of 4 focus sessions completed`}
-                </div>
-              </div>
-
-              {/* Study Tip */}
-              {mode === 'focus' && !isRunning && (
+              {/* Study Tip (when not running) */}
+              {(mode === 'focus' || mode === 'custom') && !isRunning && time === 0 && (
                 <div className="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Lightbulb className="w-4 h-4 text-yellow-600" />
@@ -915,42 +795,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   <p className="text-sm text-yellow-700 dark:text-yellow-300">
                     {getRandomTip()}
                   </p>
-                </div>
-              )}
-
-              {/* Session Progress (when timer is running or paused) */}
-              {time > 0 && (
-                <div className={`${mode === 'focus' ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-green-50 dark:bg-green-900/20'} rounded-lg p-4`}>
-                  <div className="flex items-center gap-2 mb-3">
-                    <CheckCircle className={`w-4 h-4 ${mode === 'focus' ? 'text-blue-600' : 'text-green-600'}`} />
-                    <span className={`font-semibold ${mode === 'focus' ? 'text-blue-800 dark:text-blue-400' : 'text-green-800 dark:text-green-400'}`}>
-                      Session Progress
-                    </span>
-                  </div>
-                  <div className={`text-sm space-y-2 ${mode === 'focus' ? 'text-blue-700 dark:text-blue-300' : 'text-green-700 dark:text-green-300'}`}>
-                    <div className="flex justify-between">
-                      <span>Progress:</span>
-                      <span className="font-semibold">{Math.round(getProgress())}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Time Remaining:</span>
-                      <span className="font-mono">{formatTime(Math.max(0, targetTime * 60 - time))}</span>
-                    </div>
-                    {mode === 'focus' && currentSubject && (
-                      <div className="flex justify-between">
-                        <span>Subject:</span>
-                        <span className="font-medium">{currentSubject}</span>
-                      </div>
-                    )}
-                    {mode === 'focus' && currentTask && (
-                      <div className="flex justify-between">
-                        <span>Task:</span>
-                        <span className="font-medium truncate ml-2" title={currentTask}>
-                          {currentTask.length > 20 ? currentTask.substring(0, 20) + '...' : currentTask}
-                        </span>
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
 
@@ -976,26 +820,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
           </Card>
         </div>
       )}
-
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #9333ea;
-          cursor: pointer;
-        }
-        
-        .slider::-moz-range-thumb {
-          width: 16px;
-          height: 16px;
-          border-radius: 50%;
-          background: #9333ea;
-          cursor: pointer;
-          border: none;
-        }
-      `}</style>
     </>
   );
 };
