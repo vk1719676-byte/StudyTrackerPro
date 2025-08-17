@@ -1,0 +1,125 @@
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload } from 'lucide-react';
+import { Logo } from '../ui/Logo';
+import { Button } from '../ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import { useTheme } from '../../contexts/ThemeContext';
+
+interface LogoutConfirmationProps {
+  isOpen: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}
+
+const LogoutConfirmation: React.FC<LogoutConfirmationProps> = ({ isOpen, onConfirm, onCancel }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm mx-4 shadow-xl">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          Confirm Logout
+        </h3>
+        <p className="text-gray-600 dark:text-gray-400 mb-6">
+          Are you sure you want to sign out of Study Tracker Pro?
+        </p>
+        <div className="flex gap-3">
+          <Button onClick={onConfirm} variant="danger" className="flex-1">
+            Yes, Sign Out
+          </Button>
+          <Button onClick={onCancel} variant="secondary" className="flex-1">
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export const DesktopNavbar: React.FC = () => {
+  const location = useLocation();
+  const { logout, user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+
+  const navItems = [
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/exams', label: 'Exams', icon: Calendar },
+    { path: '/goals', label: 'Goals', icon: Target },
+    { path: '/sessions', label: 'Sessions', icon: Clock },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/materials', label: 'Materials', icon: Upload },
+    { path: '/settings', label: 'Settings', icon: Settings }
+  ];
+
+  const handleLogout = async () => {
+    setShowLogoutConfirm(false);
+    await logout();
+  };
+
+  return (
+    <>
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
+          <Link to="/" className="flex items-center gap-3">
+            <Logo size="md" showText={false} />
+            <div className="hidden sm:block">
+              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+              </h1>
+            </div>
+          </Link>
+
+          <div className="hidden md:flex items-center space-x-8">
+            {navItems.map(({ path, label, icon: Icon }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`
+                  flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                  transition-all duration-200 hover:scale-105
+                  ${location.pathname === path
+                    ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  }
+                `}
+              >
+                <Icon className="w-4 h-4" />
+                {label}
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={theme === 'dark' ? Sun : Moon}
+              onClick={toggleTheme}
+              className="p-2"
+            />
+            <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400">
+              {user?.email}
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={LogOut}
+              onClick={() => setShowLogoutConfirm(true)}
+            >
+              Logout
+            </Button>
+          </div>
+        </div>
+      </div>
+      </nav>
+      
+      <LogoutConfirmation
+        isOpen={showLogoutConfirm}
+        onConfirm={handleLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
+    </>
+  );
+};
