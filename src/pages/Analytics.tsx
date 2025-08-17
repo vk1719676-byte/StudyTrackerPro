@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown } from 'lucide-react';
+import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Download, FileText, Camera } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
@@ -8,11 +8,13 @@ import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks } from 'date-fns';
+import { exportAnalyticsToPDF, captureChartsAsPDF } from '../utils/pdfExport';
 
 export const Analytics: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exportingPDF, setExportingPDF] = useState(false);
   const { user, isPremium } = useAuth();
 
   useEffect(() => {
@@ -112,6 +114,43 @@ export const Analytics: React.FC = () => {
     }));
   };
 
+  // PDF Export Functions
+  const handleExportPDF = async (includeCharts = false) => {
+    setExportingPDF(true);
+    
+    try {
+      const exportData = {
+        totalStudyTime,
+        totalSessions,
+        averageSessionTime,
+        averageEfficiency,
+        weeklyData,
+        dailyData,
+        subjectData,
+        efficiencyData,
+        isPremium,
+        userName: user?.displayName || user?.email || 'Student'
+      };
+
+      if (includeCharts) {
+        // Capture charts and combine with data
+        const chartIds = ['weekly-chart', 'daily-chart', 'subject-chart', 'efficiency-chart'];
+        const combinedPdf = await captureChartsAsPDF(chartIds, exportData);
+        if (combinedPdf) {
+          combinedPdf.save(`study-analytics-complete-${new Date().toISOString().split('T')[0]}.pdf`);
+        }
+      } else {
+        // Export data only
+        await exportAnalyticsToPDF(exportData);
+      }
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
+
   const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 
   const weeklyData = getWeeklyData();
@@ -164,13 +203,45 @@ export const Analytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            Study Analytics
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Gain insights into your study patterns and performance
-          </p>
+        {/* Header with Export Options */}
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Study Analytics
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Gain insights into your study patterns and performance
+            </p>
+          </div>
+          
+          {/* Export Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button
+              onClick={() => handleExportPDF(false)}
+              disabled={exportingPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportingPDF ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+              Export Data PDF
+            </button>
+            
+            <button
+              onClick={() => handleExportPDF(true)}
+              disabled={exportingPDF}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {exportingPDF ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
+              Export with Charts
+            </button>
+          </div>
         </div>
 
         {/* Summary Stats */}
@@ -237,7 +308,7 @@ export const Analytics: React.FC = () => {
           {/* Basic Analytics - Always Available */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Weekly Progress */}
-            <Card className="p-6">
+            <Card className="p-6" id="weekly-chart">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Weekly Study Hours
               </h3>
@@ -260,7 +331,7 @@ export const Analytics: React.FC = () => {
             </Card>
 
             {/* Daily Efficiency */}
-            <Card className="p-6">
+            <Card className="p-6" id="daily-chart">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
                 Daily Study Time & Efficiency
               </h3>
@@ -300,7 +371,7 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Subject Distribution */}
-          <Card className="p-6">
+          <Card className="p-6" id="subject-chart">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Study Time by Subject
             </h3>
@@ -422,7 +493,7 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Efficiency Distribution */}
-          <Card className="p-6">
+          <Card className="p-6" id="efficiency-chart">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
               Efficiency Ratings
             </h3>
@@ -466,6 +537,21 @@ export const Analytics: React.FC = () => {
             </div>
           </Card>
         </div>
+        
+        {/* Export Notice */}
+        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+          <div className="flex items-start gap-3">
+            <Download className="w-5 h-5 text-blue-600 mt-0.5" />
+            <div>
+              <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-1">
+                Export Your Analytics
+              </h4>
+              <p className="text-sm text-blue-700 dark:text-blue-200">
+                Save your study insights as a comprehensive PDF report. Choose "Export Data PDF" for detailed statistics and recommendations, or "Export with Charts" to include visual representations of your progress.
+              </p>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
