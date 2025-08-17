@@ -32,6 +32,7 @@ export const Analytics: React.FC = () => {
       unsubscribeExams();
     };
   }, [user]);
+
   // Prepare data for charts
   const getWeeklyData = () => {
     const weeks = [];
