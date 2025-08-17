@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Input } from '../ui/Input';
+import { Button } from './ui/Button';
+import { Card } from './ui/Card';
+import { Input } from './ui/Input';
 
 interface FocusModeProps {
   isOpen: boolean;
@@ -106,15 +106,19 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   useEffect(() => {
     const savedData = localStorage.getItem('studentFocusTimer');
     if (savedData) {
-      const data = JSON.parse(savedData);
-      setSessionsCompleted(data.sessionsCompleted || 0);
-      setCurrentStreak(data.currentStreak || 0);
-      setDailyGoal(data.dailyGoal || 4);
-      setStudyHistory(data.studyHistory || []);
-      setPomodoroCount(data.pomodoroCount || 0);
-      setVolume(data.musicVolume || 0.6);
-      setShowMusicPlayer(data.showMusicPlayer || false);
-      setPomodoroSettings(data.pomodoroSettings || DEFAULT_POMODORO_SETTINGS);
+      try {
+        const data = JSON.parse(savedData);
+        setSessionsCompleted(data.sessionsCompleted || 0);
+        setCurrentStreak(data.currentStreak || 0);
+        setDailyGoal(data.dailyGoal || 4);
+        setStudyHistory(data.studyHistory || []);
+        setPomodoroCount(data.pomodoroCount || 0);
+        setVolume(data.musicVolume || 0.6);
+        setShowMusicPlayer(data.showMusicPlayer || false);
+        setPomodoroSettings(data.pomodoroSettings || DEFAULT_POMODORO_SETTINGS);
+      } catch (error) {
+        console.error('Error loading saved data:', error);
+      }
     }
   }, []);
 
@@ -713,49 +717,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
               )}
-
-              {/* Stats Dashboard */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
-                  <Target className="w-5 h-5 text-blue-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-400">
-                    {pomodoroCount}
-                  </div>
-                  <div className="text-xs text-blue-700 dark:text-blue-300">
-                    Today
-                  </div>
-                </div>
-
-                <div className="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 text-center">
-                  <Flame className="w-5 h-5 text-orange-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-orange-900 dark:text-orange-400">
-                    {currentStreak}
-                  </div>
-                  <div className="text-xs text-orange-700 dark:text-orange-300">
-                    Streak
-                  </div>
-                </div>
-
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center">
-                  <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-green-900 dark:text-green-400">
-                    {sessionsCompleted}
-                  </div>
-                  <div className="text-xs text-green-700 dark:text-green-300">
-                    Total
-                  </div>
-                </div>
-
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 text-center">
-                  <Trophy className="w-5 h-5 text-purple-600 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-purple-900 dark:text-purple-400">
-                    {Math.round(getDailyProgress())}%
-                  </div>
-                  <div className="text-xs text-purple-700 dark:text-purple-300">
-                    Goal
-                  </div>
-                </div>
-              </div>
 
               {/* Daily Goal Setting */}
               <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4">
