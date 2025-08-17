@@ -1,3 +1,5 @@
+"use client"
+
 import type React from "react"
 import { useState, useEffect } from "react"
 import { ArrowRight, Clock, Target, TrendingUp, Users, Trophy, Star, Sparkles, CheckCircle } from "lucide-react"
