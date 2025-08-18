@@ -66,28 +66,42 @@ const DEFAULT_POMODORO_SETTINGS: TimerSettings = {
 const LOFI_TRACKS: LofiTrack[] = [
   {
     id: '1',
-    title: 'Midnight Study Session',
-    artist: 'ChillHop Collective',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-    duration: '4:32',
+    title: 'Lofi Study Session',
+    artist: 'Chill Beats',
+    url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
+    duration: '2:14'
     genre: 'lofi-hip-hop',
     mood: 'focused'
   },
   {
     id: '2',
-    title: 'Coffee Shop Vibes',
-    artist: 'Study Beats',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-    duration: '3:45',
+    title: 'Calm Piano Lofi',
+    artist: 'Relaxing Sounds',
+    url: 'https://cdn.pixabay.com/audio/2023/02/28/audio_2c4d3b8c8e.mp3',
+    duration: '3:42'
     genre: 'ambient',
     mood: 'relaxed'
   },
   {
     id: '3',
-    title: 'Deep Focus Flow',
-    artist: 'Concentration Station',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-    duration: '5:12',
+    title: 'Midnight Coffee',
+    artist: 'Study Lounge',
+    url: 'https://cdn.pixabay.com/audio/2022/11/27/audio_af1e9b6b8e.mp3',
+    duration: '2:58'
+  },
+  {
+    id: '4',
+    title: 'Focus Flow',
+    artist: 'Ambient Collective',
+    url: 'https://cdn.pixabay.com/audio/2023/01/15/audio_7b3c9d4f2a.mp3',
+    duration: '4:12'
+  },
+  {
+    id: '5',
+    title: 'Dreamy Study Beats',
+    artist: 'Lofi Dreams',
+    url: 'https://cdn.pixabay.com/audio/2022/08/04/audio_c8b5e6f1d3.mp3',
+    duration: '3:28'
     genre: 'ambient',
     mood: 'intense'
   },
@@ -1235,4 +1249,4 @@ function App() {
   );
 }
 
-export default App;\
+export default App;
