@@ -5,9 +5,9 @@ import {
   VolumeX, SkipForward, SkipBack, Settings, Moon, Sun, Award, 
   TrendingUp, Calendar, Zap, Star, Wind, Waves, TreePine, CloudRain 
 } from 'lucide-react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
-import { Input } from './ui/Input';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
 
 interface FocusModeProps {
   isOpen: boolean;
