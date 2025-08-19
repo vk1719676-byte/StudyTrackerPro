@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Quote, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Users, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, Crown, Heart, Gift } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Quote, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Users, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, Crown, Heart, Gift, X, Bell, Lightbulb, Megaphone, Info, Rocket } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -74,6 +74,250 @@ const SimpleCard: React.FC<{ children: React.ReactNode; className?: string; hove
     {children}
   </div>
 );
+
+// Notice types
+const noticeTypes = [
+  {
+    id: 'study-tip',
+    icon: Lightbulb,
+    type: 'tip',
+    title: 'Study Smart Tip',
+    message: 'Take a 10-minute break after every 45 minutes of focused study to boost retention by up to 30%!',
+    bgGradient: 'from-yellow-500 to-orange-500',
+    iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    iconColor: 'text-yellow-600 dark:text-yellow-400',
+    duration: 8000,
+    emoji: '💡'
+  },
+  {
+    id: 'motivation',
+    icon: Rocket,
+    type: 'motivation',
+    title: 'Stay Motivated',
+    message: "You're doing great! Every study session brings you closer to your goals. Keep pushing forward!",
+    bgGradient: 'from-purple-500 to-pink-500',
+    iconBg: 'bg-purple-100 dark:bg-purple-900/30',
+    iconColor: 'text-purple-600 dark:text-purple-400',
+    duration: 10000,
+    emoji: '🚀'
+  },
+  {
+    id: 'feature-update',
+    icon: Star,
+    type: 'update',
+    title: 'New Feature Alert',
+    message: 'Check out the enhanced analytics dashboard with AI-powered study recommendations!',
+    bgGradient: 'from-blue-500 to-cyan-500',
+    iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+    iconColor: 'text-blue-600 dark:text-blue-400',
+    duration: 12000,
+    emoji: '⭐'
+  },
+  {
+    id: 'health-reminder',
+    icon: Heart,
+    type: 'health',
+    title: 'Health Reminder',
+    message: 'Remember to stay hydrated, maintain good posture, and get enough sleep for optimal learning!',
+    bgGradient: 'from-green-500 to-teal-500',
+    iconBg: 'bg-green-100 dark:bg-green-900/30',
+    iconColor: 'text-green-600 dark:text-green-400',
+    duration: 9000,
+    emoji: '❤️'
+  },
+  {
+    id: 'achievement',
+    icon: Trophy,
+    type: 'achievement',
+    title: 'Achievement Unlocked',
+    message: 'Congratulations on maintaining your study streak! You\'re building excellent habits!',
+    bgGradient: 'from-amber-500 to-orange-500',
+    iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+    iconColor: 'text-amber-600 dark:text-amber-400',
+    duration: 7000,
+    emoji: '🏆'
+  }
+];
+
+// Notice Component
+const NoticeSection: React.FC<{ 
+  studyStreak: number; 
+  isPremium: boolean;
+  rakshabandhanActive: boolean;
+}> = ({ studyStreak, isPremium, rakshabandhanActive }) => {
+  const [currentNotice, setCurrentNotice] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Filter notices based on conditions
+  const getAvailableNotices = () => {
+    let available = [...noticeTypes];
+    
+    // Add special Raksha Bandhan notice if active
+    if (rakshabandhanActive) {
+      available.unshift({
+        id: 'raksha-bandhan',
+        icon: Gift,
+        type: 'special',
+        title: 'Raksha Bandhan Special',
+        message: 'Study with your siblings today! Research shows collaborative learning improves retention by 25%.',
+        bgGradient: 'from-pink-500 to-red-500',
+        iconBg: 'bg-pink-100 dark:bg-pink-900/30',
+        iconColor: 'text-pink-600 dark:text-pink-400',
+        duration: 6000,
+        emoji: '🎋'
+      });
+    }
+    
+    // Show achievement notice only if streak > 3
+    if (studyStreak <= 3) {
+      available = available.filter(notice => notice.id !== 'achievement');
+    }
+    
+    return available;
+  };
+
+  const availableNotices = getAvailableNotices();
+
+  // Auto-rotate notices
+  useEffect(() => {
+    if (isDismissed || availableNotices.length === 0) return;
+    
+    const currentNoticeDuration = availableNotices[currentNotice]?.duration || 8000;
+    const interval = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentNotice((prev) => (prev + 1) % availableNotices.length);
+        setIsAnimating(false);
+      }, 300);
+    }, currentNoticeDuration);
+    
+    return () => clearInterval(interval);
+  }, [currentNotice, isDismissed, availableNotices.length]);
+
+  const handleDismiss = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      setIsDismissed(true);
+    }, 300);
+  };
+
+  if (!isVisible || isDismissed || availableNotices.length === 0) {
+    return null;
+  }
+
+  const notice = availableNotices[currentNotice];
+  const IconComponent = notice.icon;
+
+  return (
+    <div className="mb-6 -mt-16 md:-mt-0 pt-16 md:pt-6">
+      <div className={`
+        relative overflow-hidden rounded-xl transition-all duration-500 transform
+        ${isAnimating ? 'scale-95 opacity-80' : 'scale-100 opacity-100'}
+        bg-gradient-to-r ${notice.bgGradient} p-[1px]
+      `}>
+        {/* Animated border gradient */}
+        <div className="absolute inset-0 bg-gradient-to-r opacity-20 animate-pulse"
+             style={{
+               background: `linear-gradient(90deg, transparent, white, transparent)`,
+               animation: 'shimmer 3s infinite'
+             }} />
+        
+        <div className="relative bg-white dark:bg-gray-900 rounded-xl">
+          {/* Floating particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="absolute text-xs opacity-20 animate-bounce"
+                style={{
+                  left: `${15 + (i * 18)}%`,
+                  top: `${20 + (i % 2) * 40}%`,
+                  animationDelay: `${i * 0.6}s`,
+                  animationDuration: '2.5s'
+                }}
+              >
+                {notice.emoji}
+              </div>
+            ))}
+          </div>
+
+          <div className="relative p-4 sm:p-5">
+            <div className="flex items-start gap-3">
+              {/* Icon */}
+              <div className={`
+                flex-shrink-0 p-2 rounded-lg ${notice.iconBg}
+                animate-pulse hover:animate-none transition-all duration-300
+                hover:scale-110 hover:rotate-6
+              `}>
+                <IconComponent className={`w-5 h-5 ${notice.iconColor}`} />
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base flex items-center gap-2">
+                    {notice.title}
+                    {notice.type === 'special' && (
+                      <span className="text-xs bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2 py-0.5 rounded-full">
+                        Special
+                      </span>
+                    )}
+                    {notice.type === 'update' && isPremium && (
+                      <PremiumBadge size="xs" />
+                    )}
+                  </h3>
+                  
+                  <button
+                    onClick={handleDismiss}
+                    className="flex-shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group ml-2"
+                  >
+                    <X className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                  </button>
+                </div>
+                
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                  {notice.message}
+                </p>
+
+                {/* Progress indicator */}
+                <div className="flex items-center justify-between mt-3">
+                  <div className="flex gap-1">
+                    {availableNotices.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`
+                          h-1 rounded-full transition-all duration-300
+                          ${index === currentNotice 
+                            ? `bg-gradient-to-r ${notice.bgGradient} w-6` 
+                            : 'bg-gray-200 dark:bg-gray-600 w-2'}
+                        `}
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {currentNotice + 1} of {availableNotices.length}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Add custom CSS for shimmer animation */}
+      <style jsx>{`
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
 
 // Simple stat card
 const StatCard: React.FC<{
@@ -379,6 +623,13 @@ export const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-6 pb-20 md:pb-8">
+        
+        {/* Notice Section */}
+        <NoticeSection 
+          studyStreak={studyStreak}
+          isPremium={isPremium}
+          rakshabandhanActive={rakshabandhanInfo.shouldShow}
+        />
         
         {/* Simple Hero Section */}
         <div className="mb-6 -mt-16 md:-mt-0 pt-16 md:pt-0">
