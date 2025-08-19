@@ -27,12 +27,18 @@ export const MobileNavbar: React.FC = () => {
     const y = event.clientY - rect.top;
     const path = button.getAttribute('href') || '';
     
+    // Clear previous effects
+    setRipples([]);
+    setShockwaves([]);
+    setActiveEffects(null);
+    
     const newRipple = { id: Date.now(), x, y };
     const newShockwave = { id: Date.now() + 1, x, y, path };
     
     setRipples(prev => [...prev, newRipple]);
     setShockwaves(prev => [...prev, newShockwave]);
     setClickedItem(path);
+    setActiveEffects(path);
     
     // Haptic feedback simulation
     if (navigator.vibrate) {
@@ -46,6 +52,7 @@ export const MobileNavbar: React.FC = () => {
     
     setTimeout(() => {
       setClickedItem(null);
+      setActiveEffects(null);
     }, 300);
   };
 
@@ -80,9 +87,10 @@ export const MobileNavbar: React.FC = () => {
         </div>
         
         <div className="flex items-center justify-around py-1">
-          {navItems.map(({ path, label, icon: Icon }, index) => {
+          {navItems.map(({ path, label, icon: Icon, colors }, index) => {
             const isActive = location.pathname === path;
             const isClicked = clickedItem === path;
+            const hasActiveEffects = activeEffects === path;
             
             return (
               <Link
@@ -93,18 +101,18 @@ export const MobileNavbar: React.FC = () => {
                   relative flex flex-col items-center gap-1 px-2 py-2 rounded-xl min-w-0 flex-1 overflow-hidden group
                   transition-all duration-300 ease-out transform select-none
                   ${isActive
-                    ? 'text-purple-600 dark:text-purple-400 scale-105 z-10'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-purple-500 dark:hover:text-purple-300'
+                    ? `bg-gradient-to-br ${colors.activeBg} scale-105 z-10`
+                    : 'text-gray-600 dark:text-gray-400'
                   }
                   ${isClicked ? 'scale-110 brightness-125' : ''}
-                  hover:bg-purple-50/50 dark:hover:bg-purple-900/20 active:scale-125
+                  hover:bg-gray-50/50 dark:hover:bg-gray-900/20 active:scale-125
                 `}
                 style={{
                   animationDelay: `${index * 50}ms`
                 }}
               >
-                {/* Multiple Ripple Effects */}
-                {ripples.map(ripple => (
+                {/* Multiple Ripple Effects - Only show for active effects */}
+                {hasActiveEffects && ripples.map(ripple => (
                   <div
                     key={ripple.id}
                     className="absolute pointer-events-none"
@@ -114,16 +122,16 @@ export const MobileNavbar: React.FC = () => {
                     }}
                   >
                     {/* Primary ripple */}
-                    <div className="w-8 h-8 rounded-full bg-purple-400/40 animate-ping"></div>
+                    <div className={`w-8 h-8 rounded-full ${colors.ripple} animate-ping`}></div>
                     {/* Secondary ripple */}
-                    <div className="absolute inset-0 w-8 h-8 rounded-full bg-blue-400/30 animate-ping" style={{ animationDelay: '100ms' }}></div>
+                    <div className={`absolute inset-0 w-8 h-8 rounded-full ${colors.ripple2} animate-ping`} style={{ animationDelay: '100ms' }}></div>
                     {/* Tertiary ripple */}
-                    <div className="absolute inset-0 w-8 h-8 rounded-full bg-pink-400/20 animate-ping" style={{ animationDelay: '200ms' }}></div>
+                    <div className={`absolute inset-0 w-8 h-8 rounded-full ${colors.ripple3} animate-ping`} style={{ animationDelay: '200ms' }}></div>
                   </div>
                 ))}
 
-                {/* Shockwave Effects */}
-                {shockwaves.filter(wave => wave.path === path).map(wave => (
+                {/* Shockwave Effects - Only show for active effects */}
+                {hasActiveEffects && shockwaves.filter(wave => wave.path === path).map(wave => (
                   <div
                     key={wave.id}
                     className="absolute pointer-events-none"
@@ -133,26 +141,25 @@ export const MobileNavbar: React.FC = () => {
                     }}
                   >
                     {/* Expanding shockwave */}
-                    <div className="w-12 h-12 rounded-full border-2 border-purple-500/50 animate-ping"></div>
-                    <div className="absolute inset-0 w-12 h-12 rounded-full border border-blue-400/30 animate-ping" style={{ animationDelay: '150ms' }}></div>
+                    <div className={`w-12 h-12 rounded-full border-2 ${colors.shockwave} animate-ping`}></div>
+                    <div className={`absolute inset-0 w-12 h-12 rounded-full border ${colors.shockwave2} animate-ping`} style={{ animationDelay: '150ms' }}></div>
                   </div>
                 ))}
 
                 {/* Active indicator */}
                 {isActive && (
                   <>
-                    <div className="absolute inset-0 bg-gradient-to-t from-purple-100/40 to-transparent dark:from-purple-900/40 rounded-xl animate-pulse"></div>
-                    <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full shadow-lg">
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-pulse"></div>
+                    <div className={`absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r ${colors.active} rounded-full shadow-lg`}>
+                      <div className={`absolute inset-0 bg-gradient-to-r ${colors.active} rounded-full animate-pulse opacity-75`}></div>
                     </div>
                   </>
                 )}
 
-                {/* Click burst effect */}
-                {isClicked && (
+                {/* Click burst effect - Only show for active effects */}
+                {hasActiveEffects && isClicked && (
                   <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute inset-0 bg-gradient-radial from-purple-400/30 via-blue-400/20 to-transparent rounded-xl animate-ping"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-yellow-200/20 to-transparent rounded-xl animate-pulse"></div>
+                    <div className={`absolute inset-0 bg-gradient-radial ${colors.ripple} to-transparent rounded-xl animate-ping`}></div>
+                    <div className={`absolute inset-0 bg-gradient-to-t ${colors.ripple2} to-transparent rounded-xl animate-pulse`}></div>
                   </div>
                 )}
 
@@ -161,7 +168,7 @@ export const MobileNavbar: React.FC = () => {
                   relative flex items-center justify-center w-8 h-8 rounded-lg z-10
                   transition-all duration-300 transform
                   ${isActive 
-                    ? 'bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 shadow-lg' 
+                    ? `bg-gradient-to-br ${colors.iconBg} shadow-lg` 
                     : 'group-hover:bg-gray-100 dark:group-hover:bg-gray-700 group-hover:shadow-md'
                   }
                   ${isClicked ? 'scale-125 rotate-12 shadow-xl' : ''}
@@ -170,23 +177,34 @@ export const MobileNavbar: React.FC = () => {
                   {/* Icon glow background */}
                   <div className={`
                     absolute inset-0 rounded-lg transition-all duration-300
-                    ${isActive ? 'bg-purple-500/10 animate-pulse' : ''}
-                    ${isClicked ? 'bg-gradient-to-br from-purple-500/30 to-blue-500/30 animate-ping' : ''}
+                    ${isActive ? `${colors.ripple3} animate-pulse` : ''}
+                    ${hasActiveEffects && isClicked ? `bg-gradient-to-br ${colors.ripple} ${colors.ripple2} animate-ping` : ''}
                   `}></div>
                   
-                  <Icon className={`
-                    w-5 h-5 transition-all duration-300 relative z-10
-                    ${isActive ? 'scale-110 drop-shadow-lg filter brightness-110' : 'group-hover:scale-105'}
-                    ${isClicked ? 'scale-125 drop-shadow-xl filter brightness-125 hue-rotate-15' : ''}
-                    group-active:scale-150
-                  `} />
+                  <Icon 
+                    className={`
+                      w-5 h-5 transition-all duration-300 relative z-10
+                      ${isActive ? 'scale-110 drop-shadow-lg filter brightness-110' : 'group-hover:scale-105'}
+                      ${hasActiveEffects && isClicked ? 'scale-125 drop-shadow-xl filter brightness-125 hue-rotate-15' : ''}
+                      group-active:scale-150
+                    `}
+                    style={{
+                      color: isActive ? `rgb(${colors.primary.includes('blue') ? '59 130 246' : 
+                                              colors.primary.includes('emerald') ? '16 185 129' :
+                                              colors.primary.includes('orange') ? '249 115 22' :
+                                              colors.primary.includes('purple') ? '168 85 247' :
+                                              colors.primary.includes('indigo') ? '99 102 241' :
+                                              colors.primary.includes('yellow') ? '245 158 11' :
+                                              '107 114 128'})` : undefined
+                    }}
+                  />
                   
-                  {/* Sparkle effects on click */}
-                  {isClicked && (
+                  {/* Sparkle effects on click - Only show for active effects */}
+                  {hasActiveEffects && isClicked && (
                     <>
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
-                      <div className="absolute -bottom-1 -left-1 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping" style={{ animationDelay: '100ms' }}></div>
-                      <div className="absolute top-0 left-0 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{ animationDelay: '200ms' }}></div>
+                      <div className={`absolute -top-1 -right-1 w-2 h-2 ${colors.sparkle1} rounded-full animate-ping`}></div>
+                      <div className={`absolute -bottom-1 -left-1 w-1.5 h-1.5 ${colors.sparkle2} rounded-full animate-ping`} style={{ animationDelay: '100ms' }}></div>
+                      <div className={`absolute top-0 left-0 w-1 h-1 ${colors.sparkle3} rounded-full animate-ping`} style={{ animationDelay: '200ms' }}></div>
                     </>
                   )}
                 </div>
@@ -195,15 +213,24 @@ export const MobileNavbar: React.FC = () => {
                 <span className={`
                   text-xs font-medium truncate transition-all duration-300 relative z-10
                   ${isActive ? 'font-semibold text-shadow-sm drop-shadow-sm' : ''}
-                  ${isClicked ? 'font-bold scale-105 drop-shadow-md' : ''}
+                  ${hasActiveEffects && isClicked ? 'font-bold scale-105 drop-shadow-md' : ''}
                   group-active:scale-110
-                `}>
+                `}
+                style={{
+                  color: isActive ? `rgb(${colors.primary.includes('blue') ? '59 130 246' : 
+                                          colors.primary.includes('emerald') ? '16 185 129' :
+                                          colors.primary.includes('orange') ? '249 115 22' :
+                                          colors.primary.includes('purple') ? '168 85 247' :
+                                          colors.primary.includes('indigo') ? '99 102 241' :
+                                          colors.primary.includes('yellow') ? '245 158 11' :
+                                          '107 114 128'})` : undefined
+                }}>
                   {label}
                 </span>
 
                 {/* Enhanced shine effects */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-[-100%] transition-transform duration-500 ease-out pointer-events-none"></div>
-                <div className="absolute inset-0 bg-gradient-to-l from-transparent via-purple-300/10 to-transparent skew-x-12 -translate-x-full group-active:translate-x-full transition-transform duration-300 ease-out pointer-events-none"></div>
+                <div className={`absolute inset-0 bg-gradient-to-l from-transparent via-white/10 to-transparent skew-x-12 -translate-x-full group-active:translate-x-full transition-transform duration-300 ease-out pointer-events-none`}></div>
               </Link>
             );
           })}
