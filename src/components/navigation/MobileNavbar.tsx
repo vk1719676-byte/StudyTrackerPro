@@ -37,11 +37,12 @@ export const MobileNavbar: React.FC = () => {
       {/* Compact Floating Focus Mode Button */}
       <button
         onClick={() => setShowFocusMode(true)}
-        className="md:hidden fixed bottom-24 right-6 z-40 w-14 h-14 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-110 active:scale-95 flex items-center justify-center group overflow-hidden animate-pulse hover:animate-none backdrop-blur-sm"
+        className="md:hidden fixed bottom-24 right-4 z-40 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 flex items-center gap-2 group overflow-hidden animate-pulse hover:animate-none backdrop-blur-sm"
         title="Focus Mode"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <Shield className="w-6 h-6 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+        <Shield className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
+        <span className="text-sm font-medium relative z-10 whitespace-nowrap">Enter Focus Mode</span>
         
         {/* Breathing ring effect */}
         <div className="absolute inset-0 rounded-full border-2 border-purple-300/30 animate-ping"></div>
