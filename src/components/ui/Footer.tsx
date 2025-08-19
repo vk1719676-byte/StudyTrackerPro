@@ -106,10 +106,10 @@ export const Footer: React.FC = () => {
   ];
 
   const quickLinks = [
-    { name: 'Privacy Policy', href: '/privacy-policy', icon: Shield },
-    { name: 'Terms of Service', href: '/terms-of-service', icon: FileText },
-    { name: 'Help Center', href: '/help-center', icon: HelpCircle },
-    { name: 'Contact Us', href: '/contact-us', icon: MessageCircle },
+    { name: 'Privacy Policy', href: 'https://studypro-tracker.netlify.app/privacy-policy', icon: Shield },
+    { name: 'Terms of Service', href: 'https://studypro-tracker.netlify.app/terms-of-service', icon: FileText },
+    { name: 'Help Center', href: 'https://studypro-tracker.netlify.app/help-center', icon: HelpCircle },
+    { name: 'Contact Us', href: 'https://studypro-tracker.netlify.app/contact-us', icon: MessageCircle },
   ];
 
   const studyTools = [
