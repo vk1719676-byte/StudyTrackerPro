@@ -1,81 +1,80 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, 
-  Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, 
-  X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, 
-  Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, 
-  GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, 
-  Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code 
-} from 'lucide-react';
-
-export interface FooterStats {
-  totalStudents: number;
-  passedStudents: number;
-  totalStudyHours: number;
-  averageScore: number;
-}
-
-interface PeriodicElement {
-  symbol: string;
-  name: string;
-  number: number;
-  mass: number;
-  category: string;
-  period: number;
-  group: number;
-}
-
-interface Grade {
-  subject: string;
-  currentGrade: string;
-  creditHours: string;
-  targetGrade: string;
-}
+import React, { useState, useEffect } from 'react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  // Main state
-  const [stats, setStats] = useState<FooterStats>({
+  const [stats, setStats] = useState({
     totalStudents: 12847,
     passedStudents: 9234,
     totalStudyHours: 156789,
     averageScore: 87.5
   });
 
-  // Modal states
   const [showComingSoon, setShowComingSoon] = useState(false);
   const [selectedFeature, setSelectedFeature] = useState('');
   const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorDisplay, setCalculatorDisplay] = useState('0');
+  const [calculatorMode, setCalculatorMode] = useState('basic');
+  const [calculatorHistory, setCalculatorHistory] = useState<string[]>([]);
   const [showPeriodicTable, setShowPeriodicTable] = useState(false);
+  const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
 
-  // Calculator states
-  const [calculatorDisplay, setCalculatorDisplay] = useState('0');
-  const [calculatorMode, setCalculatorMode] = useState<'basic' | 'scientific'>('basic');
-  const [calculatorHistory, setCalculatorHistory] = useState<string[]>([]);
+  // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
   const [operation, setOperation] = useState<string | null>(null);
   const [waitingForNewValue, setWaitingForNewValue] = useState(false);
 
-  // Periodic table states
-  const [selectedElement, setSelectedElement] = useState<PeriodicElement | null>(null);
-
-  // Grade calculator states
-  const [grades, setGrades] = useState<Grade[]>([
+  // Grade Calculator States
+  const [grades, setGrades] = useState([
     { subject: '', currentGrade: '', creditHours: '', targetGrade: '' }
   ]);
   const [currentGPA, setCurrentGPA] = useState(0);
   const [targetGPA, setTargetGPA] = useState('');
 
-  // Math solver states
+  // Math Solver States
   const [mathExpression, setMathExpression] = useState('');
   const [mathSolution, setMathSolution] = useState('');
   const [mathSteps, setMathSteps] = useState<string[]>([]);
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Constants
-  const socialLinks = useMemo(() => [
+  // Simulate real-time stats updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStats(prev => ({
+        totalStudents: prev.totalStudents + Math.floor(Math.random() * 3),
+        passedStudents: prev.passedStudents + Math.floor(Math.random() * 2),
+        totalStudyHours: prev.totalStudyHours + Math.floor(Math.random() * 10),
+        averageScore: 87.5 + (Math.random() - 0.5) * 2
+      }));
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleFeatureClick = (featureName: string) => {
+    if (featureName === 'Advanced Calculator') {
+      setShowCalculator(true);
+      return;
+    }
+    if (featureName === 'Periodic Table') {
+      setShowPeriodicTable(true);
+      return;
+    }
+    if (featureName === 'Grade Calculator') {
+      setShowGradeCalculator(true);
+      return;
+    }
+    if (featureName === 'Math Solver') {
+      setShowMathSolver(true);
+      return;
+    }
+    setSelectedFeature(featureName);
+    setShowComingSoon(true);
+  };
+
+  const socialLinks = [
     {
       name: 'YouTube',
       url: 'https://www.youtube.com/@studytrackerpro',
@@ -104,16 +103,16 @@ export const Footer: React.FC = () => {
       color: 'hover:text-blue-500',
       bgColor: 'hover:bg-blue-50 dark:hover:bg-blue-900/20'
     }
-  ], []);
+  ];
 
-  const quickLinks = useMemo(() => [
+  const quickLinks = [
     { name: 'Privacy Policy', href: '/privacy-policy', icon: Shield },
     { name: 'Terms of Service', href: '/terms-of-service', icon: FileText },
     { name: 'Help Center', href: '/help-center', icon: HelpCircle },
     { name: 'Contact Us', href: '/contact-us', icon: MessageCircle },
-  ], []);
+  ];
 
-  const studyTools = useMemo(() => [
+  const studyTools = [
     {
       icon: Calculator,
       title: "Advanced Calculator",
@@ -142,9 +141,10 @@ export const Footer: React.FC = () => {
       gradient: "from-pink-500 to-rose-600",
       category: "Math Tools"
     }
-  ], []);
+  ];
 
-  const teamMembers = useMemo(() => [
+  // Team Members Data
+  const teamMembers = [
     {
       name: "Vinay Kumar",
       role: "Co-Owner & Developer Of Study Tracker Pro",
@@ -167,128 +167,10 @@ export const Footer: React.FC = () => {
         github: "#"
       }
     }
-  ], []);
+  ];
 
-  const periodicElements: PeriodicElement[] = useMemo(() => [
-    // Period 1
-    { symbol: 'H', name: 'Hydrogen', number: 1, mass: 1.008, category: 'nonmetal', period: 1, group: 1 },
-    { symbol: 'He', name: 'Helium', number: 2, mass: 4.003, category: 'noble-gas', period: 1, group: 18 },
-    
-    // Period 2
-    { symbol: 'Li', name: 'Lithium', number: 3, mass: 6.941, category: 'alkali-metal', period: 2, group: 1 },
-    { symbol: 'Be', name: 'Beryllium', number: 4, mass: 9.012, category: 'alkaline-earth', period: 2, group: 2 },
-    { symbol: 'B', name: 'Boron', number: 5, mass: 10.811, category: 'metalloid', period: 2, group: 13 },
-    { symbol: 'C', name: 'Carbon', number: 6, mass: 12.011, category: 'nonmetal', period: 2, group: 14 },
-    { symbol: 'N', name: 'Nitrogen', number: 7, mass: 14.007, category: 'nonmetal', period: 2, group: 15 },
-    { symbol: 'O', name: 'Oxygen', number: 8, mass: 15.999, category: 'nonmetal', period: 2, group: 16 },
-    { symbol: 'F', name: 'Fluorine', number: 9, mass: 18.998, category: 'halogen', period: 2, group: 17 },
-    { symbol: 'Ne', name: 'Neon', number: 10, mass: 20.180, category: 'noble-gas', period: 2, group: 18 },
-    
-    // Period 3
-    { symbol: 'Na', name: 'Sodium', number: 11, mass: 22.990, category: 'alkali-metal', period: 3, group: 1 },
-    { symbol: 'Mg', name: 'Magnesium', number: 12, mass: 24.305, category: 'alkaline-earth', period: 3, group: 2 },
-    { symbol: 'Al', name: 'Aluminum', number: 13, mass: 26.982, category: 'post-transition', period: 3, group: 13 },
-    { symbol: 'Si', name: 'Silicon', number: 14, mass: 28.086, category: 'metalloid', period: 3, group: 14 },
-    { symbol: 'P', name: 'Phosphorus', number: 15, mass: 30.974, category: 'nonmetal', period: 3, group: 15 },
-    { symbol: 'S', name: 'Sulfur', number: 16, mass: 32.065, category: 'nonmetal', period: 3, group: 16 },
-    { symbol: 'Cl', name: 'Chlorine', number: 17, mass: 35.453, category: 'halogen', period: 3, group: 17 },
-    { symbol: 'Ar', name: 'Argon', number: 18, mass: 39.948, category: 'noble-gas', period: 3, group: 18 },
-    
-    // Period 4 (first 10 elements)
-    { symbol: 'K', name: 'Potassium', number: 19, mass: 39.098, category: 'alkali-metal', period: 4, group: 1 },
-    { symbol: 'Ca', name: 'Calcium', number: 20, mass: 40.078, category: 'alkaline-earth', period: 4, group: 2 },
-    { symbol: 'Sc', name: 'Scandium', number: 21, mass: 44.956, category: 'transition-metal', period: 4, group: 3 },
-    { symbol: 'Ti', name: 'Titanium', number: 22, mass: 47.867, category: 'transition-metal', period: 4, group: 4 },
-    { symbol: 'V', name: 'Vanadium', number: 23, mass: 50.942, category: 'transition-metal', period: 4, group: 5 },
-    { symbol: 'Cr', name: 'Chromium', number: 24, mass: 51.996, category: 'transition-metal', period: 4, group: 6 },
-    { symbol: 'Mn', name: 'Manganese', number: 25, mass: 54.938, category: 'transition-metal', period: 4, group: 7 },
-    { symbol: 'Fe', name: 'Iron', number: 26, mass: 55.845, category: 'transition-metal', period: 4, group: 8 },
-    { symbol: 'Co', name: 'Cobalt', number: 27, mass: 58.933, category: 'transition-metal', period: 4, group: 9 },
-    { symbol: 'Ni', name: 'Nickel', number: 28, mass: 58.693, category: 'transition-metal', period: 4, group: 10 }
-  ], []);
-
-  const calculatorButtons = useMemo(() => [
-    ['CE', 'C', '±', '÷'],
-    ['7', '8', '9', '×'],
-    ['4', '5', '6', '-'],
-    ['1', '2', '3', '+'],
-    ['0', '.', '%', '=']
-  ], []);
-
-  const scientificButtons = useMemo(() => [
-    ['sin', 'cos', 'tan'],
-    ['log', 'ln', '√'],
-    ['x²', '1/x', 'π']
-  ], []);
-
-  // Simulate real-time stats updates
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setStats(prev => ({
-        totalStudents: prev.totalStudents + Math.floor(Math.random() * 3),
-        passedStudents: prev.passedStudents + Math.floor(Math.random() * 2),
-        totalStudyHours: prev.totalStudyHours + Math.floor(Math.random() * 10),
-        averageScore: Math.max(85, Math.min(95, 87.5 + (Math.random() - 0.5) * 2))
-      }));
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  // Calculate GPA automatically when grades change
-  useEffect(() => {
-    const calculateGPA = () => {
-      let totalPoints = 0;
-      let totalCredits = 0;
-      
-      grades.forEach(grade => {
-        const points = parseFloat(grade.currentGrade) || 0;
-        const credits = parseFloat(grade.creditHours) || 0;
-        totalPoints += points * credits;
-        totalCredits += credits;
-      });
-      
-      const gpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
-      setCurrentGPA(parseFloat(gpa.toFixed(2)));
-    };
-
-    calculateGPA();
-  }, [grades]);
-
-  // Event handlers
-  const handleFeatureClick = useCallback((featureName: string) => {
-    switch (featureName) {
-      case 'Advanced Calculator':
-        setShowCalculator(true);
-        break;
-      case 'Periodic Table':
-        setShowPeriodicTable(true);
-        break;
-      case 'Grade Calculator':
-        setShowGradeCalculator(true);
-        break;
-      case 'Math Solver':
-        setShowMathSolver(true);
-        break;
-      default:
-        setSelectedFeature(featureName);
-        setShowComingSoon(true);
-        break;
-    }
-  }, []);
-
-  const closeAllModals = useCallback(() => {
-    setShowComingSoon(false);
-    setShowCalculator(false);
-    setShowPeriodicTable(false);
-    setShowGradeCalculator(false);
-    setShowMathSolver(false);
-    setSelectedFeature('');
-    setSelectedElement(null);
-  }, []);
-
-  // Calculator functions
-  const performCalculation = useCallback((firstValue: number, operator: string, secondValue: number): number => {
+  // Improved Calculator Functions
+  const performCalculation = (firstValue: number, operator: string, secondValue: number): number => {
     switch (operator) {
       case '+':
         return firstValue + secondValue;
@@ -303,9 +185,9 @@ export const Footer: React.FC = () => {
       default:
         return secondValue;
     }
-  }, []);
+  };
 
-  const handleCalculatorInput = useCallback((input: string) => {
+  const handleCalculatorInput = (input: string) => {
     const currentValue = parseFloat(calculatorDisplay) || 0;
 
     if (input === 'C') {
@@ -417,10 +299,62 @@ export const Footer: React.FC = () => {
     } else {
       setCalculatorDisplay(calculatorDisplay === '0' ? input : calculatorDisplay + input);
     }
-  }, [calculatorDisplay, calculatorMode, operation, performCalculation, previousValue, waitingForNewValue]);
+  };
 
-  // Periodic table functions
-  const getCategoryColor = useCallback((category: string) => {
+  const calculatorButtons = [
+    ['CE', 'C', '±', '÷'],
+    ['7', '8', '9', '×'],
+    ['4', '5', '6', '-'],
+    ['1', '2', '3', '+'],
+    ['0', '.', '%', '=']
+  ];
+
+  const scientificButtons = [
+    ['sin', 'cos', 'tan'],
+    ['log', 'ln', '√'],
+    ['x²', '1/x', 'π']
+  ];
+
+  // Periodic Table Data (complete first 118 elements)
+  const periodicElements = [
+    // Period 1
+    { symbol: 'H', name: 'Hydrogen', number: 1, mass: 1.008, category: 'nonmetal', period: 1, group: 1 },
+    { symbol: 'He', name: 'Helium', number: 2, mass: 4.003, category: 'noble-gas', period: 1, group: 18 },
+    
+    // Period 2
+    { symbol: 'Li', name: 'Lithium', number: 3, mass: 6.941, category: 'alkali-metal', period: 2, group: 1 },
+    { symbol: 'Be', name: 'Beryllium', number: 4, mass: 9.012, category: 'alkaline-earth', period: 2, group: 2 },
+    { symbol: 'B', name: 'Boron', number: 5, mass: 10.811, category: 'metalloid', period: 2, group: 13 },
+    { symbol: 'C', name: 'Carbon', number: 6, mass: 12.011, category: 'nonmetal', period: 2, group: 14 },
+    { symbol: 'N', name: 'Nitrogen', number: 7, mass: 14.007, category: 'nonmetal', period: 2, group: 15 },
+    { symbol: 'O', name: 'Oxygen', number: 8, mass: 15.999, category: 'nonmetal', period: 2, group: 16 },
+    { symbol: 'F', name: 'Fluorine', number: 9, mass: 18.998, category: 'halogen', period: 2, group: 17 },
+    { symbol: 'Ne', name: 'Neon', number: 10, mass: 20.180, category: 'noble-gas', period: 2, group: 18 },
+    
+    // Period 3
+    { symbol: 'Na', name: 'Sodium', number: 11, mass: 22.990, category: 'alkali-metal', period: 3, group: 1 },
+    { symbol: 'Mg', name: 'Magnesium', number: 12, mass: 24.305, category: 'alkaline-earth', period: 3, group: 2 },
+    { symbol: 'Al', name: 'Aluminum', number: 13, mass: 26.982, category: 'post-transition', period: 3, group: 13 },
+    { symbol: 'Si', name: 'Silicon', number: 14, mass: 28.086, category: 'metalloid', period: 3, group: 14 },
+    { symbol: 'P', name: 'Phosphorus', number: 15, mass: 30.974, category: 'nonmetal', period: 3, group: 15 },
+    { symbol: 'S', name: 'Sulfur', number: 16, mass: 32.065, category: 'nonmetal', period: 3, group: 16 },
+    { symbol: 'Cl', name: 'Chlorine', number: 17, mass: 35.453, category: 'halogen', period: 3, group: 17 },
+    { symbol: 'Ar', name: 'Argon', number: 18, mass: 39.948, category: 'noble-gas', period: 3, group: 18 },
+    
+    // Period 4 (first 10 elements)
+    { symbol: 'K', name: 'Potassium', number: 19, mass: 39.098, category: 'alkali-metal', period: 4, group: 1 },
+    { symbol: 'Ca', name: 'Calcium', number: 20, mass: 40.078, category: 'alkaline-earth', period: 4, group: 2 },
+    { symbol: 'Sc', name: 'Scandium', number: 21, mass: 44.956, category: 'transition-metal', period: 4, group: 3 },
+    { symbol: 'Ti', name: 'Titanium', number: 22, mass: 47.867, category: 'transition-metal', period: 4, group: 4 },
+    { symbol: 'V', name: 'Vanadium', number: 23, mass: 50.942, category: 'transition-metal', period: 4, group: 5 },
+    { symbol: 'Cr', name: 'Chromium', number: 24, mass: 51.996, category: 'transition-metal', period: 4, group: 6 },
+    { symbol: 'Mn', name: 'Manganese', number: 25, mass: 54.938, category: 'transition-metal', period: 4, group: 7 },
+    { symbol: 'Fe', name: 'Iron', number: 26, mass: 55.845, category: 'transition-metal', period: 4, group: 8 },
+    { symbol: 'Co', name: 'Cobalt', number: 27, mass: 58.933, category: 'transition-metal', period: 4, group: 9 },
+    { symbol: 'Ni', name: 'Nickel', number: 28, mass: 58.693, category: 'transition-metal', period: 4, group: 10 }
+  ];
+
+  const getCategoryColor = (category: string) => {
     const colors = {
       'nonmetal': 'bg-yellow-400 hover:bg-yellow-500 text-gray-800',
       'noble-gas': 'bg-purple-400 hover:bg-purple-500 text-white',
@@ -431,30 +365,47 @@ export const Footer: React.FC = () => {
       'post-transition': 'bg-gray-400 hover:bg-gray-500 text-white',
       'transition-metal': 'bg-indigo-400 hover:bg-indigo-500 text-white'
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-300 hover:bg-gray-400 text-gray-800';
-  }, []);
+    return colors[category] || 'bg-gray-300 hover:bg-gray-400 text-gray-800';
+  };
 
-  // Grade calculator functions
-  const addGrade = useCallback(() => {
-    setGrades(prev => [...prev, { subject: '', currentGrade: '', creditHours: '', targetGrade: '' }]);
-  }, []);
+  // Grade Calculator Functions
+  const addGrade = () => {
+    setGrades([...grades, { subject: '', currentGrade: '', creditHours: '', targetGrade: '' }]);
+  };
 
-  const removeGrade = useCallback((index: number) => {
+  const removeGrade = (index: number) => {
     if (grades.length > 1) {
-      setGrades(prev => prev.filter((_, i) => i !== index));
+      setGrades(grades.filter((_, i) => i !== index));
     }
-  }, [grades.length]);
+  };
 
-  const updateGrade = useCallback((index: number, field: keyof Grade, value: string) => {
-    setGrades(prev => {
-      const newGrades = [...prev];
-      newGrades[index] = { ...newGrades[index], [field]: value };
-      return newGrades;
+  const updateGrade = (index: number, field: string, value: string) => {
+    const newGrades = [...grades];
+    newGrades[index] = { ...newGrades[index], [field]: value };
+    setGrades(newGrades);
+  };
+
+  const calculateGPA = () => {
+    let totalPoints = 0;
+    let totalCredits = 0;
+    
+    grades.forEach(grade => {
+      const points = parseFloat(grade.currentGrade) || 0;
+      const credits = parseFloat(grade.creditHours) || 0;
+      totalPoints += points * credits;
+      totalCredits += credits;
     });
-  }, []);
+    
+    const gpa = totalCredits > 0 ? (totalPoints / totalCredits) : 0;
+    setCurrentGPA(parseFloat(gpa.toFixed(2)));
+  };
 
-  // Math solver functions
-  const solveMathProblem = useCallback(async () => {
+  useEffect(() => {
+    calculateGPA();
+  }, [grades]);
+
+  // Improved Math Solver with API Integration
+  const solveMathProblem = async () => {
     if (!mathExpression.trim()) return;
     
     setIsLoading(true);
@@ -646,713 +597,690 @@ export const Footer: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [mathExpression, mathType]);
+  };
 
-  const clearMathSolver = useCallback(() => {
+  const clearMathSolver = () => {
     setMathExpression('');
     setMathSolution('');
     setMathSteps([]);
-  }, []);
-
-  // Modal component render functions
-  const renderComingSoonModal = () => {
-    if (!showComingSoon) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
-          <div className="relative p-6 sm:p-8 text-center">
-            <button
-              onClick={() => setShowComingSoon(false)}
-              className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-            >
-              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </button>
-
-            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-              <Rocket className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-            </div>
-
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
-              Coming Soon!
-            </h3>
-            <p className="text-base sm:text-lg font-semibold text-purple-600 dark:text-purple-400 mb-4">
-              {selectedFeature}
-            </p>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-              We're working hard to bring you this amazing feature. Stay tuned for updates and be the first to know when it launches!
-            </p>
-
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 mb-6">
-              <div className="flex items-center justify-center gap-2 text-sm text-purple-700 dark:text-purple-300">
-                <Calendar className="w-4 h-4" />
-                <span className="font-medium">Expected Launch: Upcoming Days</span>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <button
-                onClick={() => setShowComingSoon(false)}
-                className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <Bell className="w-4 h-4" />
-                Notify Me When Available
-              </button>
-              <button
-                onClick={() => setShowComingSoon(false)}
-                className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-3 px-6 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderCalculatorModal = () => {
-    if (!showCalculator) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-          <div className="relative p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                  <Calculator className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    Advanced Calculator
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                    {calculatorMode} Mode
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowCalculator(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Calculator History */}
-            {calculatorHistory.length > 0 && (
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-4 max-h-20 overflow-y-auto">
-                <div className="space-y-1">
-                  {calculatorHistory.slice(-3).map((calc, index) => (
-                    <div key={index} className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                      {calc}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Display */}
-            <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 mb-6">
-              <div className="text-right text-2xl sm:text-3xl font-mono text-gray-900 dark:text-gray-100 min-h-[3rem] flex items-center justify-end overflow-hidden">
-                {calculatorDisplay}
-              </div>
-              {operation && (
-                <div className="text-right text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {previousValue} {operation}
-                </div>
-              )}
-            </div>
-
-            {/* Mode Toggle */}
-            <div className="flex gap-2 mb-4">
-              <button
-                onClick={() => setCalculatorMode('basic')}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                  calculatorMode === 'basic'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                Basic
-              </button>
-              <button
-                onClick={() => setCalculatorMode('scientific')}
-                className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                  calculatorMode === 'scientific'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                }`}
-              >
-                Scientific
-              </button>
-            </div>
-
-            {/* Scientific Functions */}
-            {calculatorMode === 'scientific' && (
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {scientificButtons.flat().map((func) => (
-                  <button
-                    key={func}
-                    onClick={() => handleCalculatorInput(func === 'π' ? '3.14159' : func)}
-                    className="h-12 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95"
-                  >
-                    {func}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Basic Calculator Buttons */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-3">
-              {calculatorButtons.map((row, rowIndex) => 
-                row.map((button, colIndex) => (
-                  <button
-                    key={`${rowIndex}-${colIndex}`}
-                    onClick={() => handleCalculatorInput(button)}
-                    className={`h-12 sm:h-14 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 active:scale-95 ${
-                      button === '=' 
-                        ? 'col-span-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg'
-                        : ['÷', '×', '-', '+'].includes(button)
-                        ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg'
-                        : ['C', 'CE'].includes(button)
-                        ? 'bg-gradient-to-r from-red-400 to-red-500 text-white hover:shadow-lg'
-                        : button === '±' || button === '%'
-                        ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white hover:shadow-lg'
-                        : button === '0'
-                        ? 'col-span-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
-                        : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
-                    }`}
-                  >
-                    {button}
-                  </button>
-                ))
-              )}
-            </div>
-
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-              <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
-                💡 Tip: Switch to Scientific mode for advanced mathematical functions
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderPeriodicTableModal = () => {
-    if (!showPeriodicTable) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-          <div className="relative p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center">
-                  <FlaskConical className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    Interactive Periodic Table
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Click on elements to view details
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => {
-                  setShowPeriodicTable(false);
-                  setSelectedElement(null);
-                }}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Legend */}
-            <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Element Categories:</h4>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-red-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Alkali Metals</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-orange-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Alkaline Earth</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-yellow-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Nonmetals</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-purple-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Noble Gases</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-green-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Metalloids</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-blue-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Halogens</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-indigo-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Transition Metals</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 bg-gray-400 rounded flex-shrink-0"></div>
-                  <span className="text-gray-700 dark:text-gray-300 truncate">Post-transition</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Periodic Table */}
-            <div className="mb-6 overflow-x-auto">
-              <div className="min-w-[640px] sm:min-w-[800px]">
-                {/* Period 1 */}
-                <div className="flex gap-1 mb-1">
-                  {periodicElements.filter(el => el.period === 1).map(element => (
-                    <div key={element.symbol} 
-                         className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg ${getCategoryColor(element.category)} ${element.group === 18 ? 'ml-auto' : ''}`}
-                         onClick={() => setSelectedElement(element)}>
-                      <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
-                      <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
-                      <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Period 2 */}
-                <div className="flex gap-1 mb-1">
-                  {Array.from({length: 18}, (_, i) => {
-                    const element = periodicElements.find(el => el.period === 2 && el.group === i + 1);
-                    if (element) {
-                      return (
-                        <div key={element.symbol} 
-                             className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg ${getCategoryColor(element.category)}`}
-                             onClick={() => setSelectedElement(element)}>
-                          <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
-                          <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
-                          <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
-                        </div>
-                      );
-                    }
-                    return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
-                  })}
-                </div>
-
-                {/* Period 3 */}
-                <div className="flex gap-1 mb-1">
-                  {Array.from({length: 18}, (_, i) => {
-                    const element = periodicElements.find(el => el.period === 3 && el.group === i + 1);
-                    if (element) {
-                      return (
-                        <div key={element.symbol} 
-                             className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg ${getCategoryColor(element.category)}`}
-                             onClick={() => setSelectedElement(element)}>
-                          <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
-                          <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
-                          <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
-                        </div>
-                      );
-                    }
-                    return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
-                  })}
-                </div>
-
-                {/* Period 4 (partial) */}
-                <div className="flex gap-1 mb-1">
-                  {Array.from({length: 18}, (_, i) => {
-                    const element = periodicElements.find(el => el.period === 4 && el.group === i + 1);
-                    if (element) {
-                      return (
-                        <div key={element.symbol} 
-                             className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg ${getCategoryColor(element.category)}`}
-                             onClick={() => setSelectedElement(element)}>
-                          <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
-                          <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
-                          <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
-                        </div>
-                      );
-                    }
-                    return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
-                  })}
-                </div>
-              </div>
-            </div>
-
-            {/* Element Details */}
-            {selectedElement && (
-              <div className="bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 rounded-xl p-4 sm:p-6 border border-teal-200 dark:border-teal-700">
-                <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
-                  <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex flex-col items-center justify-center font-bold ${getCategoryColor(selectedElement.category)}`}>
-                    <div className="text-xs">{selectedElement.number}</div>
-                    <div className="text-lg sm:text-xl">{selectedElement.symbol}</div>
-                  </div>
-                  <div className="text-center sm:text-left">
-                    <h4 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
-                      {selectedElement.name}
-                    </h4>
-                    <p className="text-gray-600 dark:text-gray-400 capitalize">
-                      {selectedElement.category.replace('-', ' ')}
-                    </p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Atomic Number:</span>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedElement.number}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Atomic Mass:</span>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedElement.mass}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Symbol:</span>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedElement.symbol}</p>
-                  </div>
-                  <div>
-                    <span className="font-semibold text-gray-700 dark:text-gray-300">Group:</span>
-                    <p className="text-gray-900 dark:text-gray-100">{selectedElement.group}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-4 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-              <p className="text-xs text-teal-600 dark:text-teal-400 text-center">
-                🧪 Interactive periodic table with element properties and classifications
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderGradeCalculatorModal = () => {
-    if (!showGradeCalculator) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-          <div className="relative p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
-                  <GraduationCap className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    Grade Calculator
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Calculate GPA and track academic performance
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowGradeCalculator(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Current GPA Display */}
-            <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 sm:p-6 mb-6 border border-orange-200 dark:border-orange-700">
-              <div className="text-center">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Current GPA</h4>
-                <div className="text-3xl sm:text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
-                  {currentGPA.toFixed(2)}
-                </div>
-                <div className="flex items-center justify-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500" />
-                    <span className="text-gray-600 dark:text-gray-400">
-                      {currentGPA >= 3.7 ? 'Excellent' : currentGPA >= 3.0 ? 'Good' : currentGPA >= 2.0 ? 'Fair' : 'Needs Improvement'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Grade Input Section */}
-            <div className="space-y-4 mb-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Course Grades</h4>
-                <button
-                  onClick={addGrade}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Course
-                </button>
-              </div>
-
-              {grades.map((grade, index) => (
-                <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="sm:col-span-1">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Subject/Course
-                      </label>
-                      <input
-                        type="text"
-                        value={grade.subject}
-                        onChange={(e) => updateGrade(index, 'subject', e.target.value)}
-                        placeholder="e.g., Mathematics"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Grade Points (0-4)
-                      </label>
-                      <input
-                        type="number"
-                        value={grade.currentGrade}
-                        onChange={(e) => updateGrade(index, 'currentGrade', e.target.value)}
-                        placeholder="e.g., 3.5"
-                        min="0"
-                        max="4"
-                        step="0.1"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Credit Hours
-                      </label>
-                      <input
-                        type="number"
-                        value={grade.creditHours}
-                        onChange={(e) => updateGrade(index, 'creditHours', e.target.value)}
-                        placeholder="e.g., 3"
-                        min="1"
-                        max="6"
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div className="flex items-end">
-                      {grades.length > 1 && (
-                        <button
-                          onClick={() => removeGrade(index)}
-                          className="w-full px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-2"
-                        >
-                          <Minus className="w-4 h-4" />
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* GPA Scale Reference */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
-              <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">GPA Scale Reference</h5>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
-                <div className="text-green-700 dark:text-green-400">A: 4.0 - 3.7</div>
-                <div className="text-blue-700 dark:text-blue-400">B: 3.6 - 2.7</div>
-                <div className="text-yellow-700 dark:text-yellow-400">C: 2.6 - 1.7</div>
-                <div className="text-red-700 dark:text-red-400">D/F: 1.6 - 0.0</div>
-              </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-              <p className="text-xs text-orange-600 dark:text-orange-400 text-center">
-                📊 Track your academic performance and calculate required grades for your target GPA
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderMathSolverModal = () => {
-    if (!showMathSolver) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-          <div className="relative p-4 sm:p-6">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
-                  <Brain className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                    Math Solver
-                  </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Step-by-step mathematical solutions
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowMathSolver(false)}
-                className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
-              >
-                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              </button>
-            </div>
-
-            {/* Problem Type Selector */}
-            <div className="mb-6">
-              <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Problem Type</h4>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                {[
-                  { key: 'arithmetic', label: 'Arithmetic', icon: Calculator },
-                  { key: 'algebra', label: 'Algebra', icon: Target },
-                  { key: 'geometry', label: 'Geometry', icon: Activity },
-                  { key: 'calculus', label: 'Calculus', icon: LineChart }
-                ].map(type => (
-                  <button
-                    key={type.key}
-                    onClick={() => setMathType(type.key)}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      mathType === type.key
-                        ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <type.icon className="w-4 h-4" />
-                    {type.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Input Section */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Enter Mathematical Expression
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  value={mathExpression}
-                  onChange={(e) => setMathExpression(e.target.value)}
-                  placeholder={
-                    mathType === 'algebra' ? 'e.g., 2x + 5 = 15' :
-                    mathType === 'arithmetic' ? 'e.g., 15 + 25 * 3' :
-                    mathType === 'geometry' ? 'e.g., area of circle r=5' :
-                    'e.g., d/dx(x^2)'
-                  }
-                  className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  onKeyDown={(e) => e.key === 'Enter' && solveMathProblem()}
-                />
-                <div className="flex gap-2">
-                  <button
-                    onClick={solveMathProblem}
-                    disabled={!mathExpression.trim() || isLoading}
-                    className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center gap-2"
-                  >
-                    {isLoading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    ) : (
-                      <Search className="w-4 h-4" />
-                    )}
-                    {isLoading ? 'Solving...' : 'Solve'}
-                  </button>
-                  <button
-                    onClick={clearMathSolver}
-                    className="px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200"
-                  >
-                    <RotateCcw className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Solution Display */}
-            {mathSolution && (
-              <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-xl p-4 sm:p-6 mb-6 border border-pink-200 dark:border-pink-700">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Solution</h4>
-                
-                {/* Result */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-pink-200 dark:border-pink-600">
-                  <div className="text-xl sm:text-2xl font-bold text-pink-600 dark:text-pink-400 text-center break-words">
-                    {mathSolution}
-                  </div>
-                </div>
-
-                {/* Steps */}
-                {mathSteps.length > 0 && (
-                  <div>
-                    <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Step-by-step solution:</h5>
-                    <div className="space-y-2">
-                      {mathSteps.map((step, index) => (
-                        <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg p-3 border border-pink-200 dark:border-pink-600">
-                          <div className="w-6 h-6 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
-                            {index + 1}
-                          </div>
-                          <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 break-words">{step}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Examples Section */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
-              <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Example Problems</h5>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-                <div>
-                  <span className="font-medium text-blue-700 dark:text-blue-400">Arithmetic:</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">15 + 25 × 3</span>
-                </div>
-                <div>
-                  <span className="font-medium text-blue-700 dark:text-blue-400">Algebra:</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">2x + 5 = 15</span>
-                </div>
-                <div>
-                  <span className="font-medium text-blue-700 dark:text-blue-400">Geometry:</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">area of circle r=5</span>
-                </div>
-                <div>
-                  <span className="font-medium text-blue-700 dark:text-blue-400">Calculus:</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-1">d/dx(x^2)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-4 p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-              <p className="text-xs text-pink-600 dark:text-pink-400 text-center">
-                🧮 Advanced mathematical problem solver with detailed step-by-step solutions
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
     <>
-      {/* All Modals */}
-      {renderComingSoonModal()}
-      {renderCalculatorModal()}
-      {renderPeriodicTableModal()}
-      {renderGradeCalculatorModal()}
-      {renderMathSolverModal()}
+      {/* Coming Soon Modal */}
+      {showComingSoon && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+            <div className="relative p-6 sm:p-8 text-center">
+              <button
+                onClick={() => setShowComingSoon(false)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
 
-      {/* Main Footer Content */}
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                <Rocket className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
+              </div>
+
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+                Coming Soon!
+              </h3>
+              <p className="text-base sm:text-lg font-semibold text-purple-600 dark:text-purple-400 mb-4">
+                {selectedFeature}
+              </p>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                We're working hard to bring you this amazing feature. Stay tuned for updates and be the first to know when it launches!
+              </p>
+
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 mb-6">
+                <div className="flex items-center justify-center gap-2 text-sm text-purple-700 dark:text-purple-300">
+                  <Calendar className="w-4 h-4" />
+                  <span className="font-medium">Expected Launch: Upcoming Days</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={() => setShowComingSoon(false)}
+                  className="w-full bg-gradient-to-r from-purple-500 to-blue-600 text-white font-semibold py-3 px-6 rounded-xl hover:shadow-lg transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2 touch-manipulation"
+                >
+                  <Bell className="w-4 h-4" />
+                  Notify Me When Available
+                </button>
+                <button
+                  onClick={() => setShowComingSoon(false)}
+                  className="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 font-medium py-3 px-6 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 touch-manipulation"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Advanced Calculator Modal */}
+      {showCalculator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                    <Calculator className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Advanced Calculator
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                      {calculatorMode} Mode
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowCalculator(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Calculator History */}
+              {calculatorHistory.length > 0 && (
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-3 mb-4 max-h-20 overflow-y-auto">
+                  <div className="space-y-1">
+                    {calculatorHistory.slice(-3).map((calc, index) => (
+                      <div key={index} className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                        {calc}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Display */}
+              <div className="bg-gray-100 dark:bg-gray-700 rounded-xl p-4 mb-6">
+                <div className="text-right text-2xl sm:text-3xl font-mono text-gray-900 dark:text-gray-100 min-h-[3rem] flex items-center justify-end overflow-hidden">
+                  {calculatorDisplay}
+                </div>
+                {operation && (
+                  <div className="text-right text-sm text-gray-500 dark:text-gray-400 mt-1">
+                    {previousValue} {operation}
+                  </div>
+                )}
+              </div>
+
+              {/* Mode Toggle */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setCalculatorMode('basic')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 touch-manipulation ${
+                    calculatorMode === 'basic'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Basic
+                </button>
+                <button
+                  onClick={() => setCalculatorMode('scientific')}
+                  className={`flex-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 touch-manipulation ${
+                    calculatorMode === 'scientific'
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                  }`}
+                >
+                  Scientific
+                </button>
+              </div>
+
+              {/* Scientific Functions */}
+              {calculatorMode === 'scientific' && (
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {scientificButtons.flat().map((func) => (
+                    <button
+                      key={func}
+                      onClick={() => handleCalculatorInput(func === 'π' ? '3.14159' : func)}
+                      className="h-12 bg-gradient-to-r from-purple-400 to-purple-500 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 touch-manipulation"
+                    >
+                      {func}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Basic Calculator Buttons */}
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                {calculatorButtons.map((row, rowIndex) => 
+                  row.map((button, colIndex) => (
+                    <button
+                      key={`${rowIndex}-${colIndex}`}
+                      onClick={() => handleCalculatorInput(button)}
+                      className={`h-12 sm:h-14 rounded-xl font-semibold text-lg transition-all duration-200 transform hover:scale-105 active:scale-95 touch-manipulation ${
+                        button === '=' 
+                          ? 'col-span-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:shadow-lg'
+                          : ['÷', '×', '-', '+'].includes(button)
+                          ? 'bg-gradient-to-r from-orange-400 to-orange-500 text-white hover:shadow-lg'
+                          : ['C', 'CE'].includes(button)
+                          ? 'bg-gradient-to-r from-red-400 to-red-500 text-white hover:shadow-lg'
+                          : button === '±' || button === '%'
+                          ? 'bg-gradient-to-r from-gray-400 to-gray-500 text-white hover:shadow-lg'
+                          : button === '0'
+                          ? 'col-span-2 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
+                          : 'bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-500'
+                      }`}
+                    >
+                      {button}
+                    </button>
+                  ))
+                )}
+              </div>
+
+              <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-xs text-blue-600 dark:text-blue-400 text-center">
+                  💡 Tip: Switch to Scientific mode for advanced mathematical functions
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Periodic Table Modal */}
+      {showPeriodicTable && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-green-600 rounded-xl flex items-center justify-center">
+                    <FlaskConical className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Interactive Periodic Table
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Click on elements to view details
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowPeriodicTable(false);
+                    setSelectedElement(null);
+                  }}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Legend - Responsive */}
+              <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Element Categories:</h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Alkali Metals</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-orange-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Alkaline Earth</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-yellow-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Nonmetals</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-purple-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Noble Gases</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-green-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Metalloids</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-blue-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Halogens</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-indigo-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Transition Metals</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-gray-400 rounded flex-shrink-0"></div>
+                    <span className="text-gray-700 dark:text-gray-300 truncate">Post-transition</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Responsive Periodic Table */}
+              <div className="mb-6 overflow-x-auto">
+                <div className="min-w-[640px] sm:min-w-[800px]">
+                  {/* Period 1 */}
+                  <div className="flex gap-1 mb-1">
+                    {periodicElements.filter(el => el.period === 1).map(element => (
+                      <div key={element.symbol} 
+                           className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg touch-manipulation ${getCategoryColor(element.category)} ${element.group === 18 ? 'ml-auto' : ''}`}
+                           onClick={() => setSelectedElement(element)}>
+                        <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
+                        <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
+                        <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Period 2 */}
+                  <div className="flex gap-1 mb-1">
+                    {Array.from({length: 18}, (_, i) => {
+                      const element = periodicElements.find(el => el.period === 2 && el.group === i + 1);
+                      if (element) {
+                        return (
+                          <div key={element.symbol} 
+                               className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg touch-manipulation ${getCategoryColor(element.category)}`}
+                               onClick={() => setSelectedElement(element)}>
+                            <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
+                            <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
+                            <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
+                          </div>
+                        );
+                      }
+                      return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
+                    })}
+                  </div>
+
+                  {/* Period 3 */}
+                  <div className="flex gap-1 mb-1">
+                    {Array.from({length: 18}, (_, i) => {
+                      const element = periodicElements.find(el => el.period === 3 && el.group === i + 1);
+                      if (element) {
+                        return (
+                          <div key={element.symbol} 
+                               className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg touch-manipulation ${getCategoryColor(element.category)}`}
+                               onClick={() => setSelectedElement(element)}>
+                            <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
+                            <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
+                            <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
+                          </div>
+                        );
+                      }
+                      return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
+                    })}
+                  </div>
+
+                  {/* Period 4 (partial) */}
+                  <div className="flex gap-1 mb-1">
+                    {Array.from({length: 18}, (_, i) => {
+                      const element = periodicElements.find(el => el.period === 4 && el.group === i + 1);
+                      if (element) {
+                        return (
+                          <div key={element.symbol} 
+                               className={`w-12 h-12 sm:w-16 sm:h-16 flex flex-col justify-between p-1 rounded-lg cursor-pointer transition-all duration-200 transform hover:scale-110 hover:shadow-lg touch-manipulation ${getCategoryColor(element.category)}`}
+                               onClick={() => setSelectedElement(element)}>
+                            <div className="text-[8px] sm:text-[10px] font-bold">{element.number}</div>
+                            <div className="text-xs sm:text-sm font-bold text-center">{element.symbol}</div>
+                            <div className="text-[6px] sm:text-[8px] truncate">{element.mass}</div>
+                          </div>
+                        );
+                      }
+                      return <div key={i} className="w-12 h-12 sm:w-16 sm:h-16"></div>;
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Element Details - Responsive */}
+              {selectedElement && (
+                <div className="bg-gradient-to-r from-teal-50 to-green-50 dark:from-teal-900/20 dark:to-green-900/20 rounded-xl p-4 sm:p-6 border border-teal-200 dark:border-teal-700">
+                  <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
+                    <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-xl flex flex-col items-center justify-center font-bold ${getCategoryColor(selectedElement.category)}`}>
+                      <div className="text-xs">{selectedElement.number}</div>
+                      <div className="text-lg sm:text-xl">{selectedElement.symbol}</div>
+                    </div>
+                    <div className="text-center sm:text-left">
+                      <h4 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {selectedElement.name}
+                      </h4>
+                      <p className="text-gray-600 dark:text-gray-400 capitalize">
+                        {selectedElement.category.replace('-', ' ')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Atomic Number:</span>
+                      <p className="text-gray-900 dark:text-gray-100">{selectedElement.number}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Atomic Mass:</span>
+                      <p className="text-gray-900 dark:text-gray-100">{selectedElement.mass}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Symbol:</span>
+                      <p className="text-gray-900 dark:text-gray-100">{selectedElement.symbol}</p>
+                    </div>
+                    <div>
+                      <span className="font-semibold text-gray-700 dark:text-gray-300">Group:</span>
+                      <p className="text-gray-900 dark:text-gray-100">{selectedElement.group}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="mt-4 p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
+                <p className="text-xs text-teal-600 dark:text-teal-400 text-center">
+                  🧪 Interactive periodic table with element properties and classifications
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grade Calculator Modal */}
+      {showGradeCalculator && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
+                    <GraduationCap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Grade Calculator
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Calculate GPA and track academic performance
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowGradeCalculator(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Current GPA Display - Responsive */}
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 sm:p-6 mb-6 border border-orange-200 dark:border-orange-700">
+                <div className="text-center">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Current GPA</h4>
+                  <div className="text-3xl sm:text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                    {currentGPA.toFixed(2)}
+                  </div>
+                  <div className="flex items-center justify-center gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 text-yellow-500" />
+                      <span className="text-gray-600 dark:text-gray-400">
+                        {currentGPA >= 3.7 ? 'Excellent' : currentGPA >= 3.0 ? 'Good' : currentGPA >= 2.0 ? 'Fair' : 'Needs Improvement'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grade Input Section - Responsive */}
+              <div className="space-y-4 mb-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Course Grades</h4>
+                  <button
+                    onClick={addGrade}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 touch-manipulation"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Course
+                  </button>
+                </div>
+
+                {grades.map((grade, index) => (
+                  <div key={index} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="sm:col-span-1">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Subject/Course
+                        </label>
+                        <input
+                          type="text"
+                          value={grade.subject}
+                          onChange={(e) => updateGrade(index, 'subject', e.target.value)}
+                          placeholder="e.g., Mathematics"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent touch-manipulation"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Grade Points (0-4)
+                        </label>
+                        <input
+                          type="number"
+                          value={grade.currentGrade}
+                          onChange={(e) => updateGrade(index, 'currentGrade', e.target.value)}
+                          placeholder="e.g., 3.5"
+                          min="0"
+                          max="4"
+                          step="0.1"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent touch-manipulation"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Credit Hours
+                        </label>
+                        <input
+                          type="number"
+                          value={grade.creditHours}
+                          onChange={(e) => updateGrade(index, 'creditHours', e.target.value)}
+                          placeholder="e.g., 3"
+                          min="1"
+                          max="6"
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent touch-manipulation"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        {grades.length > 1 && (
+                          <button
+                            onClick={() => removeGrade(index)}
+                            className="w-full px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center justify-center gap-2 touch-manipulation"
+                          >
+                            <Minus className="w-4 h-4" />
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* GPA Scale Reference - Responsive */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
+                <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">GPA Scale Reference</h5>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-sm">
+                  <div className="text-green-700 dark:text-green-400">A: 4.0 - 3.7</div>
+                  <div className="text-blue-700 dark:text-blue-400">B: 3.6 - 2.7</div>
+                  <div className="text-yellow-700 dark:text-yellow-400">C: 2.6 - 1.7</div>
+                  <div className="text-red-700 dark:text-red-400">D/F: 1.6 - 0.0</div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                <p className="text-xs text-orange-600 dark:text-orange-400 text-center">
+                  📊 Track your academic performance and calculate required grades for your target GPA
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Math Solver Modal */}
+      {showMathSolver && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Math Solver
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Step-by-step mathematical solutions
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowMathSolver(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Problem Type Selector - Responsive */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Problem Type</h4>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {[
+                    { key: 'arithmetic', label: 'Arithmetic', icon: Calculator },
+                    { key: 'algebra', label: 'Algebra', icon: Target },
+                    { key: 'geometry', label: 'Geometry', icon: Activity },
+                    { key: 'calculus', label: 'Calculus', icon: LineChart }
+                  ].map(type => (
+                    <button
+                      key={type.key}
+                      onClick={() => setMathType(type.key)}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                        mathType === type.key
+                          ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <type.icon className="w-4 h-4" />
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Input Section - Responsive */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Enter Mathematical Expression
+                </label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={mathExpression}
+                    onChange={(e) => setMathExpression(e.target.value)}
+                    placeholder={
+                      mathType === 'algebra' ? 'e.g., 2x + 5 = 15' :
+                      mathType === 'arithmetic' ? 'e.g., 15 + 25 * 3' :
+                      mathType === 'geometry' ? 'e.g., area of circle r=5' :
+                      'e.g., d/dx(x^2)'
+                    }
+                    className="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-pink-500 focus:border-transparent touch-manipulation"
+                    onKeyDown={(e) => e.key === 'Enter' && solveMathProblem()}
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={solveMathProblem}
+                      disabled={!mathExpression.trim() || isLoading}
+                      className="px-6 py-3 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none flex items-center gap-2 touch-manipulation"
+                    >
+                      {isLoading ? (
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      ) : (
+                        <Search className="w-4 h-4" />
+                      )}
+                      {isLoading ? 'Solving...' : 'Solve'}
+                    </button>
+                    <button
+                      onClick={clearMathSolver}
+                      className="px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 touch-manipulation"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Solution Display - Responsive */}
+              {mathSolution && (
+                <div className="bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-xl p-4 sm:p-6 mb-6 border border-pink-200 dark:border-pink-700">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Solution</h4>
+                  
+                  {/* Result */}
+                  <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-pink-200 dark:border-pink-600">
+                    <div className="text-xl sm:text-2xl font-bold text-pink-600 dark:text-pink-400 text-center break-words">
+                      {mathSolution}
+                    </div>
+                  </div>
+
+                  {/* Steps */}
+                  {mathSteps.length > 0 && (
+                    <div>
+                      <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Step-by-step solution:</h5>
+                      <div className="space-y-2">
+                        {mathSteps.map((step, index) => (
+                          <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg p-3 border border-pink-200 dark:border-pink-600">
+                            <div className="w-6 h-6 bg-gradient-to-r from-pink-500 to-rose-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <span className="text-sm sm:text-base text-gray-800 dark:text-gray-200 break-words">{step}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Examples Section - Responsive */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
+                <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">Example Problems</h5>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="font-medium text-blue-700 dark:text-blue-400">Arithmetic:</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-1">15 + 25 × 3</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-700 dark:text-blue-400">Algebra:</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-1">2x + 5 = 15</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-700 dark:text-blue-400">Geometry:</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-1">area of circle r=5</span>
+                  </div>
+                  <div>
+                    <span className="font-medium text-blue-700 dark:text-blue-400">Calculus:</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-1">d/dx(x^2)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                <p className="text-xs text-pink-600 dark:text-pink-400 text-center">
+                  🧮 Advanced mathematical problem solver with detailed step-by-step solutions
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Compact Footer */}
       <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-        {/* Success Analytics Banner */}
+        {/* Success Analytics Banner - More Compact */}
         <div className="bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-indigo-600/20 border-b border-purple-200/50 dark:border-purple-700/50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
             <div className="text-center mb-3">
@@ -1406,7 +1334,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Study Tools Section */}
+        {/* Study Tools Section - More Compact */}
         <section className="bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 py-6 sm:py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6">
@@ -1421,7 +1349,7 @@ export const Footer: React.FC = () => {
               </p>
             </div>
 
-            {/* Study Tools Grid */}
+            {/* Compact Study Tools Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {studyTools.map((tool, index) => (
                 <div
@@ -1451,7 +1379,7 @@ export const Footer: React.FC = () => {
                       {tool.description}
                     </p>
 
-                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1`}>
+                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1 touch-manipulation`}>
                       Open Tool
                       <ArrowRight className="w-3 h-3" />
                     </button>
@@ -1477,7 +1405,7 @@ export const Footer: React.FC = () => {
           </div>
         </section>
 
-        {/* Team Members Section */}
+        {/* Team Members Section - More Compact */}
         <section className="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-indigo-900/20 dark:via-gray-800 dark:to-cyan-900/20 py-6 sm:py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6">
@@ -1489,7 +1417,7 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            {/* Team Grid */}
+            {/* Compact Team Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               {teamMembers.map((member, index) => (
                 <div
@@ -1524,7 +1452,7 @@ export const Footer: React.FC = () => {
                               href={member.social.linkedin}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:scale-110 transition-all duration-300"
+                              className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:scale-110 transition-all duration-300 touch-manipulation"
                             >
                               <Linkedin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                             </a>
@@ -1534,7 +1462,7 @@ export const Footer: React.FC = () => {
                               href={member.social.github}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300"
+                              className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300 touch-manipulation"
                             >
                               <Github className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                             </a>
@@ -1549,7 +1477,7 @@ export const Footer: React.FC = () => {
           </div>
         </section>
 
-        {/* Main Footer Content */}
+        {/* Main Footer Content - Compact */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
           {/* Brand Section */}
           <div className="text-center mb-6">
@@ -1570,7 +1498,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Footer Grid */}
+          {/* Compact Footer Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             {/* Quick Links */}
             <div className="text-center md:text-left">
@@ -1598,7 +1526,7 @@ export const Footer: React.FC = () => {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group"
+                    className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group touch-manipulation"
                     title={link.name}
                   >
                     <link.icon className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" />
@@ -1619,7 +1547,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Section */}
+          {/* Bottom Section - Compact */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
               {/* Creator Credit */}
@@ -1632,7 +1560,7 @@ export const Footer: React.FC = () => {
                     href="https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-bold text-purple-600 dark:text-purple-400 hover:underline transition-all duration-200 hover:text-purple-700 dark:hover:text-purple-300"
+                    className="font-bold text-purple-600 dark:text-purple-400 hover:underline transition-all duration-200 hover:text-purple-700 dark:hover:text-purple-300 touch-manipulation"
                   >
                     Vinay Kumar
                   </a>
