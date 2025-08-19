@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Target, Clock, Settings, FlipVertical as Analytics, Upload, Shield, Menu, Zap } from 'lucide-react';
+import { Home, Calendar, Target, Clock, Settings, FlipVertical as Analytics, Upload, Brain, Sparkles, Flame, Eye } from 'lucide-react';
 import { FocusMode } from '../focus/FocusMode';
 
 export const MobileNavbar: React.FC = () => {
   const location = useLocation();
   const [showFocusMode, setShowFocusMode] = React.useState(false);
-  const [isPressed, setIsPressed] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
 
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
@@ -20,55 +20,70 @@ export const MobileNavbar: React.FC = () => {
 
   return (
     <>
-      {/* Enhanced Floating Focus Mode Button */}
+      {/* Catchy Floating Focus Mode Button */}
       <div className="md:hidden fixed bottom-20 right-4 z-40">
-        {/* Animated ring effect */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-blue-600 animate-ping opacity-20"></div>
-        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-purple-500 to-blue-600 animate-pulse opacity-30"></div>
+        {/* Magical aura effects */}
+        <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-orange-400 via-pink-500 to-purple-600 animate-spin opacity-20 blur-md"></div>
+        <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-yellow-400 via-red-500 to-pink-500 animate-pulse opacity-30"></div>
         
-        {/* Main button */}
+        {/* Main catchy button */}
         <button
           onClick={() => setShowFocusMode(true)}
-          onMouseDown={() => setIsPressed(true)}
-          onMouseUp={() => setIsPressed(false)}
-          onMouseLeave={() => setIsPressed(false)}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           className={`
-            relative bg-gradient-to-r from-purple-500 via-purple-600 to-blue-600 text-white 
-            px-5 py-3 rounded-full shadow-2xl hover:shadow-purple-500/25 
-            transition-all duration-300 ease-out
-            hover:scale-110 active:scale-95
-            ${isPressed ? 'scale-95' : 'hover:scale-110'}
-            flex items-center gap-2 group
-            border border-white/20 backdrop-blur-sm
-            before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-r 
-            before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100
-            before:transition-opacity before:duration-300
+            relative bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 text-white 
+            px-6 py-4 rounded-2xl shadow-2xl hover:shadow-orange-500/40 
+            transition-all duration-500 ease-out
+            hover:scale-110 active:scale-95 hover:rotate-3
+            flex items-center gap-3 group overflow-hidden
+            border-2 border-yellow-300/30 backdrop-blur-sm
+            ${isHovered ? 'animate-bounce' : ''}
           `}
-          title="Enter Focus Mode"
+          title="🔥 Beast Mode Activated!"
         >
-          {/* Icon with rotation animation */}
-          <div className="relative">
-            <Shield className="w-5 h-5 transition-transform duration-300 group-hover:rotate-12" />
-            {/* Sparkle effect */}
-            <Zap className="w-3 h-3 absolute -top-1 -right-1 text-yellow-300 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Animated background waves */}
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/20 via-orange-400/20 to-red-400/20 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-l from-pink-400/10 via-purple-400/10 to-blue-400/10 animate-ping"></div>
+          
+          {/* Dynamic icon with effects */}
+          <div className="relative z-10">
+            {isHovered ? (
+              <Flame className="w-6 h-6 text-yellow-300 animate-pulse transition-all duration-300" />
+            ) : (
+              <Brain className="w-6 h-6 transition-all duration-300 group-hover:rotate-180" />
+            )}
+            
+            {/* Floating sparkles */}
+            <Sparkles className="w-3 h-3 absolute -top-2 -right-2 text-yellow-300 animate-spin" />
+            <Eye className="w-2 h-2 absolute -bottom-1 -left-1 text-cyan-300 animate-bounce" />
           </div>
           
-          {/* Text with slide animation */}
-          <div className="overflow-hidden">
-            <span className="text-sm font-semibold block transition-transform duration-300 group-hover:-translate-y-1">
-              Focus Mode
+          {/* Dynamic text content */}
+          <div className="relative z-10 flex flex-col">
+            <span className="text-sm font-bold tracking-wide transition-all duration-300 group-hover:text-yellow-200">
+              {isHovered ? '🚀 BEAST MODE' : '🧠 FOCUS ZONE'}
             </span>
-            <span className="text-xs opacity-80 block transition-transform duration-300 translate-y-2 group-hover:translate-y-0">
-              Stay focused!
+            <span className="text-xs font-medium opacity-90 transition-all duration-300">
+              {isHovered ? 'Unleash Power!' : 'Lock & Load'}
             </span>
           </div>
 
-          {/* Gradient overlay */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          {/* Shimmer effect */}
+          <div className="absolute inset-0 -skew-x-12 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-all duration-700 pointer-events-none"></div>
         </button>
 
-        {/* Focus indicator dot */}
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-white shadow-lg animate-pulse"></div>
+        {/* Power indicator */}
+        <div className="absolute -top-2 -right-2 flex items-center gap-1">
+          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+          <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse delay-100"></div>
+          <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse delay-200"></div>
+        </div>
+        
+        {/* Energy text */}
+        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-bold text-orange-500 animate-pulse whitespace-nowrap">
+          ⚡ POWER UP ⚡
+        </div>
       </div>
 
       {/* Focus Mode Modal */}
