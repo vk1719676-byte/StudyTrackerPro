@@ -61,58 +61,60 @@ export const DesktopNavbar: React.FC = () => {
   return (
     <>
       <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <Logo size="md" showText={false} />
-            <div className="hidden sm:block">
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-              </h1>
-            </div>
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link to="/" className="flex items-center gap-3">
+              <Logo size="md" showText={false} />
+              <div className="hidden sm:block">
+                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                  Study Tracker Pro
+                </h1>
+              </div>
+            </Link>
 
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map(({ path, label, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`
-                  flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
-                  transition-all duration-200 hover:scale-105
-                  ${location.pathname === path
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }
-                `}
+            <div className="hidden md:flex items-center space-x-8">
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`
+                    flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                    transition-all duration-200 hover:scale-105
+                    ${location.pathname === path
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                </Link>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={theme === 'dark' ? Sun : Moon}
+                onClick={toggleTheme}
+                className="p-2"
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              />
+              <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400">
+                {user?.email}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={LogOut}
+                onClick={() => setShowLogoutConfirm(true)}
               >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={theme === 'dark' ? Sun : Moon}
-              onClick={toggleTheme}
-              className="p-2"
-            />
-            <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400">
-              {user?.email}
+                Logout
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={LogOut}
-              onClick={() => setShowLogoutConfirm(true)}
-            >
-              Logout
-            </Button>
           </div>
         </div>
-      </div>
       </nav>
       
       <LogoutConfirmation
