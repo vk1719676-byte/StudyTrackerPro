@@ -326,4 +326,3 @@ export const ResponsiveHeader: React.FC = () => {
     </>
   );
 };
-
