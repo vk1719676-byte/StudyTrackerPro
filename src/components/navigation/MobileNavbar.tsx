@@ -10,6 +10,7 @@ export const MobileNavbar: React.FC = () => {
   const [clickedItem, setClickedItem] = React.useState<string | null>(null);
   const [shockwaves, setShockwaves] = React.useState<{ id: number; x: number; y: number; path: string }[]>([]);
   const [activeEffects, setActiveEffects] = React.useState<string | null>(null);
+  const [activeEffects, setActiveEffects] = React.useState<string | null>(null);
 
   const navItems = [
     { 
@@ -18,7 +19,140 @@ export const MobileNavbar: React.FC = () => {
       icon: Home,
       colors: {
         primary: 'blue',
-        activeBg: 'from-blue-100 via-blue-50 to-blue-100 text-blue-600 shadow-blue-200',
+        activeBg: 'from-blue-500/10 via-blue-400/5 to-blue-500/10',
+        activeText: 'text-blue-600 dark:text-blue-400',
+        active: 'from-blue-400 to-blue-600',
+        iconBg: 'from-blue-500/20 to-blue-600/20',
+        ripple: 'bg-blue-400/40',
+        ripple2: 'bg-blue-500/30',
+        ripple3: 'bg-blue-300/50',
+        shockwave: 'border-blue-400/60',
+        shockwave2: 'border-blue-300/40',
+        sparkle1: 'bg-blue-400',
+        sparkle2: 'bg-blue-500',
+        sparkle3: 'bg-blue-300'
+      }
+    },
+    { 
+      path: '/exams', 
+      label: 'Exams', 
+      icon: Calendar,
+      colors: {
+        primary: 'emerald',
+        activeBg: 'from-emerald-500/10 via-emerald-400/5 to-emerald-500/10',
+        activeText: 'text-emerald-600 dark:text-emerald-400',
+        active: 'from-emerald-400 to-emerald-600',
+        iconBg: 'from-emerald-500/20 to-emerald-600/20',
+        ripple: 'bg-emerald-400/40',
+        ripple2: 'bg-emerald-500/30',
+        ripple3: 'bg-emerald-300/50',
+        shockwave: 'border-emerald-400/60',
+        shockwave2: 'border-emerald-300/40',
+        sparkle1: 'bg-emerald-400',
+        sparkle2: 'bg-emerald-500',
+        sparkle3: 'bg-emerald-300'
+      }
+    },
+    { 
+      path: '/goals', 
+      label: 'Goals', 
+      icon: Target,
+      colors: {
+        primary: 'orange',
+        activeBg: 'from-orange-500/10 via-orange-400/5 to-orange-500/10',
+        activeText: 'text-orange-600 dark:text-orange-400',
+        active: 'from-orange-400 to-orange-600',
+        iconBg: 'from-orange-500/20 to-orange-600/20',
+        ripple: 'bg-orange-400/40',
+        ripple2: 'bg-orange-500/30',
+        ripple3: 'bg-orange-300/50',
+        shockwave: 'border-orange-400/60',
+        shockwave2: 'border-orange-300/40',
+        sparkle1: 'bg-orange-400',
+        sparkle2: 'bg-orange-500',
+        sparkle3: 'bg-orange-300'
+      }
+    },
+    { 
+      path: '/sessions', 
+      label: 'Sessions', 
+      icon: Clock,
+      colors: {
+        primary: 'purple',
+        activeBg: 'from-purple-500/10 via-purple-400/5 to-purple-500/10',
+        activeText: 'text-purple-600 dark:text-purple-400',
+        active: 'from-purple-400 to-purple-600',
+        iconBg: 'from-purple-500/20 to-purple-600/20',
+        ripple: 'bg-purple-400/40',
+        ripple2: 'bg-purple-500/30',
+        ripple3: 'bg-purple-300/50',
+        shockwave: 'border-purple-400/60',
+        shockwave2: 'border-purple-300/40',
+        sparkle1: 'bg-purple-400',
+        sparkle2: 'bg-purple-500',
+        sparkle3: 'bg-purple-300'
+      }
+    },
+    { 
+      path: '/analytics', 
+      label: 'Analytics', 
+      icon: Analytics,
+      colors: {
+        primary: 'indigo',
+        activeBg: 'from-indigo-500/10 via-indigo-400/5 to-indigo-500/10',
+        activeText: 'text-indigo-600 dark:text-indigo-400',
+        active: 'from-indigo-400 to-indigo-600',
+        iconBg: 'from-indigo-500/20 to-indigo-600/20',
+        ripple: 'bg-indigo-400/40',
+        ripple2: 'bg-indigo-500/30',
+        ripple3: 'bg-indigo-300/50',
+        shockwave: 'border-indigo-400/60',
+        shockwave2: 'border-indigo-300/40',
+        sparkle1: 'bg-indigo-400',
+        sparkle2: 'bg-indigo-500',
+        sparkle3: 'bg-indigo-300'
+      }
+    },
+    { 
+      path: '/materials', 
+      label: 'Materials', 
+      icon: Upload,
+      colors: {
+        primary: 'teal',
+        activeBg: 'from-teal-500/10 via-teal-400/5 to-teal-500/10',
+        activeText: 'text-teal-600 dark:text-teal-400',
+        active: 'from-teal-400 to-teal-600',
+        iconBg: 'from-teal-500/20 to-teal-600/20',
+        ripple: 'bg-teal-400/40',
+        ripple2: 'bg-teal-500/30',
+        ripple3: 'bg-teal-300/50',
+        shockwave: 'border-teal-400/60',
+        shockwave2: 'border-teal-300/40',
+        sparkle1: 'bg-teal-400',
+        sparkle2: 'bg-teal-500',
+        sparkle3: 'bg-teal-300'
+      }
+    },
+    { 
+      path: '/settings', 
+      label: 'Settings', 
+      icon: Settings,
+      colors: {
+        primary: 'slate',
+        activeBg: 'from-slate-500/10 via-slate-400/5 to-slate-500/10',
+        activeText: 'text-slate-600 dark:text-slate-400',
+        active: 'from-slate-400 to-slate-600',
+        iconBg: 'from-slate-500/20 to-slate-600/20',
+        ripple: 'bg-slate-400/40',
+        ripple2: 'bg-slate-500/30',
+        ripple3: 'bg-slate-300/50',
+        shockwave: 'border-slate-400/60',
+        shockwave2: 'border-slate-300/40',
+        sparkle1: 'bg-slate-400',
+        sparkle2: 'bg-slate-500',
+        sparkle3: 'bg-slate-300'
+      }
+    }
         active: 'from-blue-400 to-blue-600',
         iconBg: 'from-blue-500 to-blue-600 text-white',
         ripple: 'bg-blue-400/30',
@@ -207,7 +341,7 @@ export const MobileNavbar: React.FC = () => {
       />
 
       {/* Enhanced Bottom Navigation */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 z-50 shadow-2xl">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 z-50 shadow-2xl">
         {/* Glowing top border */}
         <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/50 to-transparent">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/30 to-transparent animate-pulse"></div>
@@ -228,11 +362,11 @@ export const MobileNavbar: React.FC = () => {
                   relative flex flex-col items-center gap-1 px-2 py-2 rounded-xl min-w-0 flex-1 overflow-hidden group
                   transition-all duration-300 ease-out transform select-none
                   ${isActive
-                    ? `bg-gradient-to-br ${colors.activeBg} scale-105 z-10 shadow-lg`
+                    ? `bg-gradient-to-br ${colors.activeBg} ${colors.activeText} scale-105 z-10 shadow-lg shadow-${colors.primary}-200/20`
                     : 'text-gray-600 dark:text-gray-400'
                   }
                   ${isClicked ? 'scale-110 brightness-125' : ''}
-                  hover:bg-gray-50/80 dark:hover:bg-gray-800/40 active:scale-125
+                  hover:bg-gray-100/50 dark:hover:bg-gray-800/40 active:scale-125
                 `}
                 style={{
                   animationDelay: `${index * 50}ms`
@@ -296,7 +430,7 @@ export const MobileNavbar: React.FC = () => {
                   transition-all duration-300 transform
                   ${isActive 
                     ? `bg-gradient-to-br ${colors.iconBg} shadow-lg shadow-${colors.primary}-200/50` 
-                    : 'group-hover:bg-gray-100 dark:group-hover:bg-gray-700/50 group-hover:shadow-md'
+                    : 'group-hover:bg-gray-100/60 dark:group-hover:bg-gray-700/50 group-hover:shadow-md'
                   }
                   ${isClicked ? 'scale-125 rotate-12 shadow-xl' : ''}
                   group-active:scale-150 group-active:rotate-180
@@ -315,38 +449,30 @@ export const MobileNavbar: React.FC = () => {
                       ${hasActiveEffects && isClicked ? 'scale-125 drop-shadow-xl filter brightness-125 hue-rotate-15' : ''}
                       group-active:scale-150
                     `}
-                    style={{
-                      color: isActive ? getColorValue(colors.primary) : undefined
-                    }}
-                  />
-                  
-                  {/* Sparkle effects on click - Only show for active effects */}
-                  {hasActiveEffects && isClicked && (
-                    <>
-                      <div className={`absolute -top-1 -right-1 w-2 h-2 ${colors.sparkle1} rounded-full animate-ping opacity-80 z-40`}></div>
                       <div className={`absolute -bottom-1 -left-1 w-1.5 h-1.5 ${colors.sparkle2} rounded-full animate-ping opacity-70 z-40`} style={{ animationDelay: '100ms' }}></div>
                       <div className={`absolute top-0 left-0 w-1 h-1 ${colors.sparkle3} rounded-full animate-ping opacity-60 z-40`} style={{ animationDelay: '200ms' }}></div>
                       <div className={`absolute top-1 right-0 w-1 h-1 ${colors.sparkle1} rounded-full animate-ping opacity-50 z-40`} style={{ animationDelay: '250ms' }}></div>
                     </>
                   )}
-                </div>
-
-                {/* Label with better typography */}
-                <span className={`
-                  text-xs font-medium truncate transition-all duration-300 relative z-20 max-w-full
-                  ${isActive ? 'font-semibold text-shadow-sm drop-shadow-sm' : ''}
-                  ${hasActiveEffects && isClicked ? 'font-bold scale-105 drop-shadow-md' : ''}
-                  group-active:scale-110
-                `}
-                style={{
-                  color: isActive ? getColorValue(colors.primary) : undefined
-                }}>
+                      <div className={`absolute -top-1 -right-1 w-2 h-2 ${colors.sparkle1} rounded-full animate-ping opacity-80 z-40`}></div>
+                      <div className={`absolute -bottom-1 -left-1 w-1.5 h-1.5 ${colors.sparkle2} rounded-full animate-ping opacity-70 z-40`} style={{ animationDelay: '100ms' }}></div>
+                      <div className={`absolute top-0 left-0 w-1 h-1 ${colors.sparkle3} rounded-full animate-ping opacity-60 z-40`} style={{ animationDelay: '200ms' }}></div>
+                `}>
                   {label}
                 </span>
 
                 {/* Enhanced shine effects */}
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -skew-x-12 translate-x-full group-hover:translate-x-[-100%] transition-transform duration-700 ease-out pointer-events-none z-10"></div>
                 <div className={`absolute inset-0 bg-gradient-to-l from-transparent via-white/20 to-transparent skew-x-12 -translate-x-full group-active:translate-x-full transition-transform duration-400 ease-out pointer-events-none z-10`}></div>
+                
+                {/* Floating particles effect on active */}
+                {isActive && (
+                  <>
+                    <div className={`absolute top-2 left-3 w-1 h-1 ${colors.sparkle1} rounded-full animate-bounce opacity-60`} style={{ animationDelay: '0s' }}></div>
+                    <div className={`absolute top-4 right-2 w-0.5 h-0.5 ${colors.sparkle2} rounded-full animate-bounce opacity-50`} style={{ animationDelay: '0.5s' }}></div>
+                    <div className={`absolute bottom-3 left-2 w-0.5 h-0.5 ${colors.sparkle3} rounded-full animate-bounce opacity-40`} style={{ animationDelay: '1s' }}></div>
+                  </>
+                )}
                 
                 {/* Floating particles effect on active */}
                 {isActive && (
@@ -392,6 +518,15 @@ export const MobileNavbar: React.FC = () => {
         @keyframes burst {
           0% { transform: scale(1) rotate(0deg); opacity: 1; }
           100% { transform: scale(1.5) rotate(180deg); opacity: 0; }
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+        }
+        
+        .animate-float {
+          animation: float 2s ease-in-out infinite;
         }
         
         @keyframes float {
