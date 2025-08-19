@@ -1,1252 +1,950 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings, Move, Zap, Heart, Moon, Sun, Waves, TreePine, Car, Headphones } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BookOpen, Target, TrendingUp, Award, Quote, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Users, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, Crown, Heart, Gift } from 'lucide-react';
+import { ExamCountdown } from '../components/dashboard/ExamCountdown';
+import { StudyTimer } from '../components/dashboard/StudyTimer';
+import { Card } from '../components/ui/Card';
+import { PremiumBadge } from '../components/premium/PremiumBadge';
+import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserExams, getUserSessions } from '../services/firestore';
+import { Exam, StudySession } from '../types';
 
-interface FocusModeProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-type TimerMode = 'focus' | 'shortBreak' | 'longBreak' | 'custom' | 'deepFocus' | 'study' | 'creative';
-
-interface StudySession {
-  id: string;
-  subject: string;
-  task: string;
-  duration: number;
-  completedAt: Date;
-  mode: TimerMode;
-  productivity: number;
-  notes?: string;
-}
-
-interface LofiTrack {
-  id: string;
-  title: string;
-  artist: string;
-  url: string;
-  duration: string;
-  genre: string;
-  mood: string;
-}
-
-interface AmbientSound {
-  id: string;
-  name: string;
-  icon: string;
-  url: string;
-  category: 'nature' | 'urban' | 'white-noise' | 'cafe';
-}
-
-interface TimerSettings {
-  focus: number;
-  shortBreak: number;
-  longBreak: number;
-  custom: number;
-  deepFocus: number;
-  study: number;
-  creative: number;
-  autoBreak: boolean;
-  notifications: boolean;
-  sounds: boolean;
-}
-
-const DEFAULT_POMODORO_SETTINGS: TimerSettings = {
-  focus: 25,
-  shortBreak: 5,
-  longBreak: 15,
-  custom: 30,
-  deepFocus: 50,
-  study: 45,
-  creative: 90,
-  autoBreak: true,
-  notifications: true,
-  sounds: true
-};
-
-const LOFI_TRACKS: LofiTrack[] = [
+const heroDesigns = [
   {
-    id: '1',
-    title: 'Lofi Study Session',
-    artist: 'Chill Beats',
-    url: 'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3',
-    duration: '2:14',
-    genre: 'lofi-hip-hop',
-    mood: 'focused'
+    name: 'cosmic',
+    background: 'bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700',
+    overlay: 'bg-gradient-to-r from-purple-500/20 to-blue-500/20',
+    icon: Sparkles,
+    accent: 'text-purple-300',
+    particles: '✨'
   },
   {
-    id: '2',
-    title: 'Calm Piano Lofi',
-    artist: 'Relaxing Sounds',
-    url: 'https://cdn.pixabay.com/audio/2023/02/28/audio_2c4d3b8c8e.mp3',
-    duration: '3:42',
-    genre: 'ambient',
-    mood: 'relaxed'
+    name: 'midnight',
+    background: 'bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900',
+    overlay: 'bg-gradient-to-r from-slate-600/20 to-slate-500/20',
+    icon: Zap,
+    accent: 'text-slate-300',
+    particles: '⚡'
   },
   {
-    id: '3',
-    title: 'Midnight Coffee',
-    artist: 'Study Lounge',
-    url: 'https://cdn.pixabay.com/audio/2022/11/27/audio_af1e9b6b8e.mp3',
-    duration: '2:58'
+    name: 'sunset',
+    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
+    overlay: 'bg-gradient-to-r from-orange-400/20 to-pink-400/20',
+    icon: Star,
+    accent: 'text-orange-300',
+    particles: '🌟'
   },
   {
-    id: '4',
-    title: 'Focus Flow',
-    artist: 'Ambient Collective',
-    url: 'https://cdn.pixabay.com/audio/2023/01/15/audio_7b3c9d4f2a.mp3',
-    duration: '4:12'
+    name: 'ocean',
+    background: 'bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-700',
+    overlay: 'bg-gradient-to-r from-teal-400/20 to-cyan-400/20',
+    icon: Target,
+    accent: 'text-teal-300',
+    particles: '🌊'
   },
   {
-    id: '5',
-    title: 'Dreamy Study Beats',
-    artist: 'Lofi Dreams',
-    url: 'https://cdn.pixabay.com/audio/2022/08/04/audio_c8b5e6f1d3.mp3',
-    duration: '3:28'
-    genre: 'ambient',
-    mood: 'intense'
+    name: 'aurora',
+    background: 'bg-gradient-to-br from-green-400 via-purple-500 to-pink-600',
+    overlay: 'bg-gradient-to-r from-green-400/20 to-purple-400/20',
+    icon: Heart,
+    accent: 'text-green-300',
+    particles: '💫'
   },
   {
-    id: '4',
-    title: 'Rainy Day Study',
-    artist: 'Nature Sounds',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-    duration: '6:20',
-    genre: 'nature',
-    mood: 'calm'
-  },
-  {
-    id: '5',
-    title: 'Creative Inspiration',
-    artist: 'Dreamy Loops',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-    duration: '4:55',
-    genre: 'creative',
-    mood: 'inspiring'
+    name: 'golden',
+    background: 'bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600',
+    overlay: 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20',
+    icon: Crown,
+    accent: 'text-yellow-300',
+    particles: '✨'
   }
 ];
 
-const AMBIENT_SOUNDS: AmbientSound[] = [
-  { id: '1', name: 'Rain', icon: '🌧️', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'nature' },
-  { id: '2', name: 'Ocean Waves', icon: '🌊', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'nature' },
-  { id: '3', name: 'Forest', icon: '🌲', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'nature' },
-  { id: '4', name: 'Coffee Shop', icon: '☕', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'cafe' },
-  { id: '5', name: 'White Noise', icon: '📻', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'white-noise' },
-  { id: '6', name: 'City Traffic', icon: '🚗', url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', category: 'urban' }
-];
-
-const STUDY_TIPS = [
-  "🧠 Take deep breaths and stay hydrated! Your brain needs oxygen and water to function optimally.",
-  "📚 Review what you've learned before starting new material to strengthen neural pathways.",
-  "⭐ Excellent progress! You're building strong study habits that will serve you well.",
-  "👀 Take a moment to look away from your screen and rest your eyes every 20 minutes.",
-  "🚀 You're doing amazing! Keep up this momentum and watch your knowledge grow.",
-  "💡 Try explaining what you've learned to someone else - it's a great way to reinforce knowledge.",
-  "🎯 Break complex topics into smaller, manageable chunks for better understanding.",
-  "⚡ Your focus is improving with each session. Consistency is key to mastery!"
-];
-
-const BREAK_ACTIVITIES = [
-  "🚶‍♀️ Take a short walk outside to get fresh air and boost your energy",
-  "💧 Drink some water and have a healthy snack to fuel your brain",
-  "👀 Practice the 20-20-20 rule: look at something 20 feet away for 20 seconds",
-  "🧘‍♀️ Do some light stretching or deep breathing exercises to relax",
-  "🎵 Listen to your favorite uplifting song to recharge your spirits",
-  "🌱 Step outside and get some natural light to reset your circadian rhythm",
-  "🤸‍♂️ Do some quick jumping jacks or push-ups to get your blood flowing",
-  "📝 Write down three things you're grateful for to boost your mood"
-];
-
-const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
-  const [isRunning, setIsRunning] = useState(false);
-  const [time, setTime] = useState(0);
-  const [mode, setMode] = useState<TimerMode>('focus');
-  const [pomodoroSettings, setPomodoroSettings] = useState(DEFAULT_POMODORO_SETTINGS);
-  const [pomodoroCount, setPomodoroCount] = useState(0);
-  const [sessionsCompleted, setSessionsCompleted] = useState(0);
-  const [currentStreak, setCurrentStreak] = useState(0);
-  const [dailyGoal, setDailyGoal] = useState(4);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [currentSubject, setCurrentSubject] = useState('');
-  const [currentTask, setCurrentTask] = useState('');
-  const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
-  const [showCustomTimer, setShowCustomTimer] = useState(false);
-
-  // Enhanced UI state
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto');
-  const [showStats, setShowStats] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
-  const [productivity, setProductivity] = useState(5);
-  const [sessionNotes, setSessionNotes] = useState('');
-
-  // Music player state
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState(0);
-  const [volume, setVolume] = useState(0.6);
-  const [isMuted, setIsMuted] = useState(false);
-  const [showMusicPlayer, setShowMusicPlayer] = useState(false);
-  const [currentPlaylist, setCurrentPlaylist] = useState<'lofi' | 'ambient'>('lofi');
-  const [currentAmbientSound, setCurrentAmbientSound] = useState(0);
-  const [shuffle, setShuffle] = useState(false);
-  const [repeat, setRepeat] = useState<'off' | 'one' | 'all'>('off');
-
-  // Floating window state
-  const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 20 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-
-  const intervalRef = useRef<NodeJS.Timeout>();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const ambientAudioRef = useRef<HTMLAudioElement>(null);
-  const floatingRef = useRef<HTMLDivElement>(null);
-
-  const targetTime = pomodoroSettings[mode];
-
-  // Load data from localStorage on mount
-  useEffect(() => {
-    const savedData = localStorage.getItem('advancedFocusTimer');
-    if (savedData) {
-      const data = JSON.parse(savedData);
-      setSessionsCompleted(data.sessionsCompleted || 0);
-      setCurrentStreak(data.currentStreak || 0);
-      setDailyGoal(data.dailyGoal || 4);
-      setStudyHistory(data.studyHistory || []);
-      setPomodoroCount(data.pomodoroCount || 0);
-      setVolume(data.musicVolume || 0.6);
-      setShowMusicPlayer(data.showMusicPlayer || false);
-      setPomodoroSettings(data.pomodoroSettings || DEFAULT_POMODORO_SETTINGS);
-      setTheme(data.theme || 'auto');
-      setFloatingPosition(data.floatingPosition || { x: 20, y: 20 });
+// Enhanced Card component with glassmorphism effect
+const GlassCard: React.FC<{ children: React.ReactNode; className?: string; hover?: boolean; gradient?: boolean }> = ({ 
+  children, 
+  className = '', 
+  hover = false, 
+  gradient = false 
+}) => (
+  <div className={`
+    ${gradient 
+      ? 'bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-xl border border-white/20' 
+      : 'bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50'
     }
-  }, []);
+    rounded-2xl shadow-lg
+    ${hover ? 'hover:shadow-xl hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 ease-out cursor-pointer' : 'transition-all duration-200'}
+    ${className}
+  `}>
+    {children}
+  </div>
+);
 
-  // Initialize audio
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.loop = repeat === 'one';
-    }
-    if (ambientAudioRef.current) {
-      ambientAudioRef.current.volume = isMuted ? 0 : volume * 0.7;
-      ambientAudioRef.current.loop = true;
-    }
-  }, [volume, isMuted, repeat]);
+// Enhanced stat card with better animations
+const StatCard: React.FC<{
+  icon: React.FC<{ className?: string }>;
+  label: string;
+  value: string;
+  color: string;
+  bgColor: string;
+  trend?: string;
+}> = ({ icon: Icon, label, value, color, bgColor, trend }) => (
+  <GlassCard hover className="p-6 group">
+    <div className="flex items-center justify-between mb-4">
+      <div className={p-3 ${bgColor} rounded-xl group-hover:scale-110 transition-transform duration-300}>
+        <Icon className={w-6 h-6 ${color}} />
+      </div>
+      {trend && (
+        <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+          {trend}
+        </span>
+      )}
+    </div>
+    <div className="space-y-1">
+      <p className="text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
+      <p className="text-3xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+        {value}
+      </p>
+    </div>
+  </GlassCard>
+);
 
-  // Mouse drag handlers for floating window
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (floatingRef.current) {
-      const rect = floatingRef.current.getBoundingClientRect();
-      setDragOffset({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-      setIsDragging(true);
-    }
+// Session card with enhanced design
+const SessionCard: React.FC<{
+  session: StudySession;
+  exam?: Exam;
+  formatMinutes: (minutes: number) => string;
+}> = ({ session, exam, formatMinutes }) => (
+  <GlassCard hover className="p-6 group">
+    <div className="flex justify-between items-start mb-4">
+      <div className="flex items-start gap-3">
+        <div className="p-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg">
+          <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+        </div>
+        <div>
+          <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+            {session.subject}
+          </h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            {session.topic}
+          </p>
+        </div>
+      </div>
+      <div className="text-right">
+        <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
+          {formatMinutes(session.duration)}
+        </span>
+        <div className="flex items-center gap-1 mt-1 justify-end">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <div
+              key={star}
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                star <= session.efficiency
+                  ? 'bg-yellow-400 shadow-sm'
+                  : 'bg-gray-200 dark:bg-gray-600'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+    
+    <div className="flex items-center justify-between pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+        <Calendar className="w-4 h-4" />
+        <span>{new Date(session.date).toLocaleDateString()}</span>
+      </div>
+      <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-200">
+        <span>{exam?.name}</span>
+        <ChevronRight className="w-4 h-4" />
+      </div>
+    </div>
+  </GlassCard>
+);
+
+// Raksha Bandhan checker
+const getRakshaBandhanInfo = () => {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const rakshabandhanDate = new Date(2025, 7, 15); // August 15, 2025 (month is 0-indexed)
+  
+  const diffTime = rakshabandhanDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Show message if within 30 days before or on the day
+  const shouldShowMessage = diffDays >= 0 && diffDays <= 30;
+  
+  let message = '';
+  let emoji = '🎋';
+  let bgGradient = 'from-pink-500 via-red-500 to-orange-500';
+  
+  if (diffDays === 0) {
+    message = 'Happy independence Day! 🎉 May your bond of love grow stronger with every study session!';
+    emoji = '🎊';
+  } else if (diffDays === 1) {
+    message = 'Raksha Bandhan tomorrow! 🎋 Study smart and make your siblings proud!';
+  } else if (diffDays <= 7) {
+    message = Raksha Bandhan in ${diffDays} days! 🎋 Perfect time to study together with siblings!;
+  } else if (diffDays <= 30) {
+    message = Raksha Bandhan approaching in ${diffDays} days! 🎋 Plan your celebration and studies wisely!;
+    bgGradient = 'from-purple-500 via-pink-500 to-red-500';
+  }
+  
+  return {
+    shouldShow: shouldShowMessage,
+    message,
+    emoji,
+    bgGradient,
+    daysUntil: diffDays
   };
+};
 
-  const handleMouseMove = (e: MouseEvent) => {
-    if (isDragging) {
-      const newX = Math.max(0, Math.min(window.innerWidth - 280, e.clientX - dragOffset.x));
-      const newY = Math.max(0, Math.min(window.innerHeight - 200, e.clientY - dragOffset.y));
-      setFloatingPosition({ x: newX, y: newY });
-    }
-  };
+export const Dashboard: React.FC = () => {
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [sessions, setSessions] = useState<StudySession[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [currentDesign, setCurrentDesign] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const { user, isPremium } = useAuth();
 
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
+  // Get Raksha Bandhan info
+  const rakshabandhanInfo = getRakshaBandhanInfo();
+
+  // Get saved display name
+  const savedDisplayName = user ? localStorage.getItem(displayName-${user.uid}) : null;
+  const displayName = savedDisplayName || user?.displayName || user?.email?.split('@')[0];
 
   useEffect(() => {
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [isDragging, dragOffset]);
+    setMounted(true);
+    if (!user) return;
 
-  // Save data to localStorage
-  const saveData = () => {
-    const data = {
-      sessionsCompleted,
-      currentStreak,
-      dailyGoal,
-      studyHistory,
-      pomodoroCount,
-      musicVolume: volume,
-      showMusicPlayer,
-      pomodoroSettings,
-      theme,
-      floatingPosition
-    };
-    localStorage.setItem('advancedFocusTimer', JSON.stringify(data));
-  };
+    const unsubscribeExams = getUserExams(user.uid, (examData) => {
+      setExams(examData);
+      setLoading(false);
+    });
 
-  // Background timer
-  useEffect(() => {
-    if (isRunning) {
-      intervalRef.current = setInterval(() => {
-        setTime(prev => {
-          if (prev >= targetTime * 60) {
-            setIsRunning(false);
-            handleSessionComplete();
-            return prev;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-    } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    }
+    const unsubscribeSessions = getUserSessions(user.uid, (sessionData) => {
+      setSessions(sessionData);
+    });
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
+      unsubscribeExams();
+      unsubscribeSessions();
     };
-  }, [isRunning, targetTime]);
+  }, [user]);
 
-  // Request notification permission on mount
+  // Change design every 25 seconds (or every 15 seconds if Raksha Bandhan is active)
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
+    if (!mounted) return;
+    const interval = setInterval(() => {
+      setCurrentDesign((prev) => (prev + 1) % heroDesigns.length);
+    }, rakshabandhanInfo.shouldShow ? 15000 : 25000);
+    return () => clearInterval(interval);
+  }, [mounted, rakshabandhanInfo.shouldShow]);
 
-  const handleSessionComplete = () => {
-    const newSession: StudySession = {
-      id: Date.now().toString(),
-      subject: currentSubject,
-      task: currentTask,
-      duration: targetTime,
-      completedAt: new Date(),
-      mode,
-      productivity,
-      notes: sessionNotes
-    };
+  const handleSessionAdded = () => {
+    // Sessions will be updated automatically via the real-time listener
+  };
 
-    if (mode === 'focus' || mode === 'custom' || mode === 'deepFocus' || mode === 'study' || mode === 'creative') {
-      const newCount = pomodoroCount + 1;
-      setPomodoroCount(newCount);
-      setSessionsCompleted(prev => prev + 1);
-      setCurrentStreak(prev => prev + 1);
+  // Calculate stats
+  const todaysSessions = sessions.filter(session => 
+    new Date(session.date).toDateString() === new Date().toDateString()
+  );
+  const todaysStudyTime = todaysSessions.reduce((total, session) => total + session.duration, 0);
+  const thisWeekSessions = sessions.filter(session => {
+    const sessionDate = new Date(session.date);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return sessionDate >= weekAgo;
+  });
+  const weeklyStudyTime = thisWeekSessions.reduce((total, session) => total + session.duration, 0);
+  const averageEfficiency = sessions.length > 0 
+    ? sessions.reduce((total, session) => total + session.efficiency, 0) / sessions.length 
+    : 0;
+
+  // Calculate study streak
+  const calculateStudyStreak = () => {
+    if (sessions.length === 0) return 0;
+    
+    const sortedSessions = [...sessions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    let streak = 0;
+    let currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    
+    for (let i = 0; i < 30; i++) { // Check last 30 days
+      const checkDate = new Date(currentDate);
+      checkDate.setDate(checkDate.getDate() - i);
       
-      const tipIndex = Math.floor(Math.random() * STUDY_TIPS.length);
-      if (pomodoroSettings.notifications && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification('🎉 Focus Session Complete!', {
-          body: STUDY_TIPS[tipIndex],
-          icon: '/vite.svg'
-        });
-      }
-
-      if (pomodoroSettings.autoBreak) {
-        if (mode === 'focus' && newCount % 4 === 0) {
-          setMode('longBreak');
-        } else if (mode === 'focus') {
-          setMode('shortBreak');
-        }
-      }
-    } else {
-      if (pomodoroSettings.notifications && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification('⏰ Break Time Over!', {
-          body: 'Time to get back to studying! You\'ve got this! 💪',
-          icon: '/vite.svg'
-        });
-      }
-      if (pomodoroSettings.autoBreak) {
-        setMode('focus');
+      const hasSessionOnDate = sortedSessions.some(session => {
+        const sessionDate = new Date(session.date);
+        sessionDate.setHours(0, 0, 0, 0);
+        return sessionDate.getTime() === checkDate.getTime();
+      });
+      
+      if (hasSessionOnDate) {
+        streak++;
+      } else if (i > 0) { // Allow for today to not break streak
+        break;
       }
     }
-
-    setStudyHistory(prev => [...prev, newSession]);
-    setTime(0);
-    setProductivity(5);
-    setSessionNotes('');
-    saveData();
+    
+    return streak;
   };
 
-  // Music player functions
-  const toggleMusic = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play().catch(console.error);
-      }
-      setIsPlaying(!isPlaying);
+  // Get upcoming deadlines (next 7 days)
+  const getUpcomingDeadlines = () => {
+    const now = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(now.getDate() + 7);
+    
+    return exams.filter(exam => {
+      const examDate = new Date(exam.date);
+      return examDate >= now && examDate <= nextWeek;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  };
+
+  // Calculate performance metrics
+  const getPerformanceMetrics = () => {
+    const last7Days = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return sessionDate >= weekAgo;
+    });
+
+    const previous7Days = sessions.filter(session => {
+      const sessionDate = new Date(session.date);
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return sessionDate >= twoWeeksAgo && sessionDate < weekAgo;
+    });
+
+    const currentWeekTime = last7Days.reduce((total, session) => total + session.duration, 0);
+    const previousWeekTime = previous7Days.reduce((total, session) => total + session.duration, 0);
+    const timeChange = previousWeekTime > 0 ? ((currentWeekTime - previousWeekTime) / previousWeekTime) * 100 : 0;
+
+    const currentWeekEfficiency = last7Days.length > 0 
+      ? last7Days.reduce((total, session) => total + session.efficiency, 0) / last7Days.length 
+      : 0;
+    const previousWeekEfficiency = previous7Days.length > 0 
+      ? previous7Days.reduce((total, session) => total + session.efficiency, 0) / previous7Days.length 
+      : 0;
+    const efficiencyChange = previousWeekEfficiency > 0 ? ((currentWeekEfficiency - previousWeekEfficiency) / previousWeekEfficiency) * 100 : 0;
+
+    return {
+      timeChange: Math.round(timeChange),
+      efficiencyChange: Math.round(efficiencyChange),
+      sessionsThisWeek: last7Days.length,
+      averageSessionLength: last7Days.length > 0 ? Math.round(currentWeekTime / last7Days.length) : 0
+    };
+  };
+
+  const studyStreak = calculateStudyStreak();
+  const upcomingDeadlines = getUpcomingDeadlines();
+  const performanceMetrics = getPerformanceMetrics();
+
+  // Get current time for greeting
+  const getCurrentGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
+  };
+
+  const formatMinutes = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return ${hours}h ${mins}m;
     }
+    return ${mins}m;
   };
 
-  const nextTrack = () => {
-    if (currentPlaylist === 'lofi') {
-      const nextIndex = shuffle 
-        ? Math.floor(Math.random() * LOFI_TRACKS.length)
-        : (currentTrack + 1) % LOFI_TRACKS.length;
-      setCurrentTrack(nextIndex);
-    } else {
-      const nextIndex = (currentAmbientSound + 1) % AMBIENT_SOUNDS.length;
-      setCurrentAmbientSound(nextIndex);
-    }
-    if (isPlaying && audioRef.current) {
-      audioRef.current.play().catch(console.error);
-    }
-  };
-
-  const previousTrack = () => {
-    if (currentPlaylist === 'lofi') {
-      const prevIndex = shuffle 
-        ? Math.floor(Math.random() * LOFI_TRACKS.length)
-        : currentTrack === 0 ? LOFI_TRACKS.length - 1 : currentTrack - 1;
-      setCurrentTrack(prevIndex);
-    } else {
-      const prevIndex = currentAmbientSound === 0 ? AMBIENT_SOUNDS.length - 1 : currentAmbientSound - 1;
-      setCurrentAmbientSound(prevIndex);
-    }
-    if (isPlaying && audioRef.current) {
-      audioRef.current.play().catch(console.error);
-    }
-  };
-
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? volume : 0;
-    }
-    if (ambientAudioRef.current) {
-      ambientAudioRef.current.volume = isMuted ? volume * 0.7 : 0;
-    }
-  };
-
-  const handleVolumeChange = (newVolume: number) => {
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : newVolume;
-    }
-    if (ambientAudioRef.current) {
-      ambientAudioRef.current.volume = isMuted ? 0 : newVolume * 0.7;
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const minutes = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const getProgress = () => {
-    return (time / (targetTime * 60)) * 100;
-  };
-
-  const startFocus = () => {
-    setIsRunning(true);
-  };
-
-  const pauseFocus = () => {
-    setIsRunning(false);
-  };
-
-  const stopFocus = () => {
-    setIsRunning(false);
-    setTime(0);
-  };
-
-  const resetSession = () => {
-    setTime(0);
-    setIsRunning(false);
-  };
-
-  const switchMode = (newMode: TimerMode) => {
-    if (!isRunning) {
-      setMode(newMode);
-      setTime(0);
-      if (newMode === 'custom') {
-        setShowCustomTimer(true);
-      }
-    }
-  };
-
-  const handleCustomTimerChange = (minutes: number) => {
-    if (minutes > 0 && minutes <= 180) {
-      setPomodoroSettings(prev => ({
-        ...prev,
-        custom: minutes
-      }));
-    }
-  };
-
-  const handleMinimize = () => {
-    setIsMinimized(true);
-  };
-
-  const handleMaximize = () => {
-    setIsMinimized(false);
-  };
-
-  const handleFloatingStop = () => {
-    stopFocus();
-    setIsMinimized(false);
-  };
-
-  const getTodaysPomodoros = () => {
-    const today = new Date().toDateString();
-    return studyHistory.filter(session =>
-      ['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(session.mode) &&
-      new Date(session.completedAt).toDateString() === today
-    ).length;
-  };
-
-  const getDailyProgress = () => {
-    return Math.min((getTodaysPomodoros() / dailyGoal) * 100, 100);
-  };
-
-  const getRandomTip = () => {
-    if (['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode)) {
-      return STUDY_TIPS[Math.floor(Math.random() * STUDY_TIPS.length)];
-    }
-    return BREAK_ACTIVITIES[Math.floor(Math.random() * BREAK_ACTIVITIES.length)];
-  };
-
-  const getModeIcon = (timerMode: TimerMode) => {
-    switch (timerMode) {
-      case 'focus': return <Target className="w-4 h-4" />;
-      case 'deepFocus': return <Brain className="w-4 h-4" />;
-      case 'study': return <BookOpen className="w-4 h-4" />;
-      case 'creative': return <Lightbulb className="w-4 h-4" />;
-      case 'shortBreak': return <Coffee className="w-4 h-4" />;
-      case 'longBreak': return <Moon className="w-4 h-4" />;
-      case 'custom': return <Settings className="w-4 h-4" />;
-      default: return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  const getModeColor = (timerMode: TimerMode) => {
-    switch (timerMode) {
-      case 'focus': return 'blue';
-      case 'deepFocus': return 'purple';
-      case 'study': return 'indigo';
-      case 'creative': return 'yellow';
-      case 'shortBreak': return 'green';
-      case 'longBreak': return 'emerald';
-      case 'custom': return 'gray';
-      default: return 'blue';
-    }
-  };
-
-  // Enhanced Floating Timer Component
-  const FloatingTimer = () => {
-    if (!isMinimized || (!isRunning && time === 0)) return null;
-
-    const color = getModeColor(mode);
-
+  if (loading) {
     return (
-      <div 
-        ref={floatingRef}
-        className={`fixed z-50 ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
-        style={{ 
-          left: floatingPosition.x, 
-          top: floatingPosition.y,
-          transform: isDragging ? 'scale(1.05)' : 'scale(1)',
-          transition: isDragging ? 'none' : 'transform 0.2s ease'
-        }}
-      >
-        <div className={`bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-4 min-w-[280px] max-w-[320px] ${isDragging ? 'shadow-3xl' : ''}`}>
-          <div 
-            className="flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing"
-            onMouseDown={handleMouseDown}
-          >
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl bg-${color}-100 dark:bg-${color}-900/30 ring-2 ring-${color}-500/20`}>
-                {getModeIcon(mode)}
-              </div>
-              <div>
-                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 capitalize">
-                  {mode === 'deepFocus' ? 'Deep Focus' : 
-                   mode === 'shortBreak' ? 'Short Break' : 
-                   mode === 'longBreak' ? 'Long Break' : mode}
-                </span>
-                {currentSubject && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[120px]">
-                    {currentSubject}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="flex gap-1">
-              <Move className="w-4 h-4 text-gray-400" />
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-600 border-t-transparent absolute top-0"></div>
           </div>
-
-          <div className="text-center mb-3">
-            <div className="text-2xl font-mono font-bold text-gray-900 dark:text-gray-100 mb-1">
-              {formatTime(time)}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              {formatTime(Math.max(0, targetTime * 60 - time))} remaining • {targetTime}m total
-            </div>
-          </div>
-
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4 overflow-hidden">
-            <div
-              className={`h-2 rounded-full transition-all duration-1000 bg-gradient-to-r from-${color}-500 to-${color}-600`}
-              style={{ width: `${Math.min(getProgress(), 100)}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <button
-              onClick={isRunning ? pauseFocus : startFocus}
-              disabled={time >= targetTime * 60}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 ${
-                isRunning 
-                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-900/50'
-                  : `bg-${color}-600 text-white hover:bg-${color}-700 shadow-lg hover:shadow-xl`
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-            >
-              {isRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-              {isRunning ? 'Pause' : 'Start'}
-            </button>
-            <button
-              onClick={handleFloatingStop}
-              className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
-              title="Stop & Expand"
-            >
-              <Square className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleMaximize}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
-              title="Maximize"
-            >
-              <Maximize2 className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <div className={`flex items-center gap-1 font-medium ${isRunning ? `text-${color}-600 dark:text-${color}-400` : 'text-gray-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${isRunning ? `bg-${color}-500` : 'bg-gray-400'} ${isRunning ? 'animate-pulse' : ''}`} />
-              {isRunning ? 'Active' : 'Paused'}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-                <Flame className="w-3 h-3" />
-                <span>{currentStreak}</span>
-              </div>
-              <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                <CheckCircle className="w-3 h-3" />
-                <span>{getTodaysPomodoros()}</span>
-              </div>
+          <div className="space-y-2">
+            <p className="text-lg font-semibold text-gray-700 dark:text-gray-300"></p>
+            <div className="flex justify-center gap-1">
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+              <div className="w-2 h-2 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
             </div>
           </div>
         </div>
       </div>
     );
-  };
+  }
 
-  if (!isOpen && !isMinimized) return null;
+  const currentHeroDesign = heroDesigns[currentDesign];
+  const IconComponent = currentHeroDesign.icon;
 
   return (
-    <>
-      <FloatingTimer />
-
-      {/* Hidden audio elements */}
-      <audio
-        ref={audioRef}
-        src={currentPlaylist === 'lofi' ? LOFI_TRACKS[currentTrack].url : AMBIENT_SOUNDS[currentAmbientSound].url}
-        preload="metadata"
-      />
-      <audio
-        ref={ambientAudioRef}
-        preload="metadata"
-      />
-
-      {isOpen && !isMinimized && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="w-full max-w-4xl max-h-[95vh] overflow-y-auto bg-white dark:bg-gray-900 rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50">
-            <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-              {/* Enhanced Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className={`p-4 rounded-2xl bg-gradient-to-br from-${getModeColor(mode)}-100 to-${getModeColor(mode)}-200 dark:from-${getModeColor(mode)}-900/30 dark:to-${getModeColor(mode)}-800/20 ring-2 ring-${getModeColor(mode)}-500/20`}>
-                    {getModeIcon(mode)}
-                  </div>
-                  <div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 capitalize">
-                      {mode === 'deepFocus' ? 'Deep Focus Mode' : 
-                       mode === 'shortBreak' ? 'Short Break' : 
-                       mode === 'longBreak' ? 'Long Break' : 
-                       `${mode} Mode`}
-                    </h2>
-                    <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                      {['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode) 
-                        ? 'Time to concentrate and achieve your goals!' 
-                        : 'Take a well-deserved break and recharge!'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleMinimize}
-                  className="p-3 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
-                  title="Minimize to floating window"
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-0 pb-20 md:pb-8">
+        
+        {/* Enhanced Hero Section with App Branding */}
+        <div className="mb-6 -mt-20 md:-mt-0 pt-20 md:pt-6 relative overflow-hidden">
+          <GlassCard 
+            gradient 
+            className={`${rakshabandhanInfo.shouldShow 
+              ? bg-gradient-to-br ${rakshabandhanInfo.bgGradient} 
+              : currentHeroDesign.background} text-white transition-all duration-1000 relative`}
+          >
+            <div className={`absolute inset-0 ${rakshabandhanInfo.shouldShow 
+              ? 'bg-gradient-to-r from-pink-400/20 to-red-400/20' 
+              : currentHeroDesign.overlay} transition-all duration-1000`} />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
+            
+            {/* Enhanced floating particles animation */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none">
+              {[...Array(8)].map((_, i) => (
+                <div
+                  key={i}
+                  className="absolute text-sm animate-float opacity-40"
+                  style={{
+                    left: ${Math.random() * 100}%,
+                    top: ${Math.random() * 100}%,
+                    animationDelay: ${i * 0.3}s,
+                    animationDuration: ${2 + Math.random() * 3}s
+                  }}
                 >
-                  <Minimize2 className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Enhanced Mode Switcher */}
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 p-2 bg-gray-100 dark:bg-gray-800 rounded-2xl">
-                  {(['focus', 'deepFocus', 'study', 'creative', 'shortBreak', 'longBreak', 'custom'] as TimerMode[]).map((timerMode) => {
-                    const color = getModeColor(timerMode);
-                    const isActive = mode === timerMode;
-                    return (
-                      <button
-                        key={timerMode}
-                        onClick={() => switchMode(timerMode)}
-                        disabled={isRunning}
-                        className={`flex flex-col items-center gap-2 py-3 px-2 text-xs font-medium rounded-xl transition-all duration-200 ${
-                          isActive
-                            ? `bg-${color}-600 text-white shadow-lg scale-105`
-                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-700'
-                        } disabled:opacity-50 disabled:cursor-not-allowed`}
-                      >
-                        <div className={`p-2 rounded-lg ${isActive ? 'bg-white/20' : `bg-${color}-100 dark:bg-${color}-900/30`}`}>
-                          {getModeIcon(timerMode)}
-                        </div>
-                        <span className="capitalize text-center">
-                          {timerMode === 'deepFocus' ? 'Deep' : 
-                           timerMode === 'shortBreak' ? 'Break' : 
-                           timerMode === 'longBreak' ? 'Long' : timerMode}
-                        </span>
-                        <span className={`text-xs ${isActive ? 'text-white/70' : 'text-gray-500'}`}>
-                          {pomodoroSettings[timerMode]}m
-                        </span>
-                      </button>
-                    );
-                  })}
+                  {rakshabandhanInfo.shouldShow ? 
+                    (i % 3 === 0 ? '🎋' : i % 3 === 1 ? '💝' : '✨') : 
+                    currentHeroDesign.particles}
                 </div>
+              ))}
+            </div>
 
-                {/* Custom Timer Settings */}
-                {(showCustomTimer || mode === 'custom') && (
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/30 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-                      <span className="font-semibold text-gray-800 dark:text-gray-200">
-                        Custom Timer Settings
-                      </span>
+            <div className="relative p-4 md:p-5">
+              {/* Raksha Bandhan Special Message */}
+              {rakshabandhanInfo.shouldShow && (
+                <div className="mb-3 p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 animate-pulse-soft">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg animate-bounce">{rakshabandhanInfo.emoji}</span>
+                    <h2 className="text-sm font-bold text-white">Special Occasion</h2>
+                  </div>
+                  <p className="text-white/90 text-xs leading-relaxed">
+                    {rakshabandhanInfo.message}
+                  </p>
+                  {rakshabandhanInfo.daysUntil > 0 && rakshabandhanInfo.daysUntil <= 7 && (
+                    <div className="mt-1 flex items-center gap-1 text-xs text-white/80">
+                      <Gift className="w-2 h-2" />
+                      <span>Plan a study session with your siblings!</span>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                          Duration (minutes)
-                        </label>
-                        <input
-                          type="range"
-                          min="5"
-                          max="180"
-                          value={pomodoroSettings.custom}
-                          onChange={(e) => handleCustomTimerChange(parseInt(e.target.value))}
-                          disabled={isRunning}
-                          className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 mt-1">
-                          <span>5m</span>
-                          <span className="font-bold text-gray-700 dark:text-gray-300">{pomodoroSettings.custom}m</span>
-                          <span>3h</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                          Quick Presets
-                        </label>
-                        <div className="grid grid-cols-4 gap-2">
-                          {[15, 30, 45, 90].map((preset) => (
-                            <button
-                              key={preset}
-                              onClick={() => handleCustomTimerChange(preset)}
-                              disabled={isRunning}
-                              className={`py-2 px-3 text-sm rounded-lg font-medium transition-all ${
-                                pomodoroSettings.custom === preset
-                                  ? 'bg-blue-600 text-white shadow-lg'
-                                  : 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50'
-                              } disabled:opacity-50`}
-                            >
-                              {preset}m
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Study Subject & Task */}
-              {['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode) && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      <BookOpen className="w-4 h-4" />
-                      Subject
-                    </label>
-                    <input
-                      type="text"
-                      value={currentSubject}
-                      onChange={(e) => setCurrentSubject(e.target.value)}
-                      placeholder="e.g., Mathematics, History, Programming..."
-                      disabled={isRunning}
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
-                    />
-                  </div>
-                  <div>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                      <Target className="w-4 h-4" />
-                      Current Task
-                    </label>
-                    <input
-                      type="text"
-                      value={currentTask}
-                      onChange={(e) => setCurrentTask(e.target.value)}
-                      placeholder="e.g., Chapter 5 problems, Essay outline..."
-                      disabled={isRunning}
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all disabled:opacity-50"
-                    />
-                  </div>
+                  )}
                 </div>
               )}
 
-              {/* Enhanced Timer Display */}
-              <div className="text-center">
-                <div className="relative w-48 h-48 sm:w-56 sm:h-56 mx-auto mb-8">
-                  <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
-                    <defs>
-                      <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor={`rgb(59 130 246)`} />
-                        <stop offset="100%" stopColor={`rgb(147 51 234)`} />
-                      </linearGradient>
-                    </defs>
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="85"
-                      stroke="currentColor"
-                      strokeWidth="12"
-                      fill="none"
-                      className="text-gray-200 dark:text-gray-700"
-                    />
-                    <circle
-                      cx="100"
-                      cy="100"
-                      r="85"
-                      stroke="url(#progressGradient)"
-                      strokeWidth="12"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 85}`}
-                      strokeDashoffset={`${2 * Math.PI * 85 * (1 - getProgress() / 100)}`}
-                      className="transition-all duration-1000 drop-shadow-lg"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-4xl sm:text-5xl font-mono font-bold text-gray-900 dark:text-gray-100 mb-2">
-                        {formatTime(time)}
+              <div className="flex items-center justify-between">
+                <div className="flex-1 space-y-2">
+                  <div className="space-y-1">
+                    <h1 className="text-lg sm:text-xl md:text-2xl font-bold flex items-center gap-2">
+                      <span>{getCurrentGreeting()}, {displayName}!</span>
+                      {isPremium && <PremiumBadge size="sm" />}
+                      <div className="text-lg animate-wave">👋</div>
+                    </h1>
+                    <p className="text-white/80 text-xs sm:text-sm">
+                      {rakshabandhanInfo.shouldShow ? 
+                        "Study with festive spirit and achieve excellence!" : 
+                        "Ready to conquer your academic goals today?"}
+                    </p>
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center gap-1 sm:gap-2 text-xs">
+                    <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                      <Clock className="w-3 h-3" />
+                      <span>{new Date().toLocaleDateString('en-US', { 
+                        weekday: 'short', 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}</span>
+                    </div>
+                    {studyStreak > 0 && (
+                      <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                        <Flame className="w-3 h-3" />
+                        <span>{studyStreak} day streak</span>
                       </div>
-                      <div className="text-sm sm:text-base text-gray-500 dark:text-gray-400">
-                        {formatTime(Math.max(0, targetTime * 60 - time))} remaining
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                        {Math.round(getProgress())}% complete
-                      </div>
+                    )}
+                    <div className="flex items-center gap-1 bg-white/20 backdrop-blur-sm rounded-full px-2 py-0.5">
+                      <Target className="w-3 h-3" />
+                      <span>Study Dashboard</span>
                     </div>
                   </div>
                 </div>
-
-                {/* Status & Motivation */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-400'} shadow-lg`} />
-                    <span className={`text-lg font-medium ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
-                      {isRunning ? 'Stay Focused! You\'re Doing Amazing!' : 'Ready to Begin Your Session'}
-                    </span>
+                
+                <div className="flex flex-col items-center gap-1 ml-3">
+                  <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl transform hover:scale-110 transition-all duration-300">
+                    <IconComponent className="w-6 h-6 text-white/80" />
                   </div>
                   
-                  {mode === 'shortBreak' || mode === 'longBreak' ? (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200/50 dark:border-green-700/30">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
-                          <Lightbulb className="w-5 h-5 text-green-600 dark:text-green-400" />
-                        </div>
-                        <span className="font-semibold text-green-800 dark:text-green-400">
-                          Break Activity Suggestion
-                        </span>
-                      </div>
-                      <p className="text-green-700 dark:text-green-300 leading-relaxed">
-                        {getRandomTip()}
-                      </p>
+                  {/* Quick Status */}
+                  <div className="text-center">
+                    {studyStreak > 0 && (
+                      <span className="text-sm animate-pulse">
+                        {studyStreak >= 14 ? '👑' : studyStreak >= 7 ? '🔥' : studyStreak >= 3 ? '⚡' : '💪'}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
+        </div>
+
+        {/* Premium AI Insights Section */}
+        {isPremium && (
+          <div className="mb-8">
+            <Card className="p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20 border border-purple-200 dark:border-purple-700">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-purple-600" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    StudyForge AI Assistant
+                  </h2>
+                  <PremiumBadge size="sm" />
+                </div>
+                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                  Powered by Advanced AI
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-100 dark:border-purple-800">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                    🎯 Today's Focus
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {rakshabandhanInfo.shouldShow ? 
+                      "Study Mathematics with your siblings for better retention and fun!" :
+                      "Based on your schedule, focus on Mathematics for optimal results."}
+                  </p>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-100 dark:border-blue-800">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                    📈 Performance Insight
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Your efficiency peaks at 10 AM. Schedule important topics then for maximum impact.
+                  </p>
+                </div>
+                
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-green-100 dark:border-green-800">
+                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                    ⚡ Smart Tip
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {rakshabandhanInfo.shouldShow ?
+                      "Celebrate learning! Share knowledge with family for better understanding." :
+                      "Take a 5-minute break every 25 minutes to maintain focus and productivity."}
+                  </p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <StatCard
+            icon={Clock}
+            label="Today's Study Time"
+            value={formatMinutes(todaysStudyTime)}
+            color="text-blue-600 dark:text-blue-400"
+            bgColor="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30"
+            trend={performanceMetrics.timeChange > 0 ? +${performanceMetrics.timeChange}% : ${performanceMetrics.timeChange}%}
+          />
+          <StatCard
+            icon={Target}
+            label="Weekly Study Time"
+            value={formatMinutes(weeklyStudyTime)}
+            color="text-purple-600 dark:text-purple-400"
+            bgColor="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30"
+            trend={${performanceMetrics.sessionsThisWeek} sessions}
+          />
+          <StatCard
+            icon={TrendingUp}
+            label="Avg. Efficiency"
+            value={${averageEfficiency.toFixed(1)}/5}
+            color="text-green-600 dark:text-green-400"
+            bgColor="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30"
+            trend={performanceMetrics.efficiencyChange > 0 ? +${performanceMetrics.efficiencyChange}% : ${performanceMetrics.efficiencyChange}%}
+          />
+          <StatCard
+            icon={Flame}
+            label="Study Streak"
+            value={${studyStreak} days}
+            color="text-orange-600 dark:text-orange-400"
+            bgColor="bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30"
+            trend={studyStreak > 14 ? "👑 Legendary!" : studyStreak > 7 ? "🔥 Hot!" : studyStreak > 3 ? "💪 Strong" : "📈 Building"}
+          />
+        </div>
+
+        {/* Advanced Analytics Section */}
+        <div className="mb-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            {/* Performance Analytics */}
+            <GlassCard className="p-6 lg:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-blue-500" />
+                StudyForge Analytics
+              </h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Weekly Progress</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Study Time</span>
+                      <span className={text-xs font-semibold ${performanceMetrics.timeChange >= 0 ? 'text-green-600' : 'text-red-600'}}>
+                        {performanceMetrics.timeChange >= 0 ? '+' : ''}{performanceMetrics.timeChange}%
+                      </span>
                     </div>
-                  ) : (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/30">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                          <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Efficiency</span>
+                      <span className={text-xs font-semibold ${performanceMetrics.efficiencyChange >= 0 ? 'text-green-600' : 'text-red-600'}}>
+                        {performanceMetrics.efficiencyChange >= 0 ? '+' : ''}{performanceMetrics.efficiencyChange}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Session Insights</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Avg. Length</span>
+                      <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                        {formatMinutes(performanceMetrics.averageSessionLength)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">This Week</span>
+                      <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                        {performanceMetrics.sessionsThisWeek} sessions
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Study Streak Visualization */}
+              <div className="mt-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Study Streak</span>
+                  </div>
+                  <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{studyStreak} days</span>
+                </div>
+                <div className="flex gap-1">
+                  {[...Array(14)].map((_, i) => {
+                    const dayIndex = 13 - i;
+                    const hasStudied = dayIndex < studyStreak;
+                    return (
+                      <div
+                        key={i}
+                        className={`h-3 flex-1 rounded-sm transition-all duration-200 ${
+                          hasStudied 
+                            ? 'bg-orange-400 dark:bg-orange-500' 
+                            : 'bg-gray-200 dark:bg-gray-700'
+                        }`}
+                        title={${dayIndex + 1} days ago}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            </GlassCard>
+
+            {/* Upcoming Deadlines */}
+            <GlassCard className="p-6">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-red-500" />
+                Upcoming Deadlines
+              </h2>
+              {upcomingDeadlines.length > 0 ? (
+                <div className="space-y-3">
+                  {upcomingDeadlines.slice(0, 4).map((exam) => {
+                    const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                    const isUrgent = daysUntil <= 3;
+                    const hoursUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60));
+                    const studySessionsForExam = sessions.filter(s => s.examId === exam.id);
+                    const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
+                    const averageEfficiency = studySessionsForExam.length > 0 
+                      ? studySessionsForExam.reduce((total, session) => total + session.efficiency, 0) / studySessionsForExam.length 
+                      : 0;
+                    
+                    return (
+                      <div key={exam.id} className={`p-3 rounded-lg border-l-4 ${
+                        isUrgent 
+                          ? 'bg-red-50 dark:bg-red-900/20 border-red-400' 
+                          : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400'
+                      }`}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm">
+                              {exam.name}
+                            </h3>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                              {exam.subject}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <span className={`text-xs font-semibold ${
+                              isUrgent ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'
+                            }`}>
+                              {daysUntil === 0 
+                                ? hoursUntil <= 1 ? 'Now!' : ${hoursUntil}h left
+                                : daysUntil === 1 ? 'Tomorrow' : ${daysUntil} days}
+                            </span>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {new Date(exam.date).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
-                        <span className="font-semibold text-blue-800 dark:text-blue-400">
-                          Study Tip
-                        </span>
+                        
+                        {/* Study Progress */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600 dark:text-gray-400">Study Progress</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">
+                              {formatMinutes(totalStudyTime)} • {studySessionsForExam.length} sessions
+                            </span>
+                          </div>
+                          
+                          {/* Progress Bar */}
+                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                            <div 
+                              className={`h-2 rounded-full transition-all duration-300 ${
+                                isUrgent ? 'bg-red-400' : 'bg-yellow-400'
+                              }`}
+                              style={{ 
+                                width: ${Math.min(100, (totalStudyTime / 300) * 100)}% // Assuming 5 hours (300 min) as target
+                              }}
+                            />
+                          </div>
+                          
+                          {/* Efficiency and Recommendation */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <span className="text-xs text-gray-600 dark:text-gray-400">Efficiency:</span>
+                              <div className="flex gap-0.5">
+                                {[1, 2, 3, 4, 5].map((star) => (
+                                  <div
+                                    key={star}
+                                    className={`w-1.5 h-1.5 rounded-full ${
+                                      star <= averageEfficiency
+                                        ? 'bg-yellow-400'
+                                        : 'bg-gray-300 dark:bg-gray-600'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            
+                            {/* Smart Recommendations */}
+                            <div className="text-xs">
+                              {totalStudyTime < 120 && daysUntil <= 3 && (
+                                <span className="text-red-600 dark:text-red-400 font-medium">
+                                  📚 Study more!
+                                </span>
+                              )}
+                              {totalStudyTime >= 300 && (
+                                <span className="text-green-600 dark:text-green-400 font-medium">
+                                  ✅ Well prepared
+                                </span>
+                              )}
+                              {totalStudyTime >= 120 && totalStudyTime < 300 && (
+                                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                                  📈 Good progress
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-blue-700 dark:text-blue-300 leading-relaxed">
-                        {getRandomTip()}
+                    );
+                  })}
+                  
+                  {/* Quick Study Suggestion */}
+                  {upcomingDeadlines.length > 0 && (
+                    <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Crown className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                        <span className="text-sm font-medium text-blue-900 dark:text-blue-100">StudyForge Smart Tip</span>
+                      </div>
+                      <p className="text-xs text-blue-800 dark:text-blue-200">
+                        {(() => {
+                          const nextExam = upcomingDeadlines[0];
+                          const daysUntil = Math.ceil((new Date(nextExam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                          const studyTime = sessions.filter(s => s.examId === nextExam.id).reduce((total, session) => total + session.duration, 0);
+                          
+                          if (rakshabandhanInfo.shouldShow && rakshabandhanInfo.daysUntil <= 7) {
+                            return "Perfect timing! Study with family during Raksha Bandhan celebrations for better retention!";
+                          } else if (daysUntil <= 1 && studyTime < 120) {
+                            return "Focus on key concepts and practice problems for your upcoming exam!";
+                          } else if (daysUntil <= 3) {
+                            return "Review your notes and do practice tests to reinforce your knowledge.";
+                          } else {
+                            return "Create a study schedule and break down topics into manageable chunks.";
+                          }
+                        })()}
                       </p>
                     </div>
                   )}
                 </div>
-              </div>
-
-              {/* Enhanced Timer Controls */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                {!isRunning ? (
-                  <button
-                    onClick={startFocus}
-                    disabled={time >= targetTime * 60 || (['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode) && !currentSubject.trim())}
-                    className={`flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-semibold text-lg transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02] ${
-                      ['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode)
-                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700'
-                        : 'bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700'
-                    } disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
-                  >
-                    <Play className="w-6 h-6" />
-                    {['focus', 'custom', 'deepFocus', 'study', 'creative'].includes(mode) ? 'Start Focus Session' : 'Start Break Time'}
-                  </button>
-                ) : (
-                  <button
-                    onClick={pauseFocus}
-                    className="flex-1 flex items-center justify-center gap-3 py-4 px-6 rounded-2xl font-semibold text-lg bg-gradient-to-r from-orange-500 to-red-500 text-white hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                  >
-                    <Pause className="w-6 h-6" />
-                    Pause Session
-                  </button>
-                )}
-                
-                <button
-                  onClick={stopFocus}
-                  disabled={time === 0}
-                  className="sm:w-auto w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200 disabled:opacity-50"
-                >
-                  <Square className="w-5 h-5" />
-                  Stop
-                </button>
-              </div>
-
-              {time > 0 && !isRunning && (
-                <button
-                  onClick={resetSession}
-                  className="w-full py-3 px-6 rounded-xl font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-                >
-                  Reset Session
-                </button>
+              ) : (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="w-12 h-12 text-green-500 mx-auto mb-3" />
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    No upcoming deadlines in the next 7 days
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                    {rakshabandhanInfo.shouldShow ? 
+                      "Perfect time to celebrate and plan ahead! 🎋" :
+                      "You're all caught up! 🎉"}
+                  </p>
+                </div>
               )}
-
-              {/* Enhanced Music Player */}
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200/50 dark:border-purple-700/30">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                      <Music className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <span className="font-semibold text-purple-800 dark:text-purple-400">
-                      Focus Music & Sounds
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setShowMusicPlayer(!showMusicPlayer)}
-                    className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 transition-colors"
-                  >
-                    {showMusicPlayer ? 'Hide' : 'Show'}
-                  </button>
-                </div>
-
-                {showMusicPlayer && (
-                  <div className="space-y-4">
-                    <div className="flex gap-2 p-1 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                      <button
-                        onClick={() => setCurrentPlaylist('lofi')}
-                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all ${
-                          currentPlaylist === 'lofi'
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : 'text-purple-600 hover:bg-purple-200 dark:hover:bg-purple-800/50'
-                        }`}
-                      >
-                        Lofi Music
-                      </button>
-                      <button
-                        onClick={() => setCurrentPlaylist('ambient')}
-                        className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg transition-all ${
-                          currentPlaylist === 'ambient'
-                            ? 'bg-purple-600 text-white shadow-lg'
-                            : 'text-purple-600 hover:bg-purple-200 dark:hover:bg-purple-800/50'
-                        }`}
-                      >
-                        Ambient Sounds
-                      </button>
-                    </div>
-
-                    <div className="text-center">
-                      <div className="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-1">
-                        {currentPlaylist === 'lofi' 
-                          ? LOFI_TRACKS[currentTrack].title
-                          : AMBIENT_SOUNDS[currentAmbientSound].name
-                        }
-                      </div>
-                      <div className="text-sm text-purple-600 dark:text-purple-400">
-                        {currentPlaylist === 'lofi' 
-                          ? `${LOFI_TRACKS[currentTrack].artist} • ${LOFI_TRACKS[currentTrack].duration}`
-                          : `${AMBIENT_SOUNDS[currentAmbientSound].icon} ${AMBIENT_SOUNDS[currentAmbientSound].category}`
-                        }
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-3">
-                      <button 
-                        onClick={previousTrack} 
-                        className="p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-colors"
-                        title="Previous track"
-                      >
-                        <SkipBack className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                      </button>
-                      <button 
-                        onClick={toggleMusic} 
-                        className="p-4 bg-purple-600 text-white rounded-xl hover:bg-purple-700 transition-colors shadow-lg"
-                      >
-                        {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                      </button>
-                      <button 
-                        onClick={nextTrack} 
-                        className="p-3 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-colors"
-                        title="Next track"
-                      >
-                        <SkipForward className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <button 
-                        onClick={toggleMute} 
-                        className="p-2 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-xl transition-colors"
-                      >
-                        {isMuted ? <VolumeX className="w-5 h-5 text-purple-600" /> : <Volume2 className="w-5 h-5 text-purple-600" />}
-                      </button>
-                      <input
-                        type="range"
-                        min="0"
-                        max="1"
-                        step="0.1"
-                        value={isMuted ? 0 : volume}
-                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                        className="flex-1 h-2 bg-purple-200 dark:bg-purple-800 rounded-lg appearance-none cursor-pointer"
-                        disabled={isMuted}
-                      />
-                      <div className="flex gap-2">
-                        <button 
-                          onClick={() => setShuffle(!shuffle)}
-                          className={`p-2 rounded-xl transition-colors ${
-                            shuffle ? 'bg-purple-600 text-white' : 'hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-600'
-                          }`}
-                          title="Shuffle"
-                        >
-                          <Radio className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Enhanced Stats Dashboard */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 text-center border border-blue-200/50 dark:border-blue-700/30">
-                  <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl inline-block mb-3">
-                    <Target className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-blue-900 dark:text-blue-400 mb-1">
-                    {getTodaysPomodoros()}
-                  </div>
-                  <div className="text-sm text-blue-700 dark:text-blue-300">
-                    Today's Sessions
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 rounded-2xl p-6 text-center border border-orange-200/50 dark:border-orange-700/30">
-                  <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl inline-block mb-3">
-                    <Flame className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-orange-900 dark:text-orange-400 mb-1">
-                    {currentStreak}
-                  </div>
-                  <div className="text-sm text-orange-700 dark:text-orange-300">
-                    Current Streak
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-6 text-center border border-green-200/50 dark:border-green-700/30">
-                  <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-xl inline-block mb-3">
-                    <CheckCircle className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-green-900 dark:text-green-400 mb-1">
-                    {sessionsCompleted}
-                  </div>
-                  <div className="text-sm text-green-700 dark:text-green-300">
-                    Total Sessions
-                  </div>
-                </div>
-
-                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 text-center border border-purple-200/50 dark:border-purple-700/30">
-                  <div className="p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl inline-block mb-3">
-                    <Trophy className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <div className="text-3xl font-bold text-purple-900 dark:text-purple-400 mb-1">
-                    {Math.round(getDailyProgress())}%
-                  </div>
-                  <div className="text-sm text-purple-700 dark:text-purple-300">
-                    Daily Goal
-                  </div>
-                </div>
-              </div>
-
-              {/* Enhanced Daily Goal Setting */}
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-700/30 rounded-2xl p-6 border border-gray-200/50 dark:border-gray-700/30">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                      <Target className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                    </div>
-                    <span className="font-semibold text-gray-800 dark:text-gray-200">
-                      Daily Study Goal
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min="1"
-                      max="12"
-                      value={dailyGoal}
-                      onChange={(e) => setDailyGoal(parseInt(e.target.value))}
-                      className="w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer"
-                    />
-                    <div className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-lg">
-                      <span className="font-bold text-purple-800 dark:text-purple-300">{dailyGoal}</span>
-                      <span className="text-sm text-purple-600 dark:text-purple-400">sessions</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500 shadow-lg"
-                    style={{ width: `${getDailyProgress()}%` }}
-                  />
-                </div>
-                <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  <span>{getTodaysPomodoros()} completed</span>
-                  <span>{dailyGoal - getTodaysPomodoros()} remaining</span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={handleMinimize}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-all"
-                >
-                  <Minimize2 className="w-5 h-5" />
-                  Minimize to Float
-                </button>
-                <button
-                  onClick={onClose}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
+            </GlassCard>
           </div>
         </div>
-      )}
 
-      <style jsx>{`
-        .slider::-webkit-slider-thumb {
-          appearance: none;
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #3B82F6;
-          cursor: pointer;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .slider::-moz-range-thumb {
-          height: 20px;
-          width: 20px;
-          border-radius: 50%;
-          background: #3B82F6;
-          cursor: pointer;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          border: none;
-        }
-      `}</style>
-    </>
-  );
-};
-
-function App() {
-  const [showFocus, setShowFocus] = useState(false);
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900 flex items-center justify-center p-4">
-      <div className="text-center">
-        <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-lg rounded-3xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8 max-w-md">
-          <div className="mb-6">
-            <div className="p-4 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl inline-block mb-4">
-              <Brain className="w-12 h-12 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-              Advanced Focus Mode
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-              Boost your productivity with advanced timers, ambient sounds, and intelligent tracking.
-            </p>
-          </div>
-          
-          <button
-            onClick={() => setShowFocus(true)}
-            className="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+        {/* Premium Advanced Analytics Preview */}
+        <div className="mb-8">
+          <PremiumFeatureGate
+            featureName="Advanced Performance Analytics"
+            description="Get detailed insights into your study patterns, AI-powered recommendations, and performance predictions powered by StudyForge AI"
+            className="min-h-[300px]"
           >
-            Start Focus Session
-          </button>
-          
-          <div className="mt-6 grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">7+</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Timer Modes</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">∞</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Music & Sounds</div>
-            </div>
-            <div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">📊</div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">Smart Analytics</div>
-            </div>
+            <Card className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-purple-600" />
+                StudyForge Advanced Analytics Dashboard
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-400 mb-2">Study Efficiency Trends</h3>
+                  <div className="h-20 bg-blue-200 dark:bg-blue-800 rounded flex items-end justify-around p-2">
+                    <div className="bg-blue-500 w-4 h-8 rounded-t"></div>
+                    <div className="bg-blue-500 w-4 h-12 rounded-t"></div>
+                    <div className="bg-blue-500 w-4 h-16 rounded-t"></div>
+                    <div className="bg-blue-500 w-4 h-10 rounded-t"></div>
+                    <div className="bg-blue-500 w-4 h-14 rounded-t"></div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-900 dark:text-green-400 mb-2">AI Performance Predictions</h3>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Math Exam</span>
+                      <span className="text-sm font-bold text-green-600">94% Ready</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm">Physics Test</span>
+                      <span className="text-sm font-bold text-yellow-600">78% Ready</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-4">
+                  <h3 className="font-semibold text-purple-900 dark:text-purple-400 mb-2">AI Recommendations</h3>
+                  <div className="space-y-2 text-sm text-purple-700 dark:text-purple-300">
+                    <p>• Study Math at 10 AM for best results</p>
+                    <p>• Take breaks every 25 minutes</p>
+                    <p>• {rakshabandhanInfo.shouldShow ? "Study with siblings today!" : "Review Physics notes tonight"}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </PremiumFeatureGate>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div>
+            <ExamCountdown exams={exams} />
+          </div>
+          <div>
+            <StudyTimer exams={exams} onSessionAdded={handleSessionAdded} />
           </div>
         </div>
+
+        {/* Recent Sessions */}
+        {sessions.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                <Brain className="w-6 h-6 text-blue-600" />
+                Recent Study Sessions
+                <div className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">
+                  StudyForge Tracked
+                </div>
+              </h2>
+              <button className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors duration-200">
+                View All Sessions
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {sessions.slice(0, 6).map((session) => {
+                const exam = exams.find(e => e.id === session.examId);
+                return (
+                  <SessionCard 
+                    key={session.id} 
+                    session={session} 
+                    exam={exam} 
+                    formatMinutes={formatMinutes}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
-      <FocusMode 
-        isOpen={showFocus} 
-        onClose={() => setShowFocus(false)} 
-      />
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        @keyframes wave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(-10deg); }
+          75% { transform: rotate(10deg); }
+        }
+        @keyframes pulse-soft {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+        .animate-wave {
+          animation: wave 2s ease-in-out infinite;
+        }
+        .animate-pulse-soft {
+          animation: pulse-soft 2s ease-in-out infinite;
+        }
+      `}</style>
     </div>
   );
-}
-
-export default App;
+};
