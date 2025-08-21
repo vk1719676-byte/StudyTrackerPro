@@ -67,7 +67,6 @@ export const DesktopNavbar: React.FC = () => {
               <Logo size="md" showText={false} />
               <div className="hidden sm:block">
                 <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Study Tracker Pro
                 </h1>
               </div>
             </Link>
