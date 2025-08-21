@@ -15,51 +15,8 @@ interface Goal {
   streak: number;
 }
 
-// Mock data for demonstration
-const mockGoals: Goal[] = [
-  {
-    id: '1',
-    title: 'Daily Math Practice',
-    description: 'Practice calculus and algebra problems to strengthen foundation',
-    targetHours: 2,
-    currentHours: 1.5,
-    deadline: new Date(2025, 1, 28),
-    category: 'daily',
-    status: 'active',
-    createdAt: new Date(2025, 0, 15),
-    priority: 'high',
-    streak: 5
-  },
-  {
-    id: '2',
-    title: 'Weekly Physics Study',
-    description: 'Complete quantum mechanics chapter and practice problems',
-    targetHours: 15,
-    currentHours: 12.5,
-    deadline: new Date(2025, 1, 30),
-    category: 'weekly',
-    status: 'active',
-    createdAt: new Date(2025, 0, 20),
-    priority: 'medium',
-    streak: 2
-  },
-  {
-    id: '3',
-    title: 'SAT Preparation',
-    description: 'Prepare for upcoming SAT exam with focused study sessions',
-    targetHours: 50,
-    currentHours: 50,
-    deadline: new Date(2025, 2, 15),
-    category: 'exam',
-    status: 'completed',
-    createdAt: new Date(2024, 11, 1),
-    priority: 'high',
-    streak: 15
-  }
-];
-
 export const Goals: React.FC = () => {
-  const [goals, setGoals] = useState<Goal[]>(mockGoals);
+  const [goals, setGoals] = useState<Goal[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -74,7 +31,7 @@ export const Goals: React.FC = () => {
     category: 'weekly' as 'daily' | 'weekly' | 'monthly' | 'exam',
     priority: 'medium' as 'low' | 'medium' | 'high'
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [animatingGoals, setAnimatingGoals] = useState<Set<string>>(new Set());
 
   // Filter and sort goals
@@ -97,6 +54,22 @@ export const Goals: React.FC = () => {
         return 0;
     }
   });
+
+  useEffect(() => {
+    // Load goals from localStorage
+    const savedGoals = localStorage.getItem('goals');
+    if (savedGoals) {
+      const parsedGoals = JSON.parse(savedGoals).map((goal: any) => ({
+        ...goal,
+        deadline: new Date(goal.deadline),
+        createdAt: new Date(goal.createdAt),
+        priority: goal.priority || 'medium',
+        streak: goal.streak || 0
+      }));
+      setGoals(parsedGoals);
+    }
+    setLoading(false);
+  }, []);
 
   const resetForm = () => {
     setFormData({
@@ -145,6 +118,12 @@ export const Goals: React.FC = () => {
         }, 1000);
       }
 
+      // Save to localStorage
+      const updatedGoals = editingGoal 
+        ? goals.map(goal => goal.id === editingGoal.id ? goalData : goal)
+        : [...goals, goalData];
+      localStorage.setItem('goals', JSON.stringify(updatedGoals));
+
       setLoading(false);
       resetForm();
     }, 1000);
@@ -165,7 +144,9 @@ export const Goals: React.FC = () => {
 
   const handleDelete = (goalId: string) => {
     if (window.confirm('Are you sure you want to delete this goal?')) {
-      setGoals(prev => prev.filter(goal => goal.id !== goalId));
+      const updatedGoals = goals.filter(goal => goal.id !== goalId);
+      setGoals(updatedGoals);
+      localStorage.setItem('goals', JSON.stringify(updatedGoals));
     }
   };
 
@@ -205,6 +186,17 @@ export const Goals: React.FC = () => {
   const completedGoals = goals.filter(goal => goal.status === 'completed');
   const totalHours = goals.reduce((total, goal) => total + goal.currentHours, 0);
   const averageProgress = goals.length > 0 ? goals.reduce((total, goal) => total + getProgressPercentage(goal), 0) / goals.length : 0;
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-violet-200 border-t-violet-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Loading your goals...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-blue-900/20 transition-all duration-500">
