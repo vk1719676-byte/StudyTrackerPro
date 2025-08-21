@@ -12,70 +12,77 @@ import { Exam, StudySession } from '../types';
 const heroDesigns = [
   {
     name: 'cosmic',
-    background: 'bg-gradient-to-br from-purple-600 via-blue-600 to-indigo-700',
-    overlay: 'bg-gradient-to-r from-purple-500/20 to-blue-500/20',
+    background: 'bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800',
+    overlay: 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20',
     icon: Sparkles,
-    accent: 'text-purple-300',
+    accent: 'text-indigo-300',
     particles: '✨'
   },
   {
     name: 'midnight',
-    background: 'bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900',
-    overlay: 'bg-gradient-to-r from-slate-600/20 to-slate-500/20',
+    background: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700',
+    overlay: 'bg-gradient-to-r from-slate-700/20 to-slate-600/20',
     icon: Zap,
     accent: 'text-slate-300',
     particles: '⚡'
   },
   {
     name: 'sunset',
-    background: 'bg-gradient-to-br from-orange-500 via-pink-500 to-purple-600',
-    overlay: 'bg-gradient-to-r from-orange-400/20 to-pink-400/20',
+    background: 'bg-gradient-to-br from-orange-600 via-pink-600 to-purple-700',
+    overlay: 'bg-gradient-to-r from-orange-500/20 to-pink-500/20',
     icon: Star,
     accent: 'text-orange-300',
     particles: '🌟'
   },
   {
     name: 'ocean',
-    background: 'bg-gradient-to-br from-teal-500 via-cyan-600 to-blue-700',
-    overlay: 'bg-gradient-to-r from-teal-400/20 to-cyan-400/20',
+    background: 'bg-gradient-to-br from-teal-600 via-cyan-700 to-blue-800',
+    overlay: 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20',
     icon: Target,
     accent: 'text-teal-300',
     particles: '🌊'
   },
   {
     name: 'aurora',
-    background: 'bg-gradient-to-br from-green-400 via-purple-500 to-pink-600',
-    overlay: 'bg-gradient-to-r from-green-400/20 to-purple-400/20',
+    background: 'bg-gradient-to-br from-green-500 via-purple-600 to-pink-700',
+    overlay: 'bg-gradient-to-r from-green-500/20 to-purple-500/20',
     icon: Heart,
     accent: 'text-green-300',
     particles: '💫'
   },
   {
     name: 'golden',
-    background: 'bg-gradient-to-br from-yellow-400 via-orange-500 to-red-600',
-    overlay: 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20',
+    background: 'bg-gradient-to-br from-yellow-500 via-orange-600 to-red-700',
+    overlay: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20',
     icon: Crown,
     accent: 'text-yellow-300',
     particles: '✨'
   }
 ];
 
-// Simple Card component
+// Enhanced Card component with glassmorphism and advanced styling
 const SimpleCard: React.FC<{ children: React.ReactNode; className?: string; hover?: boolean }> = ({ 
   children, 
   className = '', 
   hover = false 
 }) => (
   <div className={`
-    bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700
-    ${hover ? 'hover:shadow-md hover:scale-[1.02] transition-all duration-200 cursor-pointer' : ''}
+    group relative overflow-hidden
+    bg-white/70 dark:bg-gray-800/70 backdrop-blur-lg backdrop-saturate-150
+    rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50
+    border border-white/20 dark:border-gray-700/50
+    before:absolute before:inset-0 before:rounded-2xl before:border before:border-white/30 dark:before:border-gray-600/30
+    before:bg-gradient-to-br before:from-white/10 before:to-transparent
+    ${hover ? 'hover:shadow-xl hover:shadow-gray-200/60 dark:hover:shadow-gray-900/60 hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 cursor-pointer' : ''}
     ${className}
   `}>
-    {children}
+    <div className="relative z-10">
+      {children}
+    </div>
   </div>
 );
 
-// Notice types
+// Notice types with enhanced styling
 const noticeTypes = [
   {
     id: 'study-tip',
@@ -83,8 +90,8 @@ const noticeTypes = [
     type: 'tip',
     title: 'Study Smart Tip',
     message: 'Take a 10-minute break after every 45 minutes of focused study to boost retention by up to 30%!',
-    bgGradient: 'from-yellow-500 to-orange-500',
-    iconBg: 'bg-yellow-100 dark:bg-yellow-900/30',
+    bgGradient: 'from-yellow-500 via-orange-500 to-red-500',
+    iconBg: 'bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30',
     iconColor: 'text-yellow-600 dark:text-yellow-400',
     duration: 8000,
     emoji: '💡'
@@ -95,8 +102,8 @@ const noticeTypes = [
     type: 'motivation',
     title: 'Stay Motivated',
     message: "You're doing great! Every study session brings you closer to your goals. Keep pushing forward!",
-    bgGradient: 'from-purple-500 to-pink-500',
-    iconBg: 'bg-purple-100 dark:bg-purple-900/30',
+    bgGradient: 'from-purple-500 via-pink-500 to-indigo-600',
+    iconBg: 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30',
     iconColor: 'text-purple-600 dark:text-purple-400',
     duration: 10000,
     emoji: '🚀'
@@ -107,8 +114,8 @@ const noticeTypes = [
     type: 'update',
     title: 'New Feature Alert',
     message: 'Check out the enhanced analytics dashboard with AI-powered study recommendations!',
-    bgGradient: 'from-blue-500 to-cyan-500',
-    iconBg: 'bg-blue-100 dark:bg-blue-900/30',
+    bgGradient: 'from-blue-500 via-cyan-500 to-teal-600',
+    iconBg: 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30',
     iconColor: 'text-blue-600 dark:text-blue-400',
     duration: 12000,
     emoji: '⭐'
@@ -119,8 +126,8 @@ const noticeTypes = [
     type: 'health',
     title: 'Health Reminder',
     message: 'Remember to stay hydrated, maintain good posture, and get enough sleep for optimal learning!',
-    bgGradient: 'from-green-500 to-teal-500',
-    iconBg: 'bg-green-100 dark:bg-green-900/30',
+    bgGradient: 'from-green-500 via-teal-500 to-emerald-600',
+    iconBg: 'bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30',
     iconColor: 'text-green-600 dark:text-green-400',
     duration: 9000,
     emoji: '❤️'
@@ -131,15 +138,15 @@ const noticeTypes = [
     type: 'achievement',
     title: 'Achievement Unlocked',
     message: 'Congratulations on maintaining your study streak! You\'re building excellent habits!',
-    bgGradient: 'from-amber-500 to-orange-500',
-    iconBg: 'bg-amber-100 dark:bg-amber-900/30',
+    bgGradient: 'from-amber-500 via-orange-500 to-yellow-600',
+    iconBg: 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30',
     iconColor: 'text-amber-600 dark:text-amber-400',
     duration: 7000,
     emoji: '🏆'
   }
 ];
 
-// Notice Component
+// Enhanced Notice Component with advanced animations
 const NoticeSection: React.FC<{ 
   studyStreak: number; 
   isPremium: boolean;
@@ -162,8 +169,8 @@ const NoticeSection: React.FC<{
         type: 'special',
         title: 'Raksha Bandhan Special',
         message: 'Study with your siblings today! Research shows collaborative learning improves retention by 25%.',
-        bgGradient: 'from-pink-500 to-red-500',
-        iconBg: 'bg-pink-100 dark:bg-pink-900/30',
+        bgGradient: 'from-pink-500 via-red-500 to-purple-600',
+        iconBg: 'bg-gradient-to-br from-pink-100 to-red-100 dark:from-pink-900/30 dark:to-red-900/30',
         iconColor: 'text-pink-600 dark:text-pink-400',
         duration: 6000,
         emoji: '🎋'
@@ -212,31 +219,33 @@ const NoticeSection: React.FC<{
   const IconComponent = notice.icon;
 
   return (
-    <div className="mb-6 -mt-16 md:-mt-0 pt-16 md:pt-6">
+    <div className="mb-8 -mt-16 md:-mt-0 pt-16 md:pt-6">
       <div className={`
-        relative overflow-hidden rounded-xl transition-all duration-500 transform
+        relative overflow-hidden rounded-2xl transition-all duration-700 transform
         ${isAnimating ? 'scale-95 opacity-80' : 'scale-100 opacity-100'}
-        bg-gradient-to-r ${notice.bgGradient} p-[1px]
+        p-[1px] bg-gradient-to-r ${notice.bgGradient}
+        shadow-2xl shadow-purple-500/20 dark:shadow-purple-500/10
+        hover:shadow-purple-500/30 dark:hover:shadow-purple-500/20
       `}>
-        {/* Animated border gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r opacity-20 animate-pulse"
+        {/* Enhanced animated border gradient */}
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r opacity-30 animate-pulse"
              style={{
-               background: `linear-gradient(90deg, transparent, white, transparent)`,
-               animation: 'shimmer 3s infinite'
+               background: `conic-gradient(from 0deg, transparent, white, transparent)`,
+               animation: 'spin 8s linear infinite'
              }} />
         
-        <div className="relative bg-white dark:bg-gray-900 rounded-xl">
-          {/* Floating particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {[...Array(5)].map((_, i) => (
+        <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/20">
+          {/* Enhanced floating particles */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
+            {[...Array(8)].map((_, i) => (
               <div
                 key={i}
-                className="absolute text-xs opacity-20 animate-bounce"
+                className="absolute text-lg opacity-20 animate-float"
                 style={{
-                  left: `${15 + (i * 18)}%`,
-                  top: `${20 + (i % 2) * 40}%`,
-                  animationDelay: `${i * 0.6}s`,
-                  animationDuration: '2.5s'
+                  left: `${10 + (i * 12)}%`,
+                  top: `${15 + (i % 3) * 25}%`,
+                  animationDelay: `${i * 0.8}s`,
+                  animationDuration: `${3 + (i % 2)}s`
                 }}
               >
                 {notice.emoji}
@@ -244,61 +253,63 @@ const NoticeSection: React.FC<{
             ))}
           </div>
 
-          <div className="relative p-4 sm:p-5">
-            <div className="flex items-start gap-3">
-              {/* Icon */}
+          <div className="relative p-6 sm:p-8">
+            <div className="flex items-start gap-4">
+              {/* Enhanced Icon */}
               <div className={`
-                flex-shrink-0 p-2 rounded-lg ${notice.iconBg}
-                animate-pulse hover:animate-none transition-all duration-300
-                hover:scale-110 hover:rotate-6
+                flex-shrink-0 p-3 rounded-xl ${notice.iconBg}
+                shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50
+                transform transition-all duration-500
+                hover:scale-110 hover:rotate-12 hover:shadow-xl
+                border border-white/30 dark:border-gray-600/30
               `}>
-                <IconComponent className={`w-5 h-5 ${notice.iconColor}`} />
+                <IconComponent className={`w-6 h-6 ${notice.iconColor} drop-shadow-sm`} />
               </div>
 
-              {/* Content */}
+              {/* Enhanced Content */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm sm:text-base flex items-center gap-2">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg flex items-center gap-3">
                     {notice.title}
                     {notice.type === 'special' && (
-                      <span className="text-xs bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400 px-2 py-0.5 rounded-full">
+                      <span className="text-xs bg-gradient-to-r from-pink-500 to-red-500 text-white px-3 py-1 rounded-full shadow-lg">
                         Special
                       </span>
                     )}
                     {notice.type === 'update' && isPremium && (
-                      <PremiumBadge size="xs" />
+                      <PremiumBadge size="sm" />
                     )}
                   </h3>
                   
                   <button
                     onClick={handleDismiss}
-                    className="flex-shrink-0 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group ml-2"
+                    className="flex-shrink-0 p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200 group ml-3 backdrop-blur-sm"
                   >
-                    <X className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300" />
+                    <X className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
                   </button>
                 </div>
                 
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-4 font-medium">
                   {notice.message}
                 </p>
 
-                {/* Progress indicator */}
-                <div className="flex items-center justify-between mt-3">
-                  <div className="flex gap-1">
+                {/* Enhanced Progress indicator */}
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-2">
                     {availableNotices.map((_, index) => (
                       <div
                         key={index}
                         className={`
-                          h-1 rounded-full transition-all duration-300
+                          h-1.5 rounded-full transition-all duration-500 shadow-sm
                           ${index === currentNotice 
-                            ? `bg-gradient-to-r ${notice.bgGradient} w-6` 
-                            : 'bg-gray-200 dark:bg-gray-600 w-2'}
+                            ? `bg-gradient-to-r ${notice.bgGradient} w-8 shadow-md` 
+                            : 'bg-gray-200 dark:bg-gray-600 w-3 hover:w-4'}
                         `}
                       />
                     ))}
                   </div>
                   
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 font-medium bg-gray-100/50 dark:bg-gray-800/50 px-2 py-1 rounded-full backdrop-blur-sm">
                     {currentNotice + 1} of {availableNotices.length}
                   </div>
                 </div>
@@ -308,18 +319,21 @@ const NoticeSection: React.FC<{
         </div>
       </div>
       
-      {/* Add custom CSS for shimmer animation */}
+      {/* Enhanced CSS animations */}
       <style jsx>{`
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
+          50% { transform: translateY(-10px) rotate(180deg); opacity: 0.4; }
+        }
+        .animate-float {
+          animation: float 4s ease-in-out infinite;
         }
       `}</style>
     </div>
   );
 };
 
-// Simple stat card
+// Enhanced stat card with modern design
 const StatCard: React.FC<{
   icon: React.FC<{ className?: string }>;
   label: string;
@@ -328,59 +342,66 @@ const StatCard: React.FC<{
   bgColor: string;
   trend?: string;
 }> = ({ icon: Icon, label, value, color, bgColor, trend }) => (
-  <SimpleCard hover className="p-4 sm:p-6">
-    <div className="flex items-center justify-between mb-3">
-      <div className={`p-2 sm:p-3 ${bgColor} rounded-lg`}>
-        <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${color}`} />
+  <SimpleCard hover className="p-6 sm:p-8 group">
+    <div className="flex items-center justify-between mb-4">
+      <div className={`
+        p-4 ${bgColor} rounded-2xl shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50
+        group-hover:scale-110 group-hover:rotate-6 transition-all duration-300
+        border border-white/30 dark:border-gray-600/30
+        relative overflow-hidden
+      `}>
+        {/* Icon background glow */}
+        <div className={`absolute inset-0 ${bgColor} opacity-50 blur-xl`} />
+        <Icon className={`relative z-10 w-6 h-6 ${color} drop-shadow-sm`} />
       </div>
       {trend && (
-        <span className="text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/30 px-2 py-1 rounded-full">
+        <span className="text-sm font-bold text-green-600 dark:text-green-400 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 px-3 py-2 rounded-xl shadow-md border border-green-200/50 dark:border-green-700/50">
           {trend}
         </span>
       )}
     </div>
-    <div className="space-y-1">
-      <p className="text-xs sm:text-sm font-medium text-gray-600 dark:text-gray-400">{label}</p>
-      <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+    <div className="space-y-2">
+      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 tracking-wide uppercase">{label}</p>
+      <p className="text-3xl font-black text-gray-900 dark:text-gray-100 tracking-tight">
         {value}
       </p>
     </div>
   </SimpleCard>
 );
 
-// Simple session card
+// Enhanced session card
 const SessionCard: React.FC<{
   session: StudySession;
   exam?: Exam;
   formatMinutes: (minutes: number) => string;
 }> = ({ session, exam, formatMinutes }) => (
-  <SimpleCard hover className="p-4">
-    <div className="flex justify-between items-start mb-3">
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        <div className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex-shrink-0">
-          <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+  <SimpleCard hover className="p-6 group">
+    <div className="flex justify-between items-start mb-4">
+      <div className="flex items-start gap-4 flex-1 min-w-0">
+        <div className="p-3 bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200/50 dark:border-blue-700/50 group-hover:scale-110 transition-all duration-300">
+          <BookOpen className="w-5 h-5 text-blue-600 dark:text-blue-400" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+          <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base truncate mb-1">
             {session.subject}
           </h3>
-          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+          <p className="text-sm text-gray-600 dark:text-gray-400 truncate font-medium">
             {session.topic}
           </p>
         </div>
       </div>
-      <div className="text-right flex-shrink-0 ml-2">
-        <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+      <div className="text-right flex-shrink-0 ml-4">
+        <span className="text-lg font-black text-gray-900 dark:text-gray-100 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 px-3 py-1 rounded-xl shadow-sm">
           {formatMinutes(session.duration)}
         </span>
-        <div className="flex items-center gap-0.5 mt-1 justify-end">
+        <div className="flex items-center gap-1 mt-2 justify-end">
           {[1, 2, 3, 4, 5].map((star) => (
             <div
               key={star}
-              className={`w-1.5 h-1.5 rounded-full ${
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
                 star <= session.efficiency
-                  ? 'bg-yellow-400'
-                  : 'bg-gray-200 dark:bg-gray-600'
+                  ? 'bg-gradient-to-r from-yellow-400 to-orange-400 shadow-sm scale-110'
+                  : 'bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500'
               }`}
             />
           ))}
@@ -388,14 +409,14 @@ const SessionCard: React.FC<{
       </div>
     </div>
     
-    <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
-      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-        <Calendar className="w-3 h-3" />
+    <div className="flex items-center justify-between pt-4 border-t border-gray-100/50 dark:border-gray-700/50">
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 font-medium">
+        <Calendar className="w-4 h-4" />
         <span>{new Date(session.date).toLocaleDateString()}</span>
       </div>
       {exam && (
-        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-          <span className="truncate max-w-20">{exam.name}</span>
+        <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-100/50 dark:bg-gray-800/50 px-3 py-1 rounded-full backdrop-blur-sm">
+          <span className="truncate max-w-24 font-medium">{exam.name}</span>
           <ChevronRight className="w-3 h-3 flex-shrink-0" />
         </div>
       )}
@@ -605,13 +626,17 @@ export const Dashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
-        <div className="text-center space-y-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+        <div className="text-center space-y-6">
           <div className="relative">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-gray-200 dark:border-gray-700"></div>
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent absolute top-0"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 dark:border-gray-700 shadow-lg"></div>
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-gradient-to-r from-blue-600 to-purple-600 border-t-transparent absolute top-0 shadow-2xl"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl animate-pulse"></div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">Loading your dashboard...</p>
+          <div className="space-y-2">
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-200">Loading your dashboard...</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Preparing your personalized experience</p>
+          </div>
         </div>
       </div>
     );
@@ -621,7 +646,7 @@ export const Dashboard: React.FC = () => {
   const IconComponent = currentHeroDesign.icon;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-6 pb-20 md:pb-8">
         
         {/* Notice Section */}
@@ -631,23 +656,27 @@ export const Dashboard: React.FC = () => {
           rakshabandhanActive={rakshabandhanInfo.shouldShow}
         />
         
-        {/* Simple Hero Section */}
-        <div className="mb-6 -mt-16 md:-mt-0 pt-16 md:pt-0">
+        {/* Enhanced Hero Section */}
+        <div className="mb-8 -mt-16 md:-mt-0 pt-16 md:pt-0">
           <div className={`${rakshabandhanInfo.shouldShow 
             ? `bg-gradient-to-br ${rakshabandhanInfo.bgGradient}` 
-            : currentHeroDesign.background} text-white rounded-xl p-4 sm:p-6 relative overflow-hidden`}>
+            : currentHeroDesign.background} text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl border border-white/10`}>
             
-            {/* Simple floating particles */}
+            {/* Enhanced background effects */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 opacity-50"></div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
+            
+            {/* Enhanced floating particles */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(12)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute text-lg opacity-30 animate-bounce"
+                  className="absolute text-2xl opacity-20 animate-float"
                   style={{
-                    left: `${20 + (i * 15)}%`,
-                    top: `${20 + (i % 2) * 40}%`,
-                    animationDelay: `${i * 0.5}s`,
-                    animationDuration: '3s'
+                    left: `${10 + (i * 8)}%`,
+                    top: `${15 + (i % 3) * 25}%`,
+                    animationDelay: `${i * 0.7}s`,
+                    animationDuration: `${4 + (i % 2)}s`
                   }}
                 >
                   {rakshabandhanInfo.shouldShow ? '🎋' : currentHeroDesign.particles}
@@ -655,15 +684,18 @@ export const Dashboard: React.FC = () => {
               ))}
             </div>
 
-            <div className="relative">
-              {/* Raksha Bandhan Special Message */}
+            <div className="relative z-10">
+              {/* Enhanced Raksha Bandhan Special Message */}
               {rakshabandhanInfo.shouldShow && (
-                <div className="mb-4 p-3 bg-white/20 rounded-lg">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{rakshabandhanInfo.emoji}</span>
-                    <h2 className="text-sm font-bold">Special Occasion</h2>
+                <div className="mb-6 p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 shadow-lg">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl animate-bounce">{rakshabandhanInfo.emoji}</span>
+                    <h2 className="text-lg font-black">Special Occasion</h2>
+                    <div className="px-3 py-1 bg-white/30 rounded-full text-xs font-bold">
+                      Festive Edition
+                    </div>
                   </div>
-                  <p className="text-white/90 text-xs sm:text-sm">
+                  <p className="text-white/90 text-sm sm:text-base leading-relaxed font-medium">
                     {rakshabandhanInfo.message}
                   </p>
                 </div>
@@ -671,38 +703,40 @@ export const Dashboard: React.FC = () => {
 
               <div className="flex items-center justify-between">
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 flex items-center gap-2">
-                    <span className="truncate">{getCurrentGreeting()}, {displayName}!</span>
-                    {isPremium && <PremiumBadge size="sm" />}
-                    <span className="text-lg">👋</span>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 flex items-center gap-3">
+                    <span className="truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
+                      {getCurrentGreeting()}, {displayName}!
+                    </span>
+                    {isPremium && <PremiumBadge size="md" />}
+                    <span className="text-2xl animate-wave">👋</span>
                   </h1>
-                  <p className="text-white/80 text-sm mb-3">
+                  <p className="text-white/90 text-lg mb-4 font-medium">
                     {rakshabandhanInfo.shouldShow ? 
-                      "Study with festive spirit!" : 
-                      "Ready to achieve your goals today?"}
+                      "Study with festive spirit! 🎉" : 
+                      "Ready to achieve your goals today? ✨"}
                   </p>
                   
-                  <div className="flex flex-wrap gap-2 text-xs">
-                    <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-1">
-                      <Clock className="w-3 h-3" />
-                      <span>{new Date().toLocaleDateString('en-US', { 
-                        weekday: 'short', 
-                        month: 'short', 
+                  <div className="flex flex-wrap gap-3 text-sm">
+                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30 shadow-lg">
+                      <Clock className="w-4 h-4" />
+                      <span className="font-semibold">{new Date().toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        month: 'long', 
                         day: 'numeric' 
                       })}</span>
                     </div>
                     {studyStreak > 0 && (
-                      <div className="flex items-center gap-1 bg-white/20 rounded-full px-2 py-1">
-                        <Flame className="w-3 h-3" />
-                        <span>{studyStreak} day streak</span>
+                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30 shadow-lg">
+                        <Flame className="w-4 h-4 text-orange-300" />
+                        <span className="font-bold">{studyStreak} day streak!</span>
                       </div>
                     )}
                   </div>
                 </div>
                 
-                <div className="flex-shrink-0 ml-4">
-                  <div className="p-3 bg-white/20 rounded-xl">
-                    <IconComponent className="w-6 h-6 sm:w-8 sm:h-8" />
+                <div className="flex-shrink-0 ml-6">
+                  <div className="p-6 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-2xl group hover:scale-110 transition-all duration-300">
+                    <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-lg group-hover:rotate-12 transition-all duration-300" />
                   </div>
                 </div>
               </div>
@@ -710,47 +744,56 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Premium AI Insights - Simplified */}
+        {/* Enhanced Premium AI Insights */}
         {isPremium && (
-          <div className="mb-6">
-            <SimpleCard className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20">
-              <div className="flex items-center gap-2 mb-4">
-                <Brain className="w-5 h-5 text-purple-600" />
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <div className="mb-8">
+            <SimpleCard className="p-6 sm:p-8 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20 border-2 border-purple-200/50 dark:border-purple-700/50">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-blue-600 rounded-2xl shadow-lg">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100">
                   AI Assistant
                 </h2>
-                <PremiumBadge size="sm" />
+                <PremiumBadge size="lg" />
+                <div className="flex-1"></div>
+                <div className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full font-bold">
+                  Powered by AI
+                </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-5 border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                  <h3 className="font-black text-gray-900 dark:text-gray-100 mb-2 text-lg flex items-center gap-2">
                     🎯 Today's Focus
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {rakshabandhanInfo.shouldShow ? 
-                      "Study with siblings for better retention!" :
-                      "Focus on Mathematics for optimal results."}
+                      "Study with siblings for better retention! Research shows 25% improvement." :
+                      "Focus on Mathematics for optimal results. Your peak performance window is approaching."}
                   </p>
                 </div>
                 
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-5 border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 group">
+                  <h3 className="font-black text-gray-900 dark:text-gray-100 mb-2 text-lg flex items-center gap-2">
                     📈 Performance
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Your efficiency peaks at 10 AM. Schedule important topics then.
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                    Your efficiency peaks at 10 AM. Schedule important topics then for maximum retention.
                   </p>
                 </div>
                 
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 sm:col-span-2 lg:col-span-1">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-1 text-sm">
+                <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-5 border border-white/50 dark:border-gray-700/50 shadow-lg hover:shadow-xl transition-all duration-300 group sm:col-span-2 lg:col-span-1">
+                  <h3 className="font-black text-gray-900 dark:text-gray-100 mb-2 text-lg flex items-center gap-2">
                     ⚡ Smart Tip
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {rakshabandhanInfo.shouldShow ?
-                      "Celebrate learning with family!" :
-                      "Take breaks every 25 minutes for better focus."}
+                      "Celebrate learning with family! Collaborative study sessions boost motivation by 40%." :
+                      "Take breaks every 25 minutes for better focus. Your brain needs time to consolidate."}
                   </p>
                 </div>
               </div>
@@ -758,14 +801,14 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Stats Grid - Responsive */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6">
+        {/* Enhanced Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <StatCard
             icon={Clock}
             label="Today's Study"
             value={formatMinutes(todaysStudyTime)}
             color="text-blue-600 dark:text-blue-400"
-            bgColor="bg-blue-50 dark:bg-blue-900/30"
+            bgColor="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-800/30"
             trend={performanceMetrics.timeChange > 0 ? `+${performanceMetrics.timeChange}%` : undefined}
           />
           <StatCard
@@ -773,7 +816,7 @@ export const Dashboard: React.FC = () => {
             label="Weekly Study"
             value={formatMinutes(weeklyStudyTime)}
             color="text-purple-600 dark:text-purple-400"
-            bgColor="bg-purple-50 dark:bg-purple-900/30"
+            bgColor="bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-900/30 dark:to-purple-800/30"
             trend={`${performanceMetrics.sessionsThisWeek} sessions`}
           />
           <StatCard
@@ -781,7 +824,7 @@ export const Dashboard: React.FC = () => {
             label="Efficiency"
             value={`${averageEfficiency.toFixed(1)}/5`}
             color="text-green-600 dark:text-green-400"
-            bgColor="bg-green-50 dark:bg-green-900/30"
+            bgColor="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-800/30"
             trend={performanceMetrics.efficiencyChange > 0 ? `+${performanceMetrics.efficiencyChange}%` : undefined}
           />
           <StatCard
@@ -789,57 +832,75 @@ export const Dashboard: React.FC = () => {
             label="Streak"
             value={`${studyStreak} days`}
             color="text-orange-600 dark:text-orange-400"
-            bgColor="bg-orange-50 dark:bg-orange-900/30"
+            bgColor="bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-900/30 dark:to-orange-800/30"
             trend={studyStreak > 7 ? "🔥" : studyStreak > 3 ? "💪" : undefined}
           />
         </div>
 
-        {/* Analytics and Deadlines - Simplified */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Enhanced Analytics and Deadlines */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
           
-          {/* Performance Analytics */}
-          <SimpleCard className="p-4 sm:p-6 lg:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-blue-500" />
-              Analytics
+          {/* Enhanced Performance Analytics */}
+          <SimpleCard className="p-6 sm:p-8 lg:col-span-2">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <BarChart3 className="w-6 h-6 text-white" />
+              </div>
+              Performance Analytics
+              <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full font-bold">
+                Live Data
+              </div>
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Weekly Progress</span>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+              <div className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-blue-500 rounded-xl shadow-md">
+                    <Activity className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">Weekly Progress</span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Study Time</span>
-                    <span className={`text-xs font-semibold ${performanceMetrics.timeChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Study Time</span>
+                    <span className={`text-sm font-black px-3 py-1 rounded-full ${
+                      performanceMetrics.timeChange >= 0 
+                        ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' 
+                        : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30'
+                    }`}>
                       {performanceMetrics.timeChange >= 0 ? '+' : ''}{performanceMetrics.timeChange}%
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Efficiency</span>
-                    <span className={`text-xs font-semibold ${performanceMetrics.efficiencyChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Efficiency</span>
+                    <span className={`text-sm font-black px-3 py-1 rounded-full ${
+                      performanceMetrics.efficiencyChange >= 0 
+                        ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/30' 
+                        : 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/30'
+                    }`}>
                       {performanceMetrics.efficiencyChange >= 0 ? '+' : ''}{performanceMetrics.efficiencyChange}%
                     </span>
                   </div>
                 </div>
               </div>
               
-              <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Session Insights</span>
+              <div className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-6 border border-purple-200/50 dark:border-purple-700/50 shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-2 bg-purple-500 rounded-xl shadow-md">
+                    <Timer className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">Session Insights</span>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Avg. Length</span>
-                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Avg. Length</span>
+                    <span className="text-sm font-black text-gray-900 dark:text-gray-100 bg-white/50 dark:bg-gray-800/50 px-3 py-1 rounded-full">
                       {formatMinutes(performanceMetrics.averageSessionLength)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600 dark:text-gray-400">This Week</span>
-                    <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">This Week</span>
+                    <span className="text-sm font-black text-gray-900 dark:text-gray-100 bg-white/50 dark:bg-gray-800/50 px-3 py-1 rounded-full">
                       {performanceMetrics.sessionsThisWeek} sessions
                     </span>
                   </div>
@@ -847,42 +908,51 @@ export const Dashboard: React.FC = () => {
               </div>
             </div>
             
-            {/* Study Streak Visualization */}
-            <div className="mt-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Study Streak</span>
+            {/* Enhanced Study Streak Visualization */}
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl p-6 border border-orange-200/50 dark:border-orange-700/50 shadow-lg">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-md">
+                    <Flame className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">Study Streak</span>
                 </div>
-                <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{studyStreak} days</span>
+                <span className="text-2xl font-black text-orange-600 dark:text-orange-400 bg-white/50 dark:bg-gray-800/50 px-4 py-2 rounded-2xl shadow-md">
+                  {studyStreak} days
+                </span>
               </div>
-              <div className="flex gap-1">
+              <div className="flex gap-2">
                 {[...Array(14)].map((_, i) => {
                   const dayIndex = 13 - i;
                   const hasStudied = dayIndex < studyStreak;
                   return (
                     <div
                       key={i}
-                      className={`h-2 flex-1 rounded-sm ${
+                      className={`h-3 flex-1 rounded-full transition-all duration-500 shadow-sm ${
                         hasStudied 
-                          ? 'bg-orange-400 dark:bg-orange-500' 
-                          : 'bg-gray-200 dark:bg-gray-700'
+                          ? 'bg-gradient-to-r from-orange-400 to-red-500 shadow-orange-300/50' 
+                          : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
                       }`}
                     />
                   );
                 })}
               </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 text-center font-medium">
+                Last 14 days • Keep it going! 🔥
+              </p>
             </div>
           </SimpleCard>
 
-          {/* Upcoming Deadlines */}
-          <SimpleCard className="p-4 sm:p-6">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-500" />
+          {/* Enhanced Upcoming Deadlines */}
+          <SimpleCard className="p-6 sm:p-8">
+            <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl shadow-lg">
+                <AlertCircle className="w-6 h-6 text-white" />
+              </div>
               Deadlines
             </h2>
             {upcomingDeadlines.length > 0 ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {upcomingDeadlines.slice(0, 4).map((exam) => {
                   const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                   const isUrgent = daysUntil <= 3;
@@ -890,40 +960,41 @@ export const Dashboard: React.FC = () => {
                   const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
                   
                   return (
-                    <div key={exam.id} className={`p-3 rounded-lg border-l-4 ${
+                    <div key={exam.id} className={`p-5 rounded-2xl border-l-4 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] ${
                       isUrgent 
-                        ? 'bg-red-50 dark:bg-red-900/20 border-red-400' 
-                        : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-400'
+                        ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-500 shadow-red-200/50 dark:shadow-red-900/20' 
+                        : 'bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-500 shadow-yellow-200/50 dark:shadow-yellow-900/20'
                     }`}>
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0 flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                          <h3 className="font-black text-gray-900 dark:text-gray-100 text-lg truncate mb-1">
                             {exam.name}
                           </h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 truncate font-semibold bg-white/50 dark:bg-gray-800/50 px-2 py-1 rounded-full inline-block">
                             {exam.subject}
                           </p>
                         </div>
-                        <div className="text-right flex-shrink-0 ml-2">
-                          <span className={`text-xs font-semibold ${
-                            isUrgent ? 'text-red-600 dark:text-red-400' : 'text-yellow-600 dark:text-yellow-400'
+                        <div className="text-right flex-shrink-0 ml-4">
+                          <span className={`text-sm font-black px-3 py-2 rounded-xl shadow-md ${
+                            isUrgent ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40' : 'text-yellow-700 bg-yellow-100 dark:text-yellow-400 dark:bg-yellow-900/40'
                           }`}>
                             {daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}
                           </span>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">
                             {new Date(exam.date).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
                       
-                      {/* Simple Progress */}
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600 dark:text-gray-400">
+                      {/* Enhanced Progress */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-400 font-medium bg-white/30 dark:bg-gray-800/30 px-3 py-1 rounded-full">
                           {formatMinutes(totalStudyTime)} studied
                         </span>
-                        <span className={`font-medium ${
-                          totalStudyTime >= 300 ? 'text-green-600' : 
-                          totalStudyTime >= 120 ? 'text-blue-600' : 'text-red-600'
+                        <span className={`font-black px-3 py-2 rounded-xl shadow-sm ${
+                          totalStudyTime >= 300 ? 'text-green-700 bg-green-100 dark:text-green-400 dark:bg-green-900/40' : 
+                          totalStudyTime >= 120 ? 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40' : 
+                          'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
                         }`}>
                           {totalStudyTime >= 300 ? '✅ Ready' : 
                            totalStudyTime >= 120 ? '📈 Progress' : '📚 Study more'}
@@ -934,12 +1005,14 @@ export const Dashboard: React.FC = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-6">
-                <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-center py-8">
+                <div className="p-4 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-2xl shadow-lg mb-4 inline-block">
+                  <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400 mx-auto" />
+                </div>
+                <p className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
                   No upcoming deadlines
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
                   {rakshabandhanInfo.shouldShow ? 
                     "Perfect time to celebrate! 🎋" :
                     "You're all caught up! 🎉"}
@@ -949,51 +1022,63 @@ export const Dashboard: React.FC = () => {
           </SimpleCard>
         </div>
 
-        {/* Premium Advanced Analytics Preview */}
-        <div className="mb-6">
+        {/* Enhanced Premium Advanced Analytics Preview */}
+        <div className="mb-8">
           <PremiumFeatureGate
             featureName="Advanced Analytics"
             description="Get detailed insights and AI-powered recommendations"
-            className="min-h-[200px]"
+            className="min-h-[250px]"
           >
-            <SimpleCard className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-purple-600" />
+            <SimpleCard className="p-8 border-2 border-purple-200/50 dark:border-purple-700/50">
+              <h2 className="text-3xl font-black text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl shadow-lg">
+                  <BarChart3 className="w-8 h-8 text-white" />
+                </div>
                 Advanced Analytics
+                <div className="text-xs text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full font-bold">
+                  Premium Feature
+                </div>
               </h2>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-900 dark:text-blue-400 mb-2">Efficiency Trends</h3>
-                  <div className="h-16 bg-blue-200 dark:bg-blue-800 rounded flex items-end justify-around p-2">
-                    <div className="bg-blue-500 w-3 h-6 rounded-t"></div>
-                    <div className="bg-blue-500 w-3 h-8 rounded-t"></div>
-                    <div className="bg-blue-500 w-3 h-10 rounded-t"></div>
-                    <div className="bg-blue-500 w-3 h-7 rounded-t"></div>
-                    <div className="bg-blue-500 w-3 h-9 rounded-t"></div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+                  <h3 className="font-black text-blue-900 dark:text-blue-400 mb-4 text-xl">Efficiency Trends</h3>
+                  <div className="h-20 bg-gradient-to-r from-blue-200 to-indigo-200 dark:from-blue-800 dark:to-indigo-800 rounded-xl flex items-end justify-around p-3 shadow-inner">
+                    <div className="bg-gradient-to-t from-blue-500 to-blue-400 w-4 h-8 rounded-t-lg shadow-md"></div>
+                    <div className="bg-gradient-to-t from-blue-500 to-blue-400 w-4 h-10 rounded-t-lg shadow-md"></div>
+                    <div className="bg-gradient-to-t from-blue-500 to-blue-400 w-4 h-12 rounded-t-lg shadow-md"></div>
+                    <div className="bg-gradient-to-t from-blue-500 to-blue-400 w-4 h-9 rounded-t-lg shadow-md"></div>
+                    <div className="bg-gradient-to-t from-blue-500 to-blue-400 w-4 h-11 rounded-t-lg shadow-md"></div>
                   </div>
                 </div>
                 
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
-                  <h3 className="font-semibold text-green-900 dark:text-green-400 mb-2">AI Predictions</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Math Exam</span>
-                      <span className="text-sm font-bold text-green-600">94%</span>
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200/50 dark:border-green-700/50 shadow-lg">
+                  <h3 className="font-black text-green-900 dark:text-green-400 mb-4 text-xl">AI Predictions</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl shadow-sm">
+                      <span className="text-sm font-semibold">Math Exam</span>
+                      <span className="text-sm font-black text-green-600 bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">94%</span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Physics Test</span>
-                      <span className="text-sm font-bold text-yellow-600">78%</span>
+                    <div className="flex justify-between items-center p-3 bg-white/50 dark:bg-gray-800/50 rounded-xl shadow-sm">
+                      <span className="text-sm font-semibold">Physics Test</span>
+                      <span className="text-sm font-black text-yellow-600 bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1 rounded-full">78%</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
-                  <h3 className="font-semibold text-purple-900 dark:text-purple-400 mb-2">Recommendations</h3>
-                  <div className="space-y-1 text-sm text-purple-700 dark:text-purple-300">
-                    <p>• Study Math at 10 AM</p>
-                    <p>• Take breaks every 25min</p>
-                    <p>• {rakshabandhanInfo.shouldShow ? "Study with siblings!" : "Review Physics tonight"}</p>
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200/50 dark:border-purple-700/50 shadow-lg">
+                  <h3 className="font-black text-purple-900 dark:text-purple-400 mb-4 text-xl">Recommendations</h3>
+                  <div className="space-y-2 text-sm text-purple-700 dark:text-purple-300">
+                    <p className="flex items-center gap-2 p-2 bg-white/50 dark:bg-gray-800/50 rounded-lg font-medium">
+                      <span className="text-lg">🎯</span> Study Math at 10 AM
+                    </p>
+                    <p className="flex items-center gap-2 p-2 bg-white/50 dark:bg-gray-800/50 rounded-lg font-medium">
+                      <span className="text-lg">⏰</span> Take breaks every 25min
+                    </p>
+                    <p className="flex items-center gap-2 p-2 bg-white/50 dark:bg-gray-800/50 rounded-lg font-medium">
+                      <span className="text-lg">{rakshabandhanInfo.shouldShow ? "🎋" : "📚"}</span> 
+                      {rakshabandhanInfo.shouldShow ? "Study with siblings!" : "Review Physics tonight"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1001,8 +1086,8 @@ export const Dashboard: React.FC = () => {
           </PremiumFeatureGate>
         </div>
 
-        {/* Main Content Grid - Responsive */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Enhanced Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           <div>
             <ExamCountdown exams={exams} />
           </div>
@@ -1011,21 +1096,23 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Sessions - Simplified */}
+        {/* Enhanced Recent Sessions */}
         {sessions.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                <Brain className="w-5 h-5 text-blue-600" />
+              <h2 className="text-3xl font-black text-gray-900 dark:text-gray-100 flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-lg">
+                  <Brain className="w-8 h-8 text-white" />
+                </div>
                 Recent Sessions
               </h2>
-              <button className="flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium text-sm">
+              <button className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-bold text-lg bg-blue-50 dark:bg-blue-900/30 px-4 py-2 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-all duration-200 shadow-lg hover:shadow-xl">
                 View All
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sessions.slice(0, 6).map((session) => {
                 const exam = exams.find(e => e.id === session.examId);
                 return (
@@ -1041,6 +1128,42 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Enhanced CSS animations */}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.2; }
+          33% { transform: translateY(-8px) rotate(120deg) scale(1.1); opacity: 0.4; }
+          66% { transform: translateY(-4px) rotate(240deg) scale(0.9); opacity: 0.3; }
+        }
+        
+        @keyframes wave {
+          0%, 100% { transform: rotate(0deg); }
+          25% { transform: rotate(20deg); }
+          75% { transform: rotate(-20deg); }
+        }
+        
+        .animate-float {
+          animation: float 5s ease-in-out infinite;
+        }
+        
+        .animate-wave {
+          animation: wave 2s ease-in-out infinite;
+        }
+        
+        /* Glassmorphism backdrop effects */
+        .backdrop-blur-lg {
+          backdrop-filter: blur(16px);
+        }
+        
+        .backdrop-blur-xl {
+          backdrop-filter: blur(24px);
+        }
+        
+        .backdrop-saturate-150 {
+          backdrop-filter: saturate(150%);
+        }
+      `}</style>
     </div>
   );
 };
