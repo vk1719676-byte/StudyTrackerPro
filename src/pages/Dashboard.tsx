@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Quote, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Users, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, Crown, Heart, Gift, X, Bell, Lightbulb, Megaphone, Info, Rocket } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -9,54 +9,35 @@ import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
 
-const heroDesigns = [
+// Simple hero designs
+const heroThemes = [
   {
-    name: 'cosmic',
-    background: 'bg-gradient-to-br from-indigo-600 via-purple-700 to-pink-800',
-    overlay: 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20',
+    name: 'blue',
+    gradient: 'from-blue-500 to-purple-600',
     icon: Sparkles,
-    accent: 'text-indigo-300',
-    particles: '✨'
+    particles: '✨',
+    greeting: 'Ready to learn something amazing?'
   },
   {
-    name: 'midnight',
-    background: 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700',
-    overlay: 'bg-gradient-to-r from-slate-700/20 to-slate-600/20',
-    icon: Zap,
-    accent: 'text-slate-300',
-    particles: '⚡'
-  },
-  {
-    name: 'sunset',
-    background: 'bg-gradient-to-br from-orange-600 via-pink-600 to-purple-700',
-    overlay: 'bg-gradient-to-r from-orange-500/20 to-pink-500/20',
-    icon: Star,
-    accent: 'text-orange-300',
-    particles: '🌟'
-  },
-  {
-    name: 'ocean',
-    background: 'bg-gradient-to-br from-teal-600 via-cyan-700 to-blue-800',
-    overlay: 'bg-gradient-to-r from-teal-500/20 to-cyan-500/20',
+    name: 'green',
+    gradient: 'from-green-500 to-teal-600',
     icon: Target,
-    accent: 'text-teal-300',
-    particles: '🌊'
+    particles: '🎯',
+    greeting: 'Let\'s achieve your goals today!'
   },
   {
-    name: 'aurora',
-    background: 'bg-gradient-to-br from-green-500 via-purple-600 to-pink-700',
-    overlay: 'bg-gradient-to-r from-green-500/20 to-purple-500/20',
-    icon: Heart,
-    accent: 'text-green-300',
-    particles: '💫'
+    name: 'orange',
+    gradient: 'from-orange-500 to-red-600',
+    icon: Zap,
+    particles: '⚡',
+    greeting: 'Power up your learning!'
   },
   {
-    name: 'golden',
-    background: 'bg-gradient-to-br from-yellow-500 via-orange-600 to-red-700',
-    overlay: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20',
-    icon: Crown,
-    accent: 'text-yellow-300',
-    particles: '✨'
+    name: 'purple',
+    gradient: 'from-purple-500 to-pink-600',
+    icon: Star,
+    particles: '🌟',
+    greeting: 'Shine bright with knowledge!'
   }
 ];
 
@@ -82,253 +63,85 @@ const SimpleCard: React.FC<{ children: React.ReactNode; className?: string; hove
   </div>
 );
 
-// Notice types with enhanced styling
-const noticeTypes = [
+// Simple notice types
+const notices = [
   {
-    id: 'study-tip',
+    id: 'tip',
     icon: Lightbulb,
-    type: 'tip',
-    title: 'Study Smart Tip',
-    message: 'Take a 10-minute break after every 45 minutes of focused study to boost retention by up to 30%!',
-    bgGradient: 'from-yellow-500 via-orange-500 to-red-500',
-    iconBg: 'bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30',
-    iconColor: 'text-yellow-600 dark:text-yellow-400',
-    duration: 8000,
-    emoji: '💡'
+    title: 'Study Tip',
+    message: 'Take breaks every 25 minutes to improve focus and retention.',
+    color: 'yellow',
+    duration: 6000
   },
   {
-    id: 'motivation',
+    id: 'motivate',
     icon: Rocket,
-    type: 'motivation',
-    title: 'Stay Motivated',
-    message: "You're doing great! Every study session brings you closer to your goals. Keep pushing forward!",
-    bgGradient: 'from-purple-500 via-pink-500 to-indigo-600',
-    iconBg: 'bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30',
-    iconColor: 'text-purple-600 dark:text-purple-400',
-    duration: 10000,
-    emoji: '🚀'
+    title: 'Keep Going!',
+    message: 'Every study session brings you closer to your goals.',
+    color: 'purple',
+    duration: 7000
   },
   {
-    id: 'feature-update',
+    id: 'feature',
     icon: Star,
-    type: 'update',
-    title: 'New Feature Alert',
-    message: 'Check out the enhanced analytics dashboard with AI-powered study recommendations!',
-    bgGradient: 'from-blue-500 via-cyan-500 to-teal-600',
-    iconBg: 'bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/30 dark:to-cyan-900/30',
-    iconColor: 'text-blue-600 dark:text-blue-400',
-    duration: 12000,
-    emoji: '⭐'
-  },
-  {
-    id: 'health-reminder',
-    icon: Heart,
-    type: 'health',
-    title: 'Health Reminder',
-    message: 'Remember to stay hydrated, maintain good posture, and get enough sleep for optimal learning!',
-    bgGradient: 'from-green-500 via-teal-500 to-emerald-600',
-    iconBg: 'bg-gradient-to-br from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30',
-    iconColor: 'text-green-600 dark:text-green-400',
-    duration: 9000,
-    emoji: '❤️'
-  },
-  {
-    id: 'achievement',
-    icon: Trophy,
-    type: 'achievement',
-    title: 'Achievement Unlocked',
-    message: 'Congratulations on maintaining your study streak! You\'re building excellent habits!',
-    bgGradient: 'from-amber-500 via-orange-500 to-yellow-600',
-    iconBg: 'bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30',
-    iconColor: 'text-amber-600 dark:text-amber-400',
-    duration: 7000,
-    emoji: '🏆'
+    title: 'New Features',
+    message: 'Explore enhanced analytics and AI recommendations.',
+    color: 'blue',
+    duration: 8000
   }
 ];
 
-// Enhanced Notice Component with advanced animations
-const NoticeSection: React.FC<{ 
-  studyStreak: number; 
-  isPremium: boolean;
-  rakshabandhanActive: boolean;
-}> = ({ studyStreak, isPremium, rakshabandhanActive }) => {
+// Simple Notice Component
+const SimpleNotice: React.FC<{ studyStreak: number }> = ({ studyStreak }) => {
   const [currentNotice, setCurrentNotice] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  const [isDismissed, setIsDismissed] = useState(false);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
-  // Filter notices based on conditions
-  const getAvailableNotices = () => {
-    let available = [...noticeTypes];
-    
-    // Add special Raksha Bandhan notice if active
-    if (rakshabandhanActive) {
-      available.unshift({
-        id: 'raksha-bandhan',
-        icon: Gift,
-        type: 'special',
-        title: 'Raksha Bandhan Special',
-        message: 'Study with your siblings today! Research shows collaborative learning improves retention by 25%.',
-        bgGradient: 'from-pink-500 via-red-500 to-purple-600',
-        iconBg: 'bg-gradient-to-br from-pink-100 to-red-100 dark:from-pink-900/30 dark:to-red-900/30',
-        iconColor: 'text-pink-600 dark:text-pink-400',
-        duration: 6000,
-        emoji: '🎋'
-      });
-    }
-    
-    // Show achievement notice only if streak > 3
-    if (studyStreak <= 3) {
-      available = available.filter(notice => notice.id !== 'achievement');
-    }
-    
-    return available;
-  };
-
-  const availableNotices = getAvailableNotices();
-
-  // Auto-rotate notices
+  // Rotate notices
   useEffect(() => {
-    if (isDismissed || availableNotices.length === 0) return;
-    
-    const currentNoticeDuration = availableNotices[currentNotice]?.duration || 8000;
+    if (dismissed) return;
     const interval = setInterval(() => {
-      setIsAnimating(true);
-      setTimeout(() => {
-        setCurrentNotice((prev) => (prev + 1) % availableNotices.length);
-        setIsAnimating(false);
-      }, 300);
-    }, currentNoticeDuration);
-    
+      setCurrentNotice((prev) => (prev + 1) % notices.length);
+    }, notices[currentNotice]?.duration || 6000);
     return () => clearInterval(interval);
-  }, [currentNotice, isDismissed, availableNotices.length]);
+  }, [currentNotice, dismissed]);
 
-  const handleDismiss = () => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      setIsDismissed(true);
-    }, 300);
-  };
+  if (dismissed) return null;
 
-  if (!isVisible || isDismissed || availableNotices.length === 0) {
-    return null;
-  }
-
-  const notice = availableNotices[currentNotice];
+  const notice = notices[currentNotice];
   const IconComponent = notice.icon;
 
+  const colorClasses = {
+    yellow: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-200',
+    purple: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800 text-purple-800 dark:text-purple-200',
+    blue: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200'
+  };
+
   return (
-    <div className="mb-8 -mt-16 md:-mt-0 pt-16 md:pt-6">
+    <div className="mb-6">
       <div className={`
-        relative overflow-hidden rounded-2xl transition-all duration-700 transform
-        ${isAnimating ? 'scale-95 opacity-80' : 'scale-100 opacity-100'}
-        p-[1px] bg-gradient-to-r ${notice.bgGradient}
-        shadow-2xl shadow-purple-500/20 dark:shadow-purple-500/10
-        hover:shadow-purple-500/30 dark:hover:shadow-purple-500/20
+        rounded-lg border p-4 transition-all duration-300 hover:shadow-md
+        ${colorClasses[notice.color as keyof typeof colorClasses]}
       `}>
-        {/* Enhanced animated border gradient */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r opacity-30 animate-pulse"
-             style={{
-               background: `conic-gradient(from 0deg, transparent, white, transparent)`,
-               animation: 'spin 8s linear infinite'
-             }} />
-        
-        <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/20">
-          {/* Enhanced floating particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-2xl">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute text-lg opacity-20 animate-float"
-                style={{
-                  left: `${10 + (i * 12)}%`,
-                  top: `${15 + (i % 3) * 25}%`,
-                  animationDelay: `${i * 0.8}s`,
-                  animationDuration: `${3 + (i % 2)}s`
-                }}
-              >
-                {notice.emoji}
-              </div>
-            ))}
+        <div className="flex items-start gap-3">
+          <div className="flex-shrink-0 p-2 bg-white/50 dark:bg-gray-800/50 rounded-lg">
+            <IconComponent className="w-4 h-4" />
           </div>
-
-          <div className="relative p-6 sm:p-8">
-            <div className="flex items-start gap-4">
-              {/* Enhanced Icon */}
-              <div className={`
-                flex-shrink-0 p-3 rounded-xl ${notice.iconBg}
-                shadow-lg shadow-gray-200/50 dark:shadow-gray-900/50
-                transform transition-all duration-500
-                hover:scale-110 hover:rotate-12 hover:shadow-xl
-                border border-white/30 dark:border-gray-600/30
-              `}>
-                <IconComponent className={`w-6 h-6 ${notice.iconColor} drop-shadow-sm`} />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="font-medium text-sm">{notice.title}</h3>
+                <p className="text-sm opacity-80 mt-1">{notice.message}</p>
               </div>
-
-              {/* Enhanced Content */}
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between mb-3">
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg flex items-center gap-3">
-                    {notice.title}
-                    {notice.type === 'special' && (
-                      <span className="text-xs bg-gradient-to-r from-pink-500 to-red-500 text-white px-3 py-1 rounded-full shadow-lg">
-                        Special
-                      </span>
-                    )}
-                    {notice.type === 'update' && isPremium && (
-                      <PremiumBadge size="sm" />
-                    )}
-                  </h3>
-                  
-                  <button
-                    onClick={handleDismiss}
-                    className="flex-shrink-0 p-2 hover:bg-gray-100/50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200 group ml-3 backdrop-blur-sm"
-                  >
-                    <X className="w-4 h-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
-                  </button>
-                </div>
-                
-                <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed mb-4 font-medium">
-                  {notice.message}
-                </p>
-
-                {/* Enhanced Progress indicator */}
-                <div className="flex items-center justify-between">
-                  <div className="flex gap-2">
-                    {availableNotices.map((_, index) => (
-                      <div
-                        key={index}
-                        className={`
-                          h-1.5 rounded-full transition-all duration-500 shadow-sm
-                          ${index === currentNotice 
-                            ? `bg-gradient-to-r ${notice.bgGradient} w-8 shadow-md` 
-                            : 'bg-gray-200 dark:bg-gray-600 w-3 hover:w-4'}
-                        `}
-                      />
-                    ))}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 dark:text-gray-400 font-medium bg-gray-100/50 dark:bg-gray-800/50 px-2 py-1 rounded-full backdrop-blur-sm">
-                    {currentNotice + 1} of {availableNotices.length}
-                  </div>
-                </div>
-              </div>
+              <button
+                onClick={() => setDismissed(true)}
+                className="p-1 hover:bg-white/50 dark:hover:bg-gray-800/50 rounded transition-colors"
+              >
+                <X className="w-4 h-4 opacity-60" />
+              </button>
             </div>
           </div>
         </div>
       </div>
-      
-      {/* Enhanced CSS animations */}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.2; }
-          50% { transform: translateY(-10px) rotate(180deg); opacity: 0.4; }
-        }
-        .animate-float {
-          animation: float 4s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
 };
@@ -424,53 +237,13 @@ const SessionCard: React.FC<{
   </SimpleCard>
 );
 
-// Raksha Bandhan checker
-const getRakshaBandhanInfo = () => {
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const rakshabandhanDate = new Date(2025, 7, 15); // August 15, 2025 (month is 0-indexed)
-  
-  const diffTime = rakshabandhanDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  
-  // Show message if within 30 days before or on the day
-  const shouldShowMessage = diffDays >= 0 && diffDays <= 30;
-  
-  let message = '';
-  let emoji = '🎋';
-  let bgGradient = 'from-pink-500 via-red-500 to-orange-500';
-  
-  if (diffDays === 0) {
-    message = 'Happy independence Day! 🎉 May your bond of love grow stronger with every study session!';
-    emoji = '🎊';
-  } else if (diffDays === 1) {
-    message = 'Raksha Bandhan tomorrow! 🎋 Study smart and make your siblings proud!';
-  } else if (diffDays <= 7) {
-    message = `Raksha Bandhan in ${diffDays} days! 🎋 Perfect time to study together with siblings!`;
-  } else if (diffDays <= 30) {
-    message = `Raksha Bandhan approaching in ${diffDays} days! 🎋 Plan your celebration and studies wisely!`;
-    bgGradient = 'from-purple-500 via-pink-500 to-red-500';
-  }
-  
-  return {
-    shouldShow: shouldShowMessage,
-    message,
-    emoji,
-    bgGradient,
-    daysUntil: diffDays
-  };
-};
-
 export const Dashboard: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentDesign, setCurrentDesign] = useState(0);
+  const [currentTheme, setCurrentTheme] = useState(0);
   const [mounted, setMounted] = useState(false);
   const { user, isPremium } = useAuth();
-
-  // Get Raksha Bandhan info
-  const rakshabandhanInfo = getRakshaBandhanInfo();
 
   // Get saved display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
@@ -495,14 +268,14 @@ export const Dashboard: React.FC = () => {
     };
   }, [user]);
 
-  // Change design every 25 seconds (or every 15 seconds if Raksha Bandhan is active)
+  // Change theme every 20 seconds
   useEffect(() => {
     if (!mounted) return;
     const interval = setInterval(() => {
-      setCurrentDesign((prev) => (prev + 1) % heroDesigns.length);
-    }, rakshabandhanInfo.shouldShow ? 15000 : 25000);
+      setCurrentTheme((prev) => (prev + 1) % heroThemes.length);
+    }, 20000);
     return () => clearInterval(interval);
-  }, [mounted, rakshabandhanInfo.shouldShow]);
+  }, [mounted]);
 
   const handleSessionAdded = () => {
     // Sessions will be updated automatically via the real-time listener
@@ -551,6 +324,14 @@ export const Dashboard: React.FC = () => {
     }
     
     return streak;
+  };
+
+  // Get current time greeting
+  const getTimeGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 17) return "Good afternoon";
+    return "Good evening";
   };
 
   // Get upcoming deadlines (next 7 days)
@@ -607,14 +388,6 @@ export const Dashboard: React.FC = () => {
   const upcomingDeadlines = getUpcomingDeadlines();
   const performanceMetrics = getPerformanceMetrics();
 
-  // Get current time for greeting
-  const getCurrentGreeting = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  };
-
   const formatMinutes = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -642,102 +415,71 @@ export const Dashboard: React.FC = () => {
     );
   }
 
-  const currentHeroDesign = heroDesigns[currentDesign];
-  const IconComponent = currentHeroDesign.icon;
+  const currentThemeData = heroThemes[currentTheme];
+  const ThemeIcon = currentThemeData.icon;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-6 pb-20 md:pb-8">
         
-        {/* Notice Section */}
-        <NoticeSection 
-          studyStreak={studyStreak}
-          isPremium={isPremium}
-          rakshabandhanActive={rakshabandhanInfo.shouldShow}
-        />
+        {/* Simple Notice */}
+        <SimpleNotice studyStreak={studyStreak} />
         
-        {/* Enhanced Hero Section */}
-        <div className="mb-8 -mt-16 md:-mt-0 pt-16 md:pt-0">
-          <div className={`${rakshabandhanInfo.shouldShow 
-            ? `bg-gradient-to-br ${rakshabandhanInfo.bgGradient}` 
-            : currentHeroDesign.background} text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl border border-white/10`}>
-            
-            {/* Enhanced background effects */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white/10 via-transparent to-white/10 opacity-50"></div>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]"></div>
-            
-            {/* Enhanced floating particles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {[...Array(12)].map((_, i) => (
+        {/* Clean Hero Section */}
+        <div className="mb-8">
+          <div className={`bg-gradient-to-r ${currentThemeData.gradient} text-white rounded-2xl p-6 sm:p-8 relative overflow-hidden`}>
+            {/* Subtle particles */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-20">
+              {[...Array(4)].map((_, i) => (
                 <div
                   key={i}
-                  className="absolute text-2xl opacity-20 animate-float"
+                  className="absolute text-2xl animate-pulse"
                   style={{
-                    left: `${10 + (i * 8)}%`,
-                    top: `${15 + (i % 3) * 25}%`,
-                    animationDelay: `${i * 0.7}s`,
-                    animationDuration: `${4 + (i % 2)}s`
+                    left: `${25 + (i * 20)}%`,
+                    top: `${30 + (i % 2) * 30}%`,
+                    animationDelay: `${i * 1}s`,
+                    animationDuration: '4s'
                   }}
                 >
-                  {rakshabandhanInfo.shouldShow ? '🎋' : currentHeroDesign.particles}
+                  {currentThemeData.particles}
                 </div>
               ))}
             </div>
 
-            <div className="relative z-10">
-              {/* Enhanced Raksha Bandhan Special Message */}
-              {rakshabandhanInfo.shouldShow && (
-                <div className="mb-6 p-4 bg-white/20 backdrop-blur-sm rounded-2xl border border-white/30 shadow-lg">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl animate-bounce">{rakshabandhanInfo.emoji}</span>
-                    <h2 className="text-lg font-black">Special Occasion</h2>
-                    <div className="px-3 py-1 bg-white/30 rounded-full text-xs font-bold">
-                      Festive Edition
-                    </div>
-                  </div>
-                  <p className="text-white/90 text-sm sm:text-base leading-relaxed font-medium">
-                    {rakshabandhanInfo.message}
-                  </p>
-                </div>
-              )}
-
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 flex items-center gap-3">
-                    <span className="truncate bg-gradient-to-r from-white to-white/80 bg-clip-text text-transparent">
-                      {getCurrentGreeting()}, {displayName}!
-                    </span>
-                    {isPremium && <PremiumBadge size="md" />}
-                    <span className="text-2xl animate-wave">👋</span>
+            <div className="relative flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <h1 className="text-2xl sm:text-3xl font-bold">
+                    {getTimeGreeting()}, {displayName}!
                   </h1>
-                  <p className="text-white/90 text-lg mb-4 font-medium">
-                    {rakshabandhanInfo.shouldShow ? 
-                      "Study with festive spirit! 🎉" : 
-                      "Ready to achieve your goals today? ✨"}
-                  </p>
-                  
-                  <div className="flex flex-wrap gap-3 text-sm">
-                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30 shadow-lg">
-                      <Clock className="w-4 h-4" />
-                      <span className="font-semibold">{new Date().toLocaleDateString('en-US', { 
-                        weekday: 'long', 
-                        month: 'long', 
-                        day: 'numeric' 
-                      })}</span>
-                    </div>
-                    {studyStreak > 0 && (
-                      <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 border border-white/30 shadow-lg">
-                        <Flame className="w-4 h-4 text-orange-300" />
-                        <span className="font-bold">{studyStreak} day streak!</span>
-                      </div>
-                    )}
-                  </div>
+                  {isPremium && <PremiumBadge size="sm" />}
                 </div>
                 
-                <div className="flex-shrink-0 ml-6">
-                  <div className="p-6 bg-white/20 backdrop-blur-sm rounded-3xl border border-white/30 shadow-2xl group hover:scale-110 transition-all duration-300">
-                    <IconComponent className="w-10 h-10 sm:w-12 sm:h-12 drop-shadow-lg group-hover:rotate-12 transition-all duration-300" />
+                <p className="text-white/90 text-lg mb-4">
+                  {currentThemeData.greeting}
+                </p>
+                
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{new Date().toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}</span>
                   </div>
+                  {studyStreak > 0 && (
+                    <div className="flex items-center gap-2 bg-white/20 rounded-full px-3 py-1">
+                      <Flame className="w-4 h-4" />
+                      <span>{studyStreak} day streak</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="hidden sm:block">
+                <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm">
+                  <ThemeIcon className="w-12 h-12" />
                 </div>
               </div>
             </div>
@@ -769,9 +511,7 @@ export const Dashboard: React.FC = () => {
                     <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {rakshabandhanInfo.shouldShow ? 
-                      "Study with siblings for better retention! Research shows 25% improvement." :
-                      "Focus on Mathematics for optimal results. Your peak performance window is approaching."}
+                    Focus on Mathematics for optimal results. Your peak performance window is approaching.
                   </p>
                 </div>
                 
@@ -791,9 +531,7 @@ export const Dashboard: React.FC = () => {
                     <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                    {rakshabandhanInfo.shouldShow ?
-                      "Celebrate learning with family! Collaborative study sessions boost motivation by 40%." :
-                      "Take breaks every 25 minutes for better focus. Your brain needs time to consolidate."}
+                    Take breaks every 25 minutes for better focus. Your brain needs time to consolidate.
                   </p>
                 </div>
               </div>
@@ -1013,9 +751,7 @@ export const Dashboard: React.FC = () => {
                   No upcoming deadlines
                 </p>
                 <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">
-                  {rakshabandhanInfo.shouldShow ? 
-                    "Perfect time to celebrate! 🎋" :
-                    "You're all caught up! 🎉"}
+                  "You're all caught up! 🎉"
                 </p>
               </div>
             )}
@@ -1076,8 +812,7 @@ export const Dashboard: React.FC = () => {
                       <span className="text-lg">⏰</span> Take breaks every 25min
                     </p>
                     <p className="flex items-center gap-2 p-2 bg-white/50 dark:bg-gray-800/50 rounded-lg font-medium">
-                      <span className="text-lg">{rakshabandhanInfo.shouldShow ? "🎋" : "📚"}</span> 
-                      {rakshabandhanInfo.shouldShow ? "Study with siblings!" : "Review Physics tonight"}
+                      <span className="text-lg">📚</span> Review Physics tonight
                     </p>
                   </div>
                 </div>
