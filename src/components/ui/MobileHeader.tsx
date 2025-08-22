@@ -1,39 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Zap } from 'lucide-react';
 
 export const MobileHeader: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(true);
-  const [lastScrollY, setLastScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      
-      // Show header when at top of page
-      if (currentScrollY < 10) {
-        setIsVisible(true);
-      }
-      // Hide when scrolling down, show when scrolling up
-      else if (currentScrollY < lastScrollY) {
-        setIsVisible(true);
-      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
-        setIsVisible(false);
-      }
-      
-      setLastScrollY(currentScrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, [lastScrollY]);
-
   return (
-    <div className={`block md:hidden sticky top-0 z-50 transition-all duration-300 ease-out ${
-      isVisible ? 'transform translate-y-0 opacity-100' : 'transform -translate-y-full opacity-0'
-    }`}>
+    <div className="block md:hidden sticky top-0 z-50">
       {/* Compact golden header */}
       <div className="bg-white/95 backdrop-blur-md border-b border-amber-200/30 shadow-sm">
         <div className="px-4 py-2">
@@ -45,7 +15,7 @@ export const MobileHeader: React.FC = () => {
               <div className="relative flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5 text-amber-600 drop-shadow-sm" />
                 <span className="text-xs font-bold bg-gradient-to-r from-amber-700 via-yellow-600 to-amber-700 bg-clip-text text-transparent">
-                Powered By TRMS
+                  Powered By TRMS
                 </span>
               </div>
             </div>
