@@ -1,10 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
+import { FocusMode } from '../focus/FocusMode';
 
 interface LogoutConfirmationProps {
   isOpen: boolean;
@@ -42,6 +43,7 @@ export const DesktopNavbar: React.FC = () => {
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
+  const [showFocusMode, setShowFocusMode] = React.useState(false);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -58,9 +60,14 @@ export const DesktopNavbar: React.FC = () => {
     await logout();
   };
 
-
   return (
     <>
+      {/* Focus Mode Modal */}
+      <FocusMode
+        isOpen={showFocusMode}
+        onClose={() => setShowFocusMode(false)}
+      />
+
       {/* Main Navigation Bar */}
       <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,6 +124,18 @@ export const DesktopNavbar: React.FC = () => {
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-2 lg:gap-3">
+              {/* Focus Mode Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={Shield}
+                onClick={() => setShowFocusMode(true)}
+                className="hidden md:flex items-center gap-2 px-3 py-2 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 dark:hover:from-purple-900/20 dark:hover:to-blue-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105 border border-transparent hover:border-purple-200 dark:hover:border-purple-700"
+                title="Enter Focus Mode"
+              >
+                <span className="hidden lg:inline font-medium">Focus</span>
+              </Button>
+
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
