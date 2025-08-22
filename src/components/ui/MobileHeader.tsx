@@ -31,7 +31,7 @@ export const MobileHeader: React.FC = () => {
   }, [lastScrollY]);
 
   return (
-    <div className={`sticky top-0 z-50 transition-all duration-300 ease-out ${
+    <div className={`block md:hidden sticky top-0 z-50 transition-all duration-300 ease-out ${
       isVisible ? 'transform translate-y-0 opacity-100' : 'transform -translate-y-full opacity-0'
     }`}>
       {/* Compact golden header */}
