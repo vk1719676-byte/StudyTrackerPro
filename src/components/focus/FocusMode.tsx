@@ -28,6 +28,16 @@ interface LofiTrack {
   duration: string;
 }
 
+interface TimerState {
+  isRunning: boolean;
+  time: number;
+  mode: TimerMode;
+  startTime: number;
+  subject: string;
+  task: string;
+  targetTime: number;
+}
+
 const DEFAULT_POMODORO_SETTINGS = {
   focus: 25,
   shortBreak: 5,
@@ -90,6 +100,12 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
   const [showCustomTimer, setShowCustomTimer] = useState(false);
 
+  // Background timer states
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [backgroundMode, setBackgroundMode] = useState(false);
+  const [originalTitle, setOriginalTitle] = useState('');
+  const [lastNotificationTime, setLastNotificationTime] = useState(0);
+
   // Music player state
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(0);
@@ -99,9 +115,186 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
 
   // Fixed: Use number instead of NodeJS.Timeout for better compatibility
   const intervalRef = useRef<number>();
+  const backgroundIntervalRef = useRef<number>();
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const targetTime = pomodoroSettings[mode];
+
+  // Background timer system
+  const saveTimerState = (timerState: TimerState) => {
+    localStorage.setItem('focusTimerState', JSON.stringify({
+      ...timerState,
+      lastUpdated: Date.now()
+    }));
+  };
+
+  const loadTimerState = (): TimerState | null => {
+    const saved = localStorage.getItem('focusTimerState');
+    if (!saved) return null;
+    
+    try {
+      const state = JSON.parse(saved);
+      // Check if timer was running and calculate elapsed time
+      if (state.isRunning && state.lastUpdated) {
+        const elapsed = Math.floor((Date.now() - state.lastUpdated) / 1000);
+        state.time = Math.min(state.time + elapsed, state.targetTime * 60);
+      }
+      return state;
+    } catch {
+      return null;
+    }
+  };
+
+  const clearTimerState = () => {
+    localStorage.removeItem('focusTimerState');
+  };
+
+  const updateDocumentTitle = () => {
+    if (!isPageVisible && isRunning) {
+      const remainingTime = Math.max(0, targetTime * 60 - time);
+      const formattedTime = formatTime(remainingTime);
+      const modeText = mode === 'focus' ? '🎯 Focus' : 
+                      mode === 'custom' ? '⚙️ Custom' :
+                      mode === 'shortBreak' ? '☕ Break' : '☕ Long Break';
+      
+      document.title = `${formattedTime} - ${modeText} | ${currentSubject || 'Study Timer'}`;
+    } else if (originalTitle) {
+      document.title = originalTitle;
+    }
+  };
+
+  const sendBackgroundNotification = (title: string, body: string, isUrgent = false) => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const notification = new Notification(title, {
+        body,
+        icon: '/vite.svg',
+        badge: '/vite.svg',
+        tag: 'focus-timer',
+        requireInteraction: isUrgent,
+        silent: !isUrgent
+      });
+
+      // Auto close non-urgent notifications
+      if (!isUrgent) {
+        setTimeout(() => notification.close(), 5000);
+      }
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    }
+  };
+
+  const handlePageVisibilityChange = () => {
+    const isVisible = document.visibilityState === 'visible';
+    setIsPageVisible(isVisible);
+
+    if (!isVisible && isRunning) {
+      // Page became hidden while timer is running
+      setBackgroundMode(true);
+      
+      // Save current state
+      saveTimerState({
+        isRunning,
+        time,
+        mode,
+        startTime: Date.now() - (time * 1000),
+        subject: currentSubject,
+        task: currentTask,
+        targetTime
+      });
+
+      // Send notification about background mode
+      sendBackgroundNotification(
+        '🕐 Timer Running in Background',
+        `${mode === 'focus' ? 'Focus session' : 'Break time'} continues in background. Check tab title for updates.`
+      );
+    } else if (isVisible && backgroundMode) {
+      // Page became visible again
+      setBackgroundMode(false);
+      
+      // Load and sync state
+      const savedState = loadTimerState();
+      if (savedState) {
+        setTime(savedState.time);
+        setMode(savedState.mode);
+        setCurrentSubject(savedState.subject);
+        setCurrentTask(savedState.task);
+      }
+    }
+  };
+
+  // Initialize background timer system
+  useEffect(() => {
+    // Store original title
+    setOriginalTitle(document.title);
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Load previous timer state
+    const savedTimerState = loadTimerState();
+    if (savedTimerState && savedTimerState.isRunning) {
+      setTime(savedTimerState.time);
+      setMode(savedTimerState.mode);
+      setIsRunning(true);
+      setCurrentSubject(savedTimerState.subject);
+      setCurrentTask(savedTimerState.task);
+      setBackgroundMode(true);
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handlePageVisibilityChange);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handlePageVisibilityChange);
+      if (originalTitle) {
+        document.title = originalTitle;
+      }
+    };
+  }, []);
+
+  // Background notification system
+  useEffect(() => {
+    if (backgroundMode && isRunning) {
+      backgroundIntervalRef.current = window.setInterval(() => {
+        const now = Date.now();
+        const remainingTime = Math.max(0, targetTime * 60 - time);
+        
+        // Send periodic notifications (every 5 minutes for focus, every minute for breaks)
+        const notificationInterval = (mode === 'focus' || mode === 'custom') ? 5 * 60 * 1000 : 60 * 1000;
+        
+        if (now - lastNotificationTime > notificationInterval && remainingTime > 60) {
+          const minutes = Math.floor(remainingTime / 60);
+          sendBackgroundNotification(
+            `⏰ ${minutes} minutes remaining`,
+            `${mode === 'focus' ? 'Focus session' : 'Break time'} - ${currentSubject || 'Study Timer'}`,
+            false
+          );
+          setLastNotificationTime(now);
+        }
+      }, 30000); // Check every 30 seconds
+    } else {
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
+      }
+    };
+  }, [backgroundMode, isRunning, time, mode, currentSubject, targetTime, lastNotificationTime]);
+
+  // Update document title when timer state changes
+  useEffect(() => {
+    updateDocumentTitle();
+  }, [isRunning, time, mode, currentSubject, isPageVisible, targetTime]);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -147,17 +340,34 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     if (isRunning) {
       intervalRef.current = window.setInterval(() => {
         setTime(prev => {
-          if (prev >= targetTime * 60) {
+          const newTime = prev + 1;
+          
+          // Save state continuously while running
+          saveTimerState({
+            isRunning: true,
+            time: newTime,
+            mode,
+            startTime: Date.now() - (newTime * 1000),
+            subject: currentSubject,
+            task: currentTask,
+            targetTime
+          });
+
+          if (newTime >= targetTime * 60) {
             setIsRunning(false);
             handleSessionComplete();
-            return prev;
+            return newTime;
           }
-          return prev + 1;
+          return newTime;
         });
       }, 1000);
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
+      }
+      // Clear timer state when stopped
+      if (!isRunning && time === 0) {
+        clearTimerState();
       }
     }
 
@@ -166,14 +376,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, targetTime]);
-
-  // Request notification permission on mount
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, []);
+  }, [isRunning, targetTime, mode, currentSubject, currentTask]);
 
   const handleSessionComplete = () => {
     const newSession: StudySession = {
@@ -192,12 +395,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       setCurrentStreak(prev => prev + 1);
 
       const tipIndex = Math.floor(Math.random() * STUDY_TIPS.length);
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🎉 Focus Session Complete!', {
-          body: `Great work! ${STUDY_TIPS[tipIndex]}`,
-          icon: '/vite.svg'
-        });
-      }
+      sendBackgroundNotification(
+        '🎉 Focus Session Complete!',
+        `Great work! ${STUDY_TIPS[tipIndex]}`,
+        true
+      );
 
       if (mode === 'focus' && newCount % 4 === 0) {
         setMode('longBreak');
@@ -205,17 +407,17 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         setMode('shortBreak');
       }
     } else {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('⏰ Break Time Over!', {
-          body: 'Time to get back to studying! You\'ve got this! 💪',
-          icon: '/vite.svg'
-        });
-      }
+      sendBackgroundNotification(
+        '⏰ Break Time Over!',
+        'Time to get back to studying! You\'ve got this! 💪',
+        true
+      );
       setMode('focus');
     }
 
     setStudyHistory(prev => [...prev, newSession]);
     setTime(0);
+    clearTimerState();
     saveData();
   };
 
@@ -273,26 +475,33 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
 
   const startFocus = () => {
     setIsRunning(true);
+    setBackgroundMode(false);
+    setLastNotificationTime(Date.now());
   };
 
   const pauseFocus = () => {
     setIsRunning(false);
+    clearTimerState();
   };
 
   const stopFocus = () => {
     setIsRunning(false);
     setTime(0);
+    setBackgroundMode(false);
+    clearTimerState();
   };
 
   const resetSession = () => {
     setTime(0);
     setIsRunning(false);
+    clearTimerState();
   };
 
   const switchMode = (newMode: TimerMode) => {
     if (!isRunning) {
       setMode(newMode);
       setTime(0);
+      clearTimerState();
       if (newMode === 'custom') {
         setShowCustomTimer(true);
       }
@@ -370,6 +579,36 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     }
   ];
 
+  // Background Status Indicator
+  const BackgroundStatusIndicator = () => {
+    if (!backgroundMode && !isRunning) return null;
+
+    return (
+      <div className="fixed top-4 left-4 z-50">
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-2 p-3 min-w-[200px] ${
+          backgroundMode ? 'border-orange-400' : 'border-green-400'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-3 h-3 rounded-full animate-pulse ${
+              backgroundMode ? 'bg-orange-400' : 'bg-green-400'
+            }`} />
+            <span className="text-sm font-medium">
+              {backgroundMode ? '🌐 Running in Background' : '🎯 Timer Active'}
+            </span>
+          </div>
+          
+          {backgroundMode && (
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+              <div>• Timer continues when tab is closed</div>
+              <div>• Check browser tab title for updates</div>
+              <div>• You'll get notifications at intervals</div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   // Floating Timer Component
   const FloatingTimer = () => {
     if (!isMinimized || (!isRunning && time === 0)) return null;
@@ -444,6 +683,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
 
   return (
     <>
+      <BackgroundStatusIndicator />
       <FloatingTimer />
 
       {/* Hidden audio element */}
@@ -476,6 +716,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(mode === 'focus' || mode === 'custom') ? 'Time to concentrate and learn!' : 'Take a well-deserved break!'}
                     </p>
+                    {backgroundMode && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                        <span className="text-xs text-orange-600 font-medium">
+                          Background Mode Active
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <Button
@@ -486,6 +734,24 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   className="text-gray-500 hover:text-gray-700"
                 />
               </div>
+
+              {/* Background Mode Information */}
+              {(isRunning || backgroundMode) && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="font-medium text-blue-800 dark:text-blue-400 text-sm">
+                      Background Timer Active
+                    </span>
+                  </div>
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <div>✅ Timer continues when you close this tab or app</div>
+                    <div>🏷️ Check your browser tab title to see remaining time</div>
+                    <div>🔔 You'll receive notifications at regular intervals</div>
+                    <div>💾 Your progress is automatically saved</div>
+                  </div>
+                </div>
+              )}
 
               {/* Enhanced Mode Switcher - Fixed overlap issues */}
               <div className="space-y-4">
