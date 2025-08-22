@@ -71,101 +71,103 @@ export const DesktopNavbar: React.FC = () => {
       {/* Main Navigation Bar */}
       <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-20">
             
-            {/* Logo and Brand - Enhanced for all screen sizes */}
-            <Link 
-              to="/" 
-              className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group"
-            >
-              <Logo size="md" showText={false} />
-              <div className="flex items-center gap-2">
-                <div className="flex flex-col">
-                  <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
-                    Study Tracker
-                  </h1>
-                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
-                  </p>
-                </div>
-                <div className="flex flex-col items-center gap-1">
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
-                    PRO
-                  </span>
-                  <div className="flex gap-1">
-                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse"></div>
-                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-75"></div>
-                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-150"></div>
+            {/* Logo and Brand - Enhanced for all screen sizes with proper spacing */}
+            <div className="flex items-center">
+              <Link 
+                to="/" 
+                className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group mr-8 lg:mr-12"
+              >
+                <Logo size="md" showText={false} />
+                <div className="flex items-center gap-2">
+                  <div className="flex flex-col">
+                    <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
+                      Study Tracker
+                    </h1>
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
+                      PRO
+                    </span>
+                    <div className="flex gap-1">
+                      <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse"></div>
+                      <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-75"></div>
+                      <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-150"></div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation - Hidden on mobile */}
-            <div className="hidden md:flex items-center space-x-1 xl:space-x-2">
-              {navItems.map(({ path, label, icon: Icon }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`
-                    flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-medium
-                    transition-all duration-200 hover:scale-105 hover:shadow-lg
-                    ${location.pathname === path
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
-                    }
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden lg:inline">{label}</span>
-                  <span className="md:inline lg:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
-                </Link>
-              ))}
+              </Link>
             </div>
 
-            {/* Right Side Actions */}
-            <div className="flex items-center gap-2 lg:gap-3">
-              {/* Focus Mode Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={Shield}
-                onClick={() => setShowFocusMode(true)}
-                className="hidden md:flex items-center gap-2 px-3 py-2 hover:bg-gradient-to-r hover:from-purple-50 hover:to-blue-50 dark:hover:from-purple-900/20 dark:hover:to-blue-900/20 hover:text-purple-600 dark:hover:text-purple-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105 border border-transparent hover:border-purple-200 dark:hover:border-purple-700"
-                title="Enter Focus Mode"
-              >
-                <span className="hidden lg:inline font-medium">Focus</span>
-              </Button>
-
-              {/* Theme Toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={theme === 'dark' ? Sun : Moon}
-                onClick={toggleTheme}
-                className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
-                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-              />
-              
-              {/* User Email - Hidden on mobile, visible on lg+ */}
-              <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
-                {user?.email}
+            <div className="flex items-center justify-between flex-1">
+              {/* Desktop Navigation - Hidden on mobile */}
+              <div className="hidden md:flex items-center space-x-1 xl:space-x-2">
+                {navItems.map(({ path, label, icon: Icon }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`
+                      flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-medium
+                      transition-all duration-200 hover:scale-105 hover:shadow-lg
+                      ${location.pathname === path
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
+                      }
+                    `}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden lg:inline">{label}</span>
+                    <span className="md:inline lg:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
+                  </Link>
+                ))}
               </div>
-              
-              {/* Logout Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={LogOut}
-                onClick={() => setShowLogoutConfirm(true)}
-                className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
-                title="Logout"
-              >
-                <span className="hidden md:inline font-medium">Logout</span>
-              </Button>
+
+              {/* Right Side Actions */}
+              <div className="flex items-center gap-2 lg:gap-3">
+                {/* Theme Toggle */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={theme === 'dark' ? Sun : Moon}
+                  onClick={toggleTheme}
+                  className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
+                  title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                />
+                
+                {/* User Email - Hidden on mobile, visible on lg+ */}
+                <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
+                  {user?.email}
+                </div>
+                
+                {/* Logout Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  icon={LogOut}
+                  onClick={() => setShowLogoutConfirm(true)}
+                  className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
+                  title="Logout"
+                >
+                  <span className="hidden md:inline font-medium">Logout</span>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Fixed Focus Mode Button - Bottom Right */}
+      <Button
+        onClick={() => setShowFocusMode(true)}
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full p-4 border border-purple-400 hover:border-purple-300"
+        title="Enter Focus Mode"
+      >
+        <Shield className="w-6 h-6" />
+        <span className="ml-2 font-semibold hidden sm:inline">Focus Mode</span>
+      </Button>
       
       <LogoutConfirmation
         isOpen={showLogoutConfirm}
