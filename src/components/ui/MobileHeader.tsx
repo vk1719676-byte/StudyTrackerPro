@@ -1,9 +1,31 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Zap } from 'lucide-react';
 
 export const MobileHeader: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Hide header as soon as user starts scrolling
+      if (window.scrollY > 0) {
+        setIsVisible(false);
+      } else {
+        // Show header only when at the very top
+        setIsVisible(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   return (
-    <div className="block md:hidden sticky top-0 z-50">
+    <div className={`block md:hidden sticky top-0 z-50 transition-all duration-300 ease-out ${
+      isVisible ? 'transform translate-y-0 opacity-100' : 'transform -translate-y-full opacity-0'
+    }`}>
       {/* Compact golden header */}
       <div className="bg-white/95 backdrop-blur-md border-b border-amber-200/30 shadow-sm">
         <div className="px-4 py-2">
