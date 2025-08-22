@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, Coffee, Moon, Sun, Bookmark, Eye, Shield } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -67,292 +67,78 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Enhanced Smart notification system
-const SmartNotification: React.FC<{ studyStreak: number; sessionsToday: number; weeklyHours: number }> = ({ studyStreak, sessionsToday, weeklyHours }) => {
+// Smart notification system
+const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) => {
   const [currentTip, setCurrentTip] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
-
-  const getTimeOfDay = () => {
-    const hour = new Date().getHours();
-    if (hour < 6) return 'late-night';
-    if (hour < 12) return 'morning';
-    if (hour < 17) return 'afternoon';
-    if (hour < 21) return 'evening';
-    return 'night';
-  };
-
-  const timeOfDay = getTimeOfDay();
 
   const tips = [
     {
-      icon: Brain,
-      title: 'Cognitive Peak Hours',
-      message: `Your brain is most active during ${timeOfDay === 'morning' ? 'morning hours' : timeOfDay === 'afternoon' ? 'early afternoon' : 'evening sessions'}. Studies show peak learning occurs 2-4 hours after waking up.`,
-      color: 'blue',
-      priority: 'high',
-      action: 'Optimize Schedule',
-      timeSpecific: true
-    },
-    {
-      icon: Flame,
-      title: 'Streak Power',
-      message: `Your ${studyStreak}-day streak builds neural pathways! Each consecutive day strengthens memory retention by up to 15%.`,
-      color: 'orange',
-      priority: studyStreak >= 7 ? 'high' : 'medium',
-      action: 'Maintain Momentum'
-    },
-    {
-      icon: Target,
-      title: 'Focus Technique',
-      message: 'Research shows 25-minute focused sessions (Pomodoro) improve retention by 40% and reduce mental fatigue.',
-      color: 'purple',
-      priority: 'medium',
+      icon: Lightbulb,
+      title: 'Smart Study',
+      message: 'Research shows 25-minute focused sessions improve retention by 40%.',
+      color: 'amber',
       action: 'Try Pomodoro'
     },
     {
-      icon: Lightbulb,
-      title: 'Spaced Repetition',
-      message: 'Review material after 1 day, 3 days, 1 week, and 1 month for maximum long-term retention.',
-      color: 'amber',
-      priority: 'medium',
-      action: 'Schedule Reviews'
+      icon: Brain,
+      title: 'Peak Performance',
+      message: `Your ${studyStreak}-day streak shows dedication! Consistency builds neural pathways.`,
+      color: 'purple',
+      action: 'Keep Going'
     },
     {
-      icon: Coffee,
-      title: 'Energy Management',
-      message: timeOfDay === 'morning' ? 'Perfect time for complex topics! Your cortisol levels are naturally high.' : timeOfDay === 'afternoon' ? 'Ideal for review and practice. Take short breaks every 30 minutes.' : 'Great for light reading and review. Avoid heavy cognitive tasks.',
-      color: 'emerald',
-      priority: 'medium',
-      action: 'Adjust Study Type',
-      timeSpecific: true
-    },
-    {
-      icon: Moon,
-      title: 'Sleep & Memory',
-      message: 'Your brain consolidates learning during sleep. Study key concepts 2-3 hours before bedtime for better retention.',
-      color: 'indigo',
-      priority: timeOfDay === 'evening' || timeOfDay === 'night' ? 'high' : 'low',
-      action: 'Plan Sleep Schedule',
-      timeSpecific: true
-    },
-    {
-      icon: Eye,
-      title: 'Visual Learning',
-      message: 'Create mind maps and diagrams. Visual learners retain 65% more information when concepts are visualized.',
-      color: 'teal',
-      priority: 'medium',
-      action: 'Create Visuals'
-    },
-    {
-      icon: Shield,
-      title: 'Distraction Defense',
-      message: 'Turn off notifications and use website blockers. It takes 23 minutes to regain focus after each interruption.',
-      color: 'red',
-      priority: 'high',
-      action: 'Enable Focus Mode'
+      icon: Target,
+      title: 'Goal Setting',
+      message: 'Students who set specific study goals are 3x more likely to succeed.',
+      color: 'blue',
+      action: 'Set Goals'
     }
   ];
 
-  // Sort tips by priority and time relevance
-  const sortedTips = tips.sort((a, b) => {
-    const priorityOrder = { high: 3, medium: 2, low: 1 };
-    const aScore = priorityOrder[a.priority] + (a.timeSpecific ? 1 : 0);
-    const bScore = priorityOrder[b.priority] + (b.timeSpecific ? 1 : 0);
-    return bScore - aScore;
-  });
-
   useEffect(() => {
-    if (isPaused) return;
-    
     const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % sortedTips.length);
-    }, 10000);
+      setCurrentTip((prev) => (prev + 1) % tips.length);
+    }, 8000);
     return () => clearInterval(interval);
-  }, [sortedTips.length, isPaused]);
+  }, [tips.length]);
 
   if (!isVisible) return null;
 
-  const tip = sortedTips[currentTip];
+  const tip = tips[currentTip];
   const IconComponent = tip.icon;
 
   const colorStyles = {
-    amber: {
-      bg: 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-900/20 dark:via-yellow-900/20 dark:to-orange-900/20',
-      border: 'border-amber-200/80 dark:border-amber-700/80',
-      text: 'text-amber-900 dark:text-amber-100',
-      iconBg: 'bg-gradient-to-r from-amber-500 to-yellow-500',
-      actionBg: 'bg-amber-100/80 dark:bg-amber-800/50 hover:bg-amber-200/80 dark:hover:bg-amber-700/60',
-      progress: 'bg-amber-400'
-    },
-    purple: {
-      bg: 'bg-gradient-to-br from-purple-50 via-violet-50 to-indigo-50 dark:from-purple-900/20 dark:via-violet-900/20 dark:to-indigo-900/20',
-      border: 'border-purple-200/80 dark:border-purple-700/80',
-      text: 'text-purple-900 dark:text-purple-100',
-      iconBg: 'bg-gradient-to-r from-purple-500 to-violet-500',
-      actionBg: 'bg-purple-100/80 dark:bg-purple-800/50 hover:bg-purple-200/80 dark:hover:bg-purple-700/60',
-      progress: 'bg-purple-400'
-    },
-    blue: {
-      bg: 'bg-gradient-to-br from-blue-50 via-cyan-50 to-sky-50 dark:from-blue-900/20 dark:via-cyan-900/20 dark:to-sky-900/20',
-      border: 'border-blue-200/80 dark:border-blue-700/80',
-      text: 'text-blue-900 dark:text-blue-100',
-      iconBg: 'bg-gradient-to-r from-blue-500 to-cyan-500',
-      actionBg: 'bg-blue-100/80 dark:bg-blue-800/50 hover:bg-blue-200/80 dark:hover:bg-blue-700/60',
-      progress: 'bg-blue-400'
-    },
-    orange: {
-      bg: 'bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/20 dark:via-red-900/20 dark:to-pink-900/20',
-      border: 'border-orange-200/80 dark:border-orange-700/80',
-      text: 'text-orange-900 dark:text-orange-100',
-      iconBg: 'bg-gradient-to-r from-orange-500 to-red-500',
-      actionBg: 'bg-orange-100/80 dark:bg-orange-800/50 hover:bg-orange-200/80 dark:hover:bg-orange-700/60',
-      progress: 'bg-orange-400'
-    },
-    emerald: {
-      bg: 'bg-gradient-to-br from-emerald-50 via-green-50 to-teal-50 dark:from-emerald-900/20 dark:via-green-900/20 dark:to-teal-900/20',
-      border: 'border-emerald-200/80 dark:border-emerald-700/80',
-      text: 'text-emerald-900 dark:text-emerald-100',
-      iconBg: 'bg-gradient-to-r from-emerald-500 to-green-500',
-      actionBg: 'bg-emerald-100/80 dark:bg-emerald-800/50 hover:bg-emerald-200/80 dark:hover:bg-emerald-700/60',
-      progress: 'bg-emerald-400'
-    },
-    indigo: {
-      bg: 'bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 dark:from-indigo-900/20 dark:via-blue-900/20 dark:to-purple-900/20',
-      border: 'border-indigo-200/80 dark:border-indigo-700/80',
-      text: 'text-indigo-900 dark:text-indigo-100',
-      iconBg: 'bg-gradient-to-r from-indigo-500 to-blue-500',
-      actionBg: 'bg-indigo-100/80 dark:bg-indigo-800/50 hover:bg-indigo-200/80 dark:hover:bg-indigo-700/60',
-      progress: 'bg-indigo-400'
-    },
-    teal: {
-      bg: 'bg-gradient-to-br from-teal-50 via-cyan-50 to-blue-50 dark:from-teal-900/20 dark:via-cyan-900/20 dark:to-blue-900/20',
-      border: 'border-teal-200/80 dark:border-teal-700/80',
-      text: 'text-teal-900 dark:text-teal-100',
-      iconBg: 'bg-gradient-to-r from-teal-500 to-cyan-500',
-      actionBg: 'bg-teal-100/80 dark:bg-teal-800/50 hover:bg-teal-200/80 dark:hover:bg-teal-700/60',
-      progress: 'bg-teal-400'
-    },
-    red: {
-      bg: 'bg-gradient-to-br from-red-50 via-rose-50 to-pink-50 dark:from-red-900/20 dark:via-rose-900/20 dark:to-pink-900/20',
-      border: 'border-red-200/80 dark:border-red-700/80',
-      text: 'text-red-900 dark:text-red-100',
-      iconBg: 'bg-gradient-to-r from-red-500 to-rose-500',
-      actionBg: 'bg-red-100/80 dark:bg-red-800/50 hover:bg-red-200/80 dark:hover:bg-red-700/60',
-      progress: 'bg-red-400'
-    }
+    amber: 'bg-amber-50 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-800/60 text-amber-900 dark:text-amber-100',
+    purple: 'bg-purple-50 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60 text-purple-900 dark:text-purple-100',
+    blue: 'bg-blue-50 dark:bg-blue-900/10 border-blue-200/60 dark:border-blue-800/60 text-blue-900 dark:text-blue-100'
   };
-
-  const styles = colorStyles[tip.color as keyof typeof colorStyles];
 
   return (
     <div className="mb-8">
-      <div 
-        className={`relative rounded-3xl border-2 p-8 backdrop-blur-sm transition-all duration-700 hover:shadow-2xl hover:shadow-gray-900/20 dark:hover:shadow-gray-900/40 ${styles.bg} ${styles.border} ${styles.text}`}
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
-      >
-        {/* Priority indicator */}
-        {tip.priority === 'high' && (
-          <div className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
-            Priority
+      <div className={`rounded-2xl border p-6 backdrop-blur-sm transition-all duration-500 hover:shadow-lg ${colorStyles[tip.color as keyof typeof colorStyles]}`}>
+        <div className="flex items-start gap-4">
+          <div className="flex-shrink-0 p-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-sm">
+            <IconComponent className="w-5 h-5" />
           </div>
-        )}
-
-        {/* Progress bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 rounded-b-3xl overflow-hidden">
-          <div 
-            className={`h-full ${styles.progress} transition-all duration-300 animate-pulse`}
-            style={{ 
-              width: `${((currentTip + 1) / sortedTips.length) * 100}%`
-            }}
-          />
-        </div>
-
-        <div className="flex items-start gap-6">
-          {/* Enhanced icon */}
-          <div className="relative flex-shrink-0">
-            <div className={`p-4 ${styles.iconBg} rounded-3xl shadow-xl group-hover:scale-110 transition-all duration-500`}>
-              <IconComponent className="w-7 h-7 text-white drop-shadow-lg" />
-            </div>
-            {tip.timeSpecific && (
-              <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-lg animate-ping"></div>
-            )}
-          </div>
-
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4 mb-6">
+            <div className="flex items-start justify-between gap-4">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-3 mb-3">
-                  <h3 className="font-black text-2xl">{tip.title}</h3>
-                  {tip.timeSpecific && (
-                    <div className="bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 text-xs font-bold px-2 py-1 rounded-full">
-                      Time-Relevant
-                    </div>
-                  )}
-                </div>
-                <p className="text-base opacity-95 leading-relaxed mb-6 font-medium">
-                  {tip.message}
-                </p>
-
-                {/* Enhanced statistics */}
-                <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/40 dark:border-gray-700/40">
-                    <div className="font-black text-2xl mb-1">{studyStreak}</div>
-                    <div className="text-sm opacity-80 font-semibold">Day Streak</div>
-                  </div>
-                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/40 dark:border-gray-700/40">
-                    <div className="font-black text-2xl mb-1">{sessionsToday}</div>
-                    <div className="text-sm opacity-80 font-semibold">Today</div>
-                  </div>
-                  <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-4 text-center border border-white/40 dark:border-gray-700/40">
-                    <div className="font-black text-2xl mb-1">{weeklyHours}h</div>
-                    <div className="text-sm opacity-80 font-semibold">This Week</div>
-                  </div>
-                </div>
-
-                {/* Enhanced action buttons */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <button className={`inline-flex items-center gap-3 font-bold px-6 py-3 rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105 ${styles.actionBg}`}>
-                    <Rocket className="w-5 h-5" />
-                    {tip.action}
-                  </button>
-                  
-                  <button className="inline-flex items-center gap-2 text-sm font-semibold opacity-70 hover:opacity-100 bg-white/40 dark:bg-gray-800/40 px-4 py-2 rounded-xl hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all duration-200">
-                    <Bookmark className="w-4 h-4" />
-                    Save Tip
-                  </button>
-
-                  {/* Navigation dots */}
-                  <div className="flex items-center gap-2 ml-auto">
-                    {sortedTips.map((_, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setCurrentTip(index)}
-                        className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                          index === currentTip 
-                            ? `${styles.progress} shadow-lg` 
-                            : 'bg-white/40 dark:bg-gray-600/40 hover:bg-white/60 dark:hover:bg-gray-500/60'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <h3 className="font-bold text-lg mb-1">{tip.title}</h3>
+                <p className="text-sm opacity-90 leading-relaxed mb-3">{tip.message}</p>
+                <button className="inline-flex items-center gap-2 text-sm font-semibold bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200">
+                  {tip.action}
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
-
               <button
                 onClick={() => setIsVisible(false)}
-                className="flex-shrink-0 p-3 hover:bg-white/40 dark:hover:bg-gray-800/40 rounded-2xl transition-all duration-300 group"
+                className="flex-shrink-0 p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-colors duration-200"
               >
-                <X className="w-6 h-6 opacity-60 group-hover:opacity-80 group-hover:rotate-90 transition-all duration-300" />
+                <X className="w-5 h-5 opacity-60" />
               </button>
             </div>
           </div>
-        </div>
-
-        {/* Tip counter */}
-        <div className="absolute bottom-4 left-8 text-sm font-bold opacity-60">
-          Tip {currentTip + 1} of {sortedTips.length}
         </div>
       </div>
     </div>
@@ -626,12 +412,8 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Enhanced Smart Notification */}
-        <SmartNotification 
-          studyStreak={studyStreak} 
-          sessionsToday={todaysSessions.length}
-          weeklyHours={Math.floor(weeklyStudyTime / 60)}
-        />
+        {/* Smart Notification */}
+        <SmartNotification studyStreak={studyStreak} />
         
         {/* Modern Hero Section */}
         <div className="mb-10">
