@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings, Phone, Smartphone } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -36,7 +36,6 @@ interface TimerState {
   subject: string;
   task: string;
   targetTime: number;
-  sessionId: string;
 }
 
 const DEFAULT_POMODORO_SETTINGS = {
@@ -86,32 +85,6 @@ const BREAK_ACTIVITIES = [
   "🎵 Listen to your favorite song to recharge"
 ];
 
-const COMPLETION_MESSAGES = {
-  focus: [
-    "🎉 Excellent work! You've completed a focus session!",
-    "🌟 Amazing concentration! Your brain is getting stronger!",
-    "🚀 Fantastic job! You're building incredible study habits!",
-    "💪 Outstanding focus! You're becoming a study champion!",
-    "🎯 Perfect session! Your dedication is paying off!"
-  ],
-  shortBreak: [
-    "⚡ Break complete! Time to get back to conquering your goals!",
-    "🔋 Recharged and ready! Let's continue the great work!",
-    "🌈 Refreshed and focused! Back to achieving excellence!",
-    "✨ Great break! Your mind is ready for more learning!"
-  ],
-  longBreak: [
-    "🌟 Long break finished! You're ready to tackle anything now!",
-    "🎪 Excellent rest! Time to return with renewed energy!",
-    "🦋 Perfectly recharged! Let's continue this amazing journey!"
-  ],
-  custom: [
-    "⭐ Custom session complete! You're in full control of your learning!",
-    "🎨 Great work! You've mastered your own schedule!",
-    "🔥 Custom timer finished! Your self-discipline is incredible!"
-  ]
-};
-
 export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [isRunning, setIsRunning] = useState(false);
   const [time, setTime] = useState(0);
@@ -127,14 +100,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
   const [showCustomTimer, setShowCustomTimer] = useState(false);
 
-  // Enhanced background timer states
+  // Background timer states
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [backgroundMode, setBackgroundMode] = useState(false);
   const [originalTitle, setOriginalTitle] = useState('');
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
-  const [sessionId, setSessionId] = useState('');
-  const [isMobile, setIsMobile] = useState(false);
-  const [wakeLock, setWakeLock] = useState<WakeLockSentinel | null>(null);
 
   // Music player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -143,197 +113,80 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
+  // Fixed: Use number instead of NodeJS.Timeout for better compatibility
   const intervalRef = useRef<number>();
   const backgroundIntervalRef = useRef<number>();
-  const titleUpdateRef = useRef<number>();
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const targetTime = pomodoroSettings[mode];
 
-  // Enhanced mobile detection
-  useEffect(() => {
-    const checkMobile = () => {
-      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-      const isMobileViewport = window.innerWidth <= 768;
-      setIsMobile(isMobileDevice || isMobileViewport);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // Enhanced background timer system with better mobile support
-  const saveTimerState = useCallback((timerState: TimerState) => {
-    const stateWithTimestamp = {
+  // Background timer system
+  const saveTimerState = (timerState: TimerState) => {
+    localStorage.setItem('focusTimerState', JSON.stringify({
       ...timerState,
-      lastUpdated: Date.now(),
-      isMobile,
-      userAgent: navigator.userAgent
-    };
-    
-    localStorage.setItem('focusTimerState', JSON.stringify(stateWithTimestamp));
-    
-    // Also save to sessionStorage for faster access
-    sessionStorage.setItem('focusTimerQuickState', JSON.stringify({
-      isRunning: timerState.isRunning,
-      time: timerState.time,
-      mode: timerState.mode,
-      remainingTime: Math.max(0, timerState.targetTime * 60 - timerState.time),
       lastUpdated: Date.now()
     }));
-  }, [isMobile]);
+  };
 
-  const loadTimerState = useCallback((): TimerState | null => {
+  const loadTimerState = (): TimerState | null => {
+    const saved = localStorage.getItem('focusTimerState');
+    if (!saved) return null;
+    
     try {
-      const saved = localStorage.getItem('focusTimerState');
-      if (!saved) return null;
-      
       const state = JSON.parse(saved);
-      
       // Check if timer was running and calculate elapsed time
       if (state.isRunning && state.lastUpdated) {
         const elapsed = Math.floor((Date.now() - state.lastUpdated) / 1000);
-        const newTime = Math.min(state.time + elapsed, state.targetTime * 60);
-        
-        // If timer would have completed while in background
-        if (newTime >= state.targetTime * 60) {
-          return {
-            ...state,
-            time: state.targetTime * 60,
-            isRunning: false
-          };
-        }
-        
-        return {
-          ...state,
-          time: newTime
-        };
+        state.time = Math.min(state.time + elapsed, state.targetTime * 60);
       }
-      
       return state;
-    } catch (error) {
-      console.error('Failed to load timer state:', error);
+    } catch {
       return null;
     }
-  }, []);
+  };
 
-  const clearTimerState = useCallback(() => {
+  const clearTimerState = () => {
     localStorage.removeItem('focusTimerState');
-    sessionStorage.removeItem('focusTimerQuickState');
-  }, []);
+  };
 
-  // Enhanced notification system with mobile optimization
-  const sendEnhancedNotification = useCallback((title: string, body: string, options?: {
-    isUrgent?: boolean;
-    vibrate?: boolean;
-    sound?: boolean;
-    persistent?: boolean;
-  }) => {
-    const {
-      isUrgent = false,
-      vibrate = true,
-      sound = false,
-      persistent = false
-    } = options || {};
-
-    // Vibration for mobile devices
-    if (vibrate && 'vibrate' in navigator) {
-      if (isUrgent) {
-        navigator.vibrate([200, 100, 200, 100, 200]);
-      } else {
-        navigator.vibrate([100, 50, 100]);
-      }
+  const updateDocumentTitle = () => {
+    if (!isPageVisible && isRunning) {
+      const remainingTime = Math.max(0, targetTime * 60 - time);
+      const formattedTime = formatTime(remainingTime);
+      const modeText = mode === 'focus' ? '🎯 Focus' : 
+                      mode === 'custom' ? '⚙️ Custom' :
+                      mode === 'shortBreak' ? '☕ Break' : '☕ Long Break';
+      
+      document.title = `${formattedTime} - ${modeText} | ${currentSubject || 'Study Timer'}`;
+    } else if (originalTitle) {
+      document.title = originalTitle;
     }
+  };
 
-    // Enhanced notification with better mobile support
+  const sendBackgroundNotification = (title: string, body: string, isUrgent = false) => {
     if ('Notification' in window && Notification.permission === 'granted') {
       const notification = new Notification(title, {
         body,
         icon: '/vite.svg',
         badge: '/vite.svg',
         tag: 'focus-timer',
-        requireInteraction: isUrgent || persistent,
-        silent: !sound,
-        vibrate: vibrate && isUrgent ? [200, 100, 200] : [100],
-        data: {
-          timestamp: Date.now(),
-          sessionId,
-          mode,
-          isUrgent
-        }
+        requireInteraction: isUrgent,
+        silent: !isUrgent
       });
 
-      // Enhanced notification click handling
+      // Auto close non-urgent notifications
+      if (!isUrgent) {
+        setTimeout(() => notification.close(), 5000);
+      }
+
       notification.onclick = () => {
         window.focus();
-        if (document.visibilityState === 'hidden') {
-          // Try to bring the tab to foreground
-          if ('focus' in window) {
-            window.focus();
-          }
-        }
         notification.close();
       };
-
-      // Auto close non-urgent notifications
-      if (!persistent && !isUrgent) {
-        setTimeout(() => notification.close(), 8000);
-      }
     }
+  };
 
-    // Fallback alert for mobile browsers without notification support
-    if (isUrgent && isMobile && (!('Notification' in window) || Notification.permission !== 'granted')) {
-      setTimeout(() => {
-        alert(`${title}\n\n${body}`);
-      }, 500);
-    }
-  }, [sessionId, mode, isMobile]);
-
-  // Enhanced document title updates with emoji and better formatting
-  const updateDocumentTitle = useCallback(() => {
-    if (titleUpdateRef.current) {
-      clearInterval(titleUpdateRef.current);
-    }
-
-    if (!isPageVisible && isRunning) {
-      titleUpdateRef.current = window.setInterval(() => {
-        const remainingTime = Math.max(0, targetTime * 60 - time);
-        const formattedTime = formatTime(remainingTime);
-        
-        const modeEmoji = mode === 'focus' ? '🎯' : 
-                         mode === 'custom' ? '⚙️' :
-                         mode === 'shortBreak' ? '☕' : '🛋️';
-        
-        const modeText = mode === 'focus' ? 'Focus' : 
-                        mode === 'custom' ? 'Custom' :
-                        mode === 'shortBreak' ? 'Break' : 'Long Break';
-        
-        const progress = Math.round((time / (targetTime * 60)) * 100);
-        const progressBar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
-        
-        document.title = `${modeEmoji} ${formattedTime} - ${modeText} ${progress}% | ${currentSubject || 'Study Timer'}`;
-        
-        // Update favicon to show status (if supported)
-        try {
-          const favicon = document.querySelector('link[rel="icon"]') as HTMLLinkElement;
-          if (favicon) {
-            // Could implement dynamic favicon here
-          }
-        } catch (e) {
-          // Favicon update failed, ignore
-        }
-      }, 1000);
-    } else if (originalTitle) {
-      document.title = originalTitle;
-      if (titleUpdateRef.current) {
-        clearInterval(titleUpdateRef.current);
-      }
-    }
-  }, [isPageVisible, isRunning, time, targetTime, mode, currentSubject, originalTitle]);
-
-  // Enhanced page visibility handling
-  const handlePageVisibilityChange = useCallback(() => {
+  const handlePageVisibilityChange = () => {
     const isVisible = document.visibilityState === 'visible';
     setIsPageVisible(isVisible);
 
@@ -341,11 +194,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       // Page became hidden while timer is running
       setBackgroundMode(true);
       
-      // Generate unique session ID for this background session
-      const newSessionId = `session_${Date.now()}`;
-      setSessionId(newSessionId);
-      
-      // Save current state with enhanced data
+      // Save current state
       saveTimerState({
         isRunning,
         time,
@@ -353,135 +202,82 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         startTime: Date.now() - (time * 1000),
         subject: currentSubject,
         task: currentTask,
-        targetTime,
-        sessionId: newSessionId
+        targetTime
       });
 
-      // Enhanced background notification
-      const modeText = mode === 'focus' ? 'Focus session' : 
-                      mode === 'custom' ? 'Custom timer' :
-                      'Break time';
-      
-      sendEnhancedNotification(
-        '📱 Timer Running in Background',
-        `${modeText} continues running. Check your browser tab title for live updates!`,
-        { vibrate: true, persistent: false }
+      // Send notification about background mode
+      sendBackgroundNotification(
+        '🕐 Timer Running in Background',
+        `${mode === 'focus' ? 'Focus session' : 'Break time'} continues in background. Check tab title for updates.`
       );
-
-      // Request wake lock to prevent mobile from sleeping (if supported)
-      if ('wakeLock' in navigator && isMobile) {
-        navigator.wakeLock.request('screen').then((lock) => {
-          setWakeLock(lock);
-        }).catch(() => {
-          // Wake lock failed, continue without it
-        });
-      }
-      
     } else if (isVisible && backgroundMode) {
       // Page became visible again
       setBackgroundMode(false);
       
-      // Release wake lock
-      if (wakeLock) {
-        wakeLock.release();
-        setWakeLock(null);
-      }
-      
       // Load and sync state
       const savedState = loadTimerState();
       if (savedState) {
-        // Check if timer completed while in background
-        if (savedState.time >= savedState.targetTime * 60 && savedState.isRunning) {
-          setTime(savedState.targetTime * 60);
-          setIsRunning(false);
-          setMode(savedState.mode);
-          setCurrentSubject(savedState.subject);
-          setCurrentTask(savedState.task);
-          
-          // Show completion notification
-          const completionMessages = COMPLETION_MESSAGES[savedState.mode];
-          const randomMessage = completionMessages[Math.floor(Math.random() * completionMessages.length)];
-          
-          sendEnhancedNotification(
-            '🎉 Session Completed While Away!',
-            randomMessage,
-            { isUrgent: true, vibrate: true, persistent: true }
-          );
-          
-          handleSessionComplete();
-        } else {
-          setTime(savedState.time);
-          setMode(savedState.mode);
-          setIsRunning(savedState.isRunning);
-          setCurrentSubject(savedState.subject);
-          setCurrentTask(savedState.task);
-        }
-      }
-
-      // Welcome back notification
-      if (isRunning) {
-        sendEnhancedNotification(
-          '👋 Welcome Back!',
-          'Your timer is still running. Keep up the great work!',
-          { vibrate: true }
-        );
+        setTime(savedState.time);
+        setMode(savedState.mode);
+        setCurrentSubject(savedState.subject);
+        setCurrentTask(savedState.task);
       }
     }
-  }, [isRunning, time, mode, currentSubject, currentTask, targetTime, backgroundMode, saveTimerState, loadTimerState, sendEnhancedNotification, isMobile, wakeLock]);
+  };
 
-  // Enhanced background monitoring with mobile optimization
+  // Initialize background timer system
+  useEffect(() => {
+    // Store original title
+    setOriginalTitle(document.title);
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Load previous timer state
+    const savedTimerState = loadTimerState();
+    if (savedTimerState && savedTimerState.isRunning) {
+      setTime(savedTimerState.time);
+      setMode(savedTimerState.mode);
+      setIsRunning(true);
+      setCurrentSubject(savedTimerState.subject);
+      setCurrentTask(savedTimerState.task);
+      setBackgroundMode(true);
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handlePageVisibilityChange);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handlePageVisibilityChange);
+      if (originalTitle) {
+        document.title = originalTitle;
+      }
+    };
+  }, []);
+
+  // Background notification system
   useEffect(() => {
     if (backgroundMode && isRunning) {
       backgroundIntervalRef.current = window.setInterval(() => {
         const now = Date.now();
         const remainingTime = Math.max(0, targetTime * 60 - time);
         
-        // Send notifications at different intervals based on device and mode
-        let notificationInterval: number;
-        if (isMobile) {
-          notificationInterval = (mode === 'focus' || mode === 'custom') ? 10 * 60 * 1000 : 3 * 60 * 1000;
-        } else {
-          notificationInterval = (mode === 'focus' || mode === 'custom') ? 5 * 60 * 1000 : 2 * 60 * 1000;
-        }
+        // Send periodic notifications (every 5 minutes for focus, every minute for breaks)
+        const notificationInterval = (mode === 'focus' || mode === 'custom') ? 5 * 60 * 1000 : 60 * 1000;
         
         if (now - lastNotificationTime > notificationInterval && remainingTime > 60) {
           const minutes = Math.floor(remainingTime / 60);
-          const hours = Math.floor(minutes / 60);
-          
-          let timeText;
-          if (hours > 0) {
-            timeText = `${hours}h ${minutes % 60}m`;
-          } else {
-            timeText = `${minutes}m`;
-          }
-          
-          const modeEmoji = mode === 'focus' ? '🎯' : 
-                           mode === 'custom' ? '⚙️' :
-                           mode === 'shortBreak' ? '☕' : '🛋️';
-          
-          sendEnhancedNotification(
-            `${modeEmoji} ${timeText} remaining`,
-            `${mode === 'focus' || mode === 'custom' ? 'Stay focused!' : 'Enjoy your break!'} - ${currentSubject || 'Study Timer'}`,
-            { vibrate: true }
+          sendBackgroundNotification(
+            `⏰ ${minutes} minutes remaining`,
+            `${mode === 'focus' ? 'Focus session' : 'Break time'} - ${currentSubject || 'Study Timer'}`,
+            false
           );
-          
           setLastNotificationTime(now);
         }
-
-        // Auto-save state every 30 seconds during background mode
-        if (now % 30000 < 5000) { // Rough 30-second interval
-          saveTimerState({
-            isRunning,
-            time,
-            mode,
-            startTime: now - (time * 1000),
-            subject: currentSubject,
-            task: currentTask,
-            targetTime,
-            sessionId
-          });
-        }
-      }, 5000); // Check every 5 seconds for better responsiveness
+      }, 30000); // Check every 30 seconds
     } else {
       if (backgroundIntervalRef.current) {
         clearInterval(backgroundIntervalRef.current);
@@ -493,127 +289,12 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         clearInterval(backgroundIntervalRef.current);
       }
     };
-  }, [backgroundMode, isRunning, time, mode, currentSubject, targetTime, lastNotificationTime, isMobile, sessionId, currentTask, saveTimerState, sendEnhancedNotification]);
-
-  // Initialize enhanced background system
-  useEffect(() => {
-    // Store original title
-    setOriginalTitle(document.title);
-
-    // Enhanced notification permission request
-    if ('Notification' in window) {
-      if (Notification.permission === 'default') {
-        // Request permission with user-friendly message
-        setTimeout(() => {
-          Notification.requestPermission().then(permission => {
-            if (permission === 'granted') {
-              sendEnhancedNotification(
-                '🔔 Notifications Enabled!',
-                'You\'ll now receive timer updates even when the app is in the background.',
-                { vibrate: true }
-              );
-            }
-          });
-        }, 2000);
-      }
-    }
-
-    // Load previous timer state on startup
-    const savedTimerState = loadTimerState();
-    if (savedTimerState) {
-      // Check if timer completed while app was closed
-      if (savedTimerState.time >= savedTimerState.targetTime * 60 && savedTimerState.isRunning) {
-        setTime(savedTimerState.targetTime * 60);
-        setMode(savedTimerState.mode);
-        setIsRunning(false);
-        setCurrentSubject(savedTimerState.subject);
-        setCurrentTask(savedTimerState.task);
-        setBackgroundMode(false);
-        
-        // Show completion notification
-        const completionMessages = COMPLETION_MESSAGES[savedTimerState.mode];
-        const randomMessage = completionMessages[Math.floor(Math.random() * completionMessages.length)];
-        
-        setTimeout(() => {
-          sendEnhancedNotification(
-            '🎊 Session Completed!',
-            randomMessage,
-            { isUrgent: true, vibrate: true, persistent: true }
-          );
-        }, 1000);
-        
-        handleSessionComplete();
-      } else if (savedTimerState.isRunning) {
-        // Resume running timer
-        setTime(savedTimerState.time);
-        setMode(savedTimerState.mode);
-        setIsRunning(true);
-        setCurrentSubject(savedTimerState.subject);
-        setCurrentTask(savedTimerState.task);
-        setBackgroundMode(true);
-        setSessionId(savedTimerState.sessionId);
-        
-        setTimeout(() => {
-          sendEnhancedNotification(
-            '🔄 Timer Resumed!',
-            `Welcome back! Your ${savedTimerState.mode === 'focus' ? 'focus session' : 'break'} is still running.`,
-            { vibrate: true, persistent: true }
-          );
-        }, 1000);
-      }
-    }
-
-    // Listen for visibility changes with enhanced handling
-    const handleVisibilityChange = () => {
-      handlePageVisibilityChange();
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('focus', handleVisibilityChange);
-    window.addEventListener('blur', handleVisibilityChange);
-
-    // Enhanced mobile-specific event listeners
-    if (isMobile) {
-      // Listen for app becoming background/foreground on mobile
-      document.addEventListener('pause', handleVisibilityChange);
-      document.addEventListener('resume', handleVisibilityChange);
-      
-      // Listen for browser tab changes on mobile
-      window.addEventListener('pagehide', handleVisibilityChange);
-      window.addEventListener('pageshow', handleVisibilityChange);
-    }
-
-    // Cleanup
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('focus', handleVisibilityChange);
-      window.removeEventListener('blur', handleVisibilityChange);
-      
-      if (isMobile) {
-        document.removeEventListener('pause', handleVisibilityChange);
-        document.removeEventListener('resume', handleVisibilityChange);
-        window.removeEventListener('pagehide', handleVisibilityChange);
-        window.removeEventListener('pageshow', handleVisibilityChange);
-      }
-      
-      if (originalTitle) {
-        document.title = originalTitle;
-      }
-      
-      if (titleUpdateRef.current) {
-        clearInterval(titleUpdateRef.current);
-      }
-      
-      if (wakeLock) {
-        wakeLock.release();
-      }
-    };
-  }, [originalTitle, loadTimerState, handlePageVisibilityChange, sendEnhancedNotification, isMobile, wakeLock]);
+  }, [backgroundMode, isRunning, time, mode, currentSubject, targetTime, lastNotificationTime]);
 
   // Update document title when timer state changes
   useEffect(() => {
     updateDocumentTitle();
-  }, [updateDocumentTitle]);
+  }, [isRunning, time, mode, currentSubject, isPageVisible, targetTime]);
 
   // Load data from localStorage on mount
   useEffect(() => {
@@ -654,14 +335,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     localStorage.setItem('studentFocusTimer', JSON.stringify(data));
   };
 
-  // Enhanced timer with better background support
+  // Background timer
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = window.setInterval(() => {
         setTime(prev => {
           const newTime = prev + 1;
           
-          // Save state continuously while running with enhanced data
+          // Save state continuously while running
           saveTimerState({
             isRunning: true,
             time: newTime,
@@ -669,17 +350,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
             startTime: Date.now() - (newTime * 1000),
             subject: currentSubject,
             task: currentTask,
-            targetTime,
-            sessionId: sessionId || `session_${Date.now()}`
+            targetTime
           });
 
-          // Check for completion
           if (newTime >= targetTime * 60) {
             setIsRunning(false);
             handleSessionComplete();
             return newTime;
           }
-          
           return newTime;
         });
       }, 1000);
@@ -698,9 +376,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning, targetTime, mode, currentSubject, currentTask, sessionId, saveTimerState, clearTimerState]);
+  }, [isRunning, targetTime, mode, currentSubject, currentTask]);
 
-  // Enhanced session completion with better notifications
   const handleSessionComplete = () => {
     const newSession: StudySession = {
       id: Date.now().toString(),
@@ -717,53 +394,29 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       setSessionsCompleted(prev => prev + 1);
       setCurrentStreak(prev => prev + 1);
 
-      // Enhanced completion notification
-      const completionMessages = COMPLETION_MESSAGES.focus;
-      const randomMessage = completionMessages[Math.floor(Math.random() * completionMessages.length)];
-      
-      sendEnhancedNotification(
+      const tipIndex = Math.floor(Math.random() * STUDY_TIPS.length);
+      sendBackgroundNotification(
         '🎉 Focus Session Complete!',
-        randomMessage,
-        { isUrgent: true, vibrate: true, sound: true, persistent: true }
+        `Great work! ${STUDY_TIPS[tipIndex]}`,
+        true
       );
 
-      // Auto-switch mode logic
       if (mode === 'focus' && newCount % 4 === 0) {
         setMode('longBreak');
-        setTimeout(() => {
-          sendEnhancedNotification(
-            '🛋️ Long Break Time!',
-            'You\'ve earned a long break! Take 15 minutes to fully recharge.',
-            { vibrate: true, persistent: true }
-          );
-        }, 2000);
       } else if (mode === 'focus') {
         setMode('shortBreak');
-        setTimeout(() => {
-          sendEnhancedNotification(
-            '☕ Short Break Time!',
-            'Take a quick 5-minute break to refresh your mind!',
-            { vibrate: true, persistent: true }
-          );
-        }, 2000);
       }
     } else {
-      // Break completion
-      const completionMessages = mode === 'longBreak' ? COMPLETION_MESSAGES.longBreak : COMPLETION_MESSAGES.shortBreak;
-      const randomMessage = completionMessages[Math.floor(Math.random() * completionMessages.length)];
-      
-      sendEnhancedNotification(
+      sendBackgroundNotification(
         '⏰ Break Time Over!',
-        randomMessage,
-        { isUrgent: true, vibrate: true, sound: true, persistent: true }
+        'Time to get back to studying! You\'ve got this! 💪',
+        true
       );
-      
       setMode('focus');
     }
 
     setStudyHistory(prev => [...prev, newSession]);
     setTime(0);
-    setBackgroundMode(false);
     clearTimerState();
     saveData();
   };
@@ -824,8 +477,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setIsRunning(true);
     setBackgroundMode(false);
     setLastNotificationTime(Date.now());
-    const newSessionId = `session_${Date.now()}`;
-    setSessionId(newSessionId);
   };
 
   const pauseFocus = () => {
@@ -838,10 +489,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setTime(0);
     setBackgroundMode(false);
     clearTimerState();
-    if (wakeLock) {
-      wakeLock.release();
-      setWakeLock(null);
-    }
   };
 
   const resetSession = () => {
@@ -932,45 +579,29 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     }
   ];
 
-  // Enhanced Background Status Indicator with mobile optimization
+  // Background Status Indicator
   const BackgroundStatusIndicator = () => {
     if (!backgroundMode && !isRunning) return null;
 
     return (
-      <div className={`fixed z-50 ${isMobile ? 'top-2 left-2 right-2' : 'top-4 left-4'}`}>
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-2 p-3 ${
-          isMobile ? 'text-center' : 'min-w-[200px]'
-        } ${backgroundMode ? 'border-orange-400' : 'border-green-400'}`}>
-          <div className="flex items-center gap-2 mb-2 justify-center">
+      <div className="fixed top-4 left-4 z-50">
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-2 p-3 min-w-[200px] ${
+          backgroundMode ? 'border-orange-400' : 'border-green-400'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
             <div className={`w-3 h-3 rounded-full animate-pulse ${
               backgroundMode ? 'bg-orange-400' : 'bg-green-400'
             }`} />
-            <div className="flex items-center gap-1">
-              {isMobile && <Smartphone className="w-4 h-4" />}
-              <span className="text-sm font-medium">
-                {backgroundMode ? '🌐 Background Mode' : '🎯 Timer Active'}
-              </span>
-            </div>
+            <span className="text-sm font-medium">
+              {backgroundMode ? '🌐 Running in Background' : '🎯 Timer Active'}
+            </span>
           </div>
           
           {backgroundMode && (
-            <div className={`text-xs text-gray-600 dark:text-gray-400 space-y-1 ${
-              isMobile ? 'text-center' : ''
-            }`}>
-              <div>✅ Timer continues when app is closed</div>
-              <div>🏷️ Check browser tab title for updates</div>
-              <div>🔔 You'll get regular notifications</div>
-              {isMobile && <div>📱 Optimized for mobile background</div>}
-            </div>
-          )}
-          
-          {isRunning && (
-            <div className={`mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 ${
-              isMobile ? 'text-center' : ''
-            }`}>
-              <div className="text-xs font-mono text-gray-700 dark:text-gray-300">
-                {formatTime(time)} / {targetTime}m
-              </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+              <div>• Timer continues when tab is closed</div>
+              <div>• Check browser tab title for updates</div>
+              <div>• You'll get notifications at intervals</div>
             </div>
           )}
         </div>
@@ -978,15 +609,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     );
   };
 
-  // Enhanced Floating Timer with mobile optimization
+  // Floating Timer Component
   const FloatingTimer = () => {
     if (!isMinimized || (!isRunning && time === 0)) return null;
 
     return (
-      <div className={`fixed z-50 ${isMobile ? 'top-2 right-2 left-2' : 'top-4 right-4'}`}>
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 ${
-          isMobile ? 'w-full' : 'min-w-[240px]'
-        }`}>
+      <div className="fixed top-4 right-4 z-50">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 min-w-[240px]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
               <div className={`p-1 rounded ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
@@ -996,12 +625,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   <Coffee className="w-4 h-4 text-green-600 dark:text-green-400" />
                 )}
               </div>
-              <div className="flex items-center gap-1">
-                {isMobile && <Smartphone className="w-3 h-3 text-gray-500" />}
-                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                  {mode === 'focus' ? 'Focus' : mode === 'custom' ? 'Custom' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
-                </span>
-              </div>
+              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                {mode === 'focus' ? 'Focus' : mode === 'custom' ? 'Custom' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+              </span>
             </div>
             <div className="flex gap-1">
               <button
@@ -1040,12 +666,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
           </div>
 
           <div className="flex items-center justify-between text-xs">
-            <div className={`flex items-center gap-1 font-medium ${
-              isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'
-            }`}>
-              {backgroundMode && <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />}
-              <span>{isRunning ? '● Active' : '⏸ Paused'}</span>
-              {backgroundMode && <span className="text-orange-600">(Background)</span>}
+            <div className={`font-medium ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              {isRunning ? '● Active' : '⏸ Paused'}
             </div>
             <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
               <Flame className="w-3 h-3" />
@@ -1086,14 +708,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                        {mode === 'focus' ? 'Focus Time' :
-                         mode === 'custom' ? 'Custom Timer' :
-                         mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
-                      </h2>
-                      {isMobile && <Smartphone className="w-5 h-5 text-gray-500" />}
-                    </div>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                      {mode === 'focus' ? 'Focus Time' :
+                       mode === 'custom' ? 'Custom Timer' :
+                       mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+                    </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(mode === 'focus' || mode === 'custom') ? 'Time to concentrate and learn!' : 'Take a well-deserved break!'}
                     </p>
@@ -1116,49 +735,25 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 />
               </div>
 
-              {/* Enhanced Background Mode Information */}
+              {/* Background Mode Information */}
               {(isRunning || backgroundMode) && (
-                <div className={`${backgroundMode ? 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'} rounded-lg p-4 border`}>
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className={`flex items-center gap-2 ${
-                      backgroundMode ? 'text-orange-600 dark:text-orange-400' : 'text-blue-600 dark:text-blue-400'
-                    }`}>
-                      <div className={`w-3 h-3 rounded-full animate-pulse ${
-                        backgroundMode ? 'bg-orange-500' : 'bg-blue-500'
-                      }`} />
-                      {isMobile && <Smartphone className="w-4 h-4" />}
-                      <span className="font-medium text-sm">
-                        {backgroundMode ? '📱 Mobile Background Timer' : '🔄 Timer System Ready'}
-                      </span>
-                    </div>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="font-medium text-blue-800 dark:text-blue-400 text-sm">
+                      Background Timer Active
+                    </span>
                   </div>
-                  <div className={`text-sm space-y-2 ${
-                    backgroundMode ? 'text-orange-700 dark:text-orange-300' : 'text-blue-700 dark:text-blue-300'
-                  }`}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                      <div>✅ Timer continues when tab is closed</div>
-                      <div>🔔 Smart notification system active</div>
-                      <div>🏷️ Browser tab shows live countdown</div>
-                      <div>💾 Progress automatically saved</div>
-                      {isMobile && (
-                        <>
-                          <div>📱 Mobile-optimized background mode</div>
-                          <div>🔋 Battery-efficient monitoring</div>
-                        </>
-                      )}
-                    </div>
-                    {backgroundMode && (
-                      <div className="mt-3 p-2 bg-white dark:bg-gray-800 rounded text-xs">
-                        <strong>🎯 Pro Tip:</strong> Your timer is now running in the background! 
-                        Close this tab, switch apps, or put your phone to sleep - the timer keeps going 
-                        and you'll get notifications when it's time for a break or back to studying.
-                      </div>
-                    )}
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <div>✅ Timer continues when you close this tab or app</div>
+                    <div>🏷️ Check your browser tab title to see remaining time</div>
+                    <div>🔔 You'll receive notifications at regular intervals</div>
+                    <div>💾 Your progress is automatically saved</div>
                   </div>
                 </div>
               )}
 
-              {/* Enhanced Mode Switcher - Mobile Optimized */}
+              {/* Enhanced Mode Switcher - Fixed overlap issues */}
               <div className="space-y-4">
                 {/* Desktop Mode Switcher */}
                 <div className="hidden sm:block">
@@ -1186,7 +781,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   </div>
                 </div>
 
-                {/* Enhanced Mobile Mode Switcher */}
+                {/* Mobile Mode Switcher */}
                 <div className="sm:hidden">
                   <div className="grid grid-cols-2 gap-2 mb-2">
                     {timerModes.slice(0, 2).map((timerMode) => (
@@ -1194,7 +789,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                         key={timerMode.key}
                         onClick={() => switchMode(timerMode.key)}
                         disabled={isRunning}
-                        className={`py-4 px-3 text-sm font-medium rounded-lg transition-all ${
+                        className={`py-3 px-3 text-sm font-medium rounded-lg transition-all ${
                           mode === timerMode.key
                             ? (timerMode.key === 'focus' || timerMode.key === 'custom')
                               ? 'bg-blue-600 text-white shadow-sm'
@@ -1202,12 +797,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        <div className="flex flex-col items-center gap-2">
-                          <timerMode.icon className="w-5 h-5" />
-                          <div className="text-center">
-                            <div>{timerMode.shortLabel}</div>
-                            <div className="text-xs opacity-75">({timerMode.time}m)</div>
-                          </div>
+                        <div className="flex items-center gap-2 justify-center">
+                          <timerMode.icon className="w-4 h-4" />
+                          <span>{timerMode.shortLabel}</span>
+                          <span className="text-xs opacity-75">({timerMode.time}m)</span>
                         </div>
                       </button>
                     ))}
@@ -1218,7 +811,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                         key={timerMode.key}
                         onClick={() => switchMode(timerMode.key)}
                         disabled={isRunning}
-                        className={`py-4 px-3 text-sm font-medium rounded-lg transition-all ${
+                        className={`py-3 px-3 text-sm font-medium rounded-lg transition-all ${
                           mode === timerMode.key
                             ? (timerMode.key === 'focus' || timerMode.key === 'custom')
                               ? 'bg-blue-600 text-white shadow-sm'
@@ -1226,12 +819,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600'
                         } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        <div className="flex flex-col items-center gap-2">
-                          <timerMode.icon className="w-5 h-5" />
-                          <div className="text-center">
-                            <div>{timerMode.shortLabel}</div>
-                            <div className="text-xs opacity-75">({timerMode.time}m)</div>
-                          </div>
+                        <div className="flex items-center gap-2 justify-center">
+                          <timerMode.icon className="w-4 h-4" />
+                          <span>{timerMode.shortLabel}</span>
+                          <span className="text-xs opacity-75">({timerMode.time}m)</span>
                         </div>
                       </button>
                     ))}
@@ -1266,13 +857,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Quick Presets
                         </label>
-                        <div className="grid grid-cols-4 gap-1">
+                        <div className="flex gap-2">
                           {[15, 30, 45, 60].map((preset) => (
                             <button
                               key={preset}
                               onClick={() => handleCustomTimerChange(preset)}
                               disabled={isRunning}
-                              className="px-2 py-2 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50 transition-colors"
+                              className="px-3 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded hover:bg-blue-200 dark:hover:bg-blue-900/50 disabled:opacity-50"
                             >
                               {preset}m
                             </button>
@@ -1352,11 +943,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {formatTime(Math.max(0, targetTime * 60 - time))} left
                       </div>
-                      {backgroundMode && (
-                        <div className="text-xs text-orange-600 dark:text-orange-400 mt-1">
-                          Running in background
-                        </div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -1386,13 +972,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Timer Controls - Enhanced for mobile */}
-              <div className={`flex gap-3 ${isMobile ? 'flex-col' : ''}`}>
+              {/* Timer Controls */}
+              <div className="flex gap-3">
                 {!isRunning ? (
                   <Button
                     onClick={startFocus}
                     icon={Play}
-                    className={`flex-1 ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'} ${isMobile ? 'py-3' : ''}`}
+                    className={`flex-1 ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-600 hover:bg-blue-700' : 'bg-green-600 hover:bg-green-700'}`}
                     disabled={time >= targetTime * 60 || ((mode === 'focus' || mode === 'custom') && !currentSubject.trim())}
                   >
                     {(mode === 'focus' || mode === 'custom') ? 'Start Session' : 'Start Break'}
@@ -1402,7 +988,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     onClick={pauseFocus}
                     icon={Pause}
                     variant="secondary"
-                    className={`flex-1 ${isMobile ? 'py-3' : ''}`}
+                    className="flex-1"
                   >
                     Pause
                   </Button>
@@ -1413,7 +999,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   icon={Square}
                   variant="danger"
                   disabled={time === 0}
-                  className={`${isMobile ? 'py-3' : 'px-6'}`}
+                  className="px-6"
                 >
                   Stop
                 </Button>
@@ -1423,7 +1009,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 <Button
                   onClick={resetSession}
                   variant="secondary"
-                  className={`w-full ${isMobile ? 'py-3' : ''}`}
+                  className="w-full"
                 >
                   Reset Session
                 </Button>
@@ -1477,8 +1063,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Stats Dashboard - Enhanced for mobile */}
-              <div className={`grid gap-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-2 md:grid-cols-4'}`}>
+              {/* Stats Dashboard */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 text-center">
                   <Target className="w-5 h-5 text-blue-600 mx-auto mb-2" />
                   <div className="text-2xl font-bold text-blue-900 dark:text-blue-400">
@@ -1561,12 +1147,12 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Action Buttons - Enhanced for mobile */}
-              <div className={`flex gap-3 ${isMobile ? 'flex-col' : ''}`}>
+              {/* Action Buttons */}
+              <div className="flex gap-3">
                 <Button
                   onClick={handleMinimize}
                   variant="secondary"
-                  className={`flex-1 ${isMobile ? 'py-3' : ''}`}
+                  className="flex-1"
                   icon={Minimize2}
                 >
                   Minimize
@@ -1574,7 +1160,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 <Button
                   onClick={onClose}
                   variant="ghost"
-                  className={`flex-1 ${isMobile ? 'py-3' : ''}`}
+                  className="flex-1"
                 >
                   Close
                 </Button>
