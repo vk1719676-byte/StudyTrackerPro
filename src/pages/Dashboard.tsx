@@ -67,7 +67,7 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Smart notification system
+// Enhanced compact smart notification system
 const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) => {
   const [currentTip, setCurrentTip] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
@@ -75,22 +75,22 @@ const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) =
   const tips = [
     {
       icon: Lightbulb,
-      title: 'Smart Study',
-      message: 'Research shows 25-minute focused sessions improve retention by 40%.',
+      title: 'Smart Focus',
+      message: '25-minute sessions boost retention by 40%',
       color: 'amber',
-      action: 'Try Pomodoro'
+      action: 'Try Now'
     },
     {
       icon: Brain,
       title: 'Peak Performance',
-      message: `Your ${studyStreak}-day streak shows dedication! Consistency builds neural pathways.`,
+      message: `${studyStreak}-day streak builds strong habits`,
       color: 'purple',
-      action: 'Keep Going'
+      action: 'Continue'
     },
     {
       icon: Target,
-      title: 'Goal Setting',
-      message: 'Students who set specific study goals are 3x more likely to succeed.',
+      title: 'Goal Power',
+      message: 'Specific goals = 3x better results',
       color: 'blue',
       action: 'Set Goals'
     }
@@ -109,33 +109,63 @@ const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) =
   const IconComponent = tip.icon;
 
   const colorStyles = {
-    amber: 'bg-amber-50 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-800/60 text-amber-900 dark:text-amber-100',
-    purple: 'bg-purple-50 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60 text-purple-900 dark:text-purple-100',
-    blue: 'bg-blue-50 dark:bg-blue-900/10 border-blue-200/60 dark:border-blue-800/60 text-blue-900 dark:text-blue-100'
+    amber: 'bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/10 dark:to-yellow-900/10 border-amber-200/60 dark:border-amber-700/60',
+    purple: 'bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/10 dark:to-indigo-900/10 border-purple-200/60 dark:border-purple-700/60',
+    blue: 'bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/10 dark:to-cyan-900/10 border-blue-200/60 dark:border-blue-700/60'
   };
 
   return (
-    <div className="mb-8">
-      <div className={`rounded-2xl border p-6 backdrop-blur-sm transition-all duration-500 hover:shadow-lg ${colorStyles[tip.color as keyof typeof colorStyles]}`}>
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 p-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-sm">
-            <IconComponent className="w-5 h-5" />
+    <div className="mb-6">
+      <div className={`relative rounded-2xl border backdrop-blur-sm transition-all duration-500 hover:shadow-lg ${colorStyles[tip.color as keyof typeof colorStyles]}`}>
+        {/* Compact mobile-first design */}
+        <div className="flex items-center gap-3 p-4 sm:p-5">
+          <div className="flex-shrink-0 p-2.5 bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-sm">
+            <IconComponent className="w-4 h-4 sm:w-5 sm:h-5 text-gray-700 dark:text-gray-300" />
           </div>
+          
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-lg mb-1">{tip.title}</h3>
-                <p className="text-sm opacity-90 leading-relaxed mb-3">{tip.message}</p>
-                <button className="inline-flex items-center gap-2 text-sm font-semibold bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200">
-                  {tip.action}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-bold text-sm sm:text-base text-gray-800 dark:text-gray-200">{tip.title}</h3>
+              <div className="flex gap-1 ml-auto sm:hidden">
+                {tips.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                      i === currentTip ? 'bg-gray-600 dark:bg-gray-400' : 'bg-gray-300 dark:bg-gray-600'
+                    }`}
+                  />
+                ))}
               </div>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 leading-snug mb-3">
+              {tip.message}
+            </p>
+            
+            {/* Compact action row */}
+            <div className="flex items-center justify-between">
+              <button className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white/70 dark:bg-gray-800/70 px-3 py-1.5 rounded-lg hover:bg-white/90 dark:hover:bg-gray-700/90 transition-all duration-200">
+                {tip.action}
+                <ArrowRight className="w-3 h-3" />
+              </button>
+              
+              {/* Desktop indicator dots */}
+              <div className="hidden sm:flex gap-1.5">
+                {tips.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentTip(i)}
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      i === currentTip ? 'bg-gray-600 dark:bg-gray-400' : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400'
+                    }`}
+                  />
+                ))}
+              </div>
+              
               <button
                 onClick={() => setIsVisible(false)}
-                className="flex-shrink-0 p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-colors duration-200"
+                className="flex-shrink-0 p-1.5 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-lg transition-colors duration-200"
               >
-                <X className="w-5 h-5 opacity-60" />
+                <X className="w-4 h-4 text-gray-500" />
               </button>
             </div>
           </div>
@@ -412,7 +442,7 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Smart Notification */}
+        {/* Enhanced Compact Smart Notification */}
         <SmartNotification studyStreak={studyStreak} />
         
         {/* Modern Hero Section */}
@@ -873,3 +903,5 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
+
+export default Dashboard
