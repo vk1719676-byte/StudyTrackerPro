@@ -73,12 +73,24 @@ export const DesktopNavbar: React.FC = () => {
             >
               <Logo size="md" showText={false} />
               <div className="flex items-center gap-2">
-                <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300">
-                  Study Tracker
-                </h1>
-                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 shadow-lg transform hover:scale-105 transition-all duration-200 border border-yellow-300">
-                  Pro
-                </span>
+                <div className="flex flex-col">
+                  <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
+                    Study Tracker
+                  </h1>
+                  <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
+                    Premium Edition
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
+                    PRO
+                  </span>
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-75"></div>
+                    <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-150"></div>
+                  </div>
+                </div>
               </div>
             </Link>
 
