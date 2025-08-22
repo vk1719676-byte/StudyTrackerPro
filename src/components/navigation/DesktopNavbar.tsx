@@ -60,7 +60,7 @@ export const DesktopNavbar: React.FC = () => {
 
   return (
     <>
-      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
+      <nav className="hidden md:block bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex justify-between items-center h-14 md:h-16 lg:h-18">
             {/* Logo Section */}
@@ -76,8 +76,8 @@ export const DesktopNavbar: React.FC = () => {
               </div>
             </Link>
 
-            {/* Navigation Items - Hidden on mobile, visible on tablet and up */}
-            <div className="hidden md:flex items-center">
+            {/* Navigation Items - Tablet and Desktop */}
+            <div className="flex items-center">
               {/* Tablet layout - compact navigation */}
               <div className="md:flex lg:hidden items-center space-x-1">
                 {navItems.map(({ path, label, icon: Icon }) => (
@@ -156,29 +156,6 @@ export const DesktopNavbar: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Tablet Navigation Bar - Alternative horizontal scrollable layout */}
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-          <div className="flex items-center overflow-x-auto scrollbar-hide px-4 py-2 space-x-4">
-            {navItems.map(({ path, label, icon: Icon }) => (
-              <Link
-                key={path}
-                to={path}
-                className={`
-                  flex flex-col items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium whitespace-nowrap min-w-[60px]
-                  transition-all duration-200 hover:scale-105
-                  ${location.pathname === path
-                    ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }
-                `}
-              >
-                <Icon className="w-4 h-4" />
-                <span className="text-xs">{label}</span>
-              </Link>
-            ))}
-          </div>
-        </div>
       </nav>
       
       <LogoutConfirmation
@@ -186,17 +163,6 @@ export const DesktopNavbar: React.FC = () => {
         onConfirm={handleLogout}
         onCancel={() => setShowLogoutConfirm(false)}
       />
-      
-      {/* Custom scrollbar styles */}
-      <style jsx>{`
-        .scrollbar-hide {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-        .scrollbar-hide::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
     </>
   );
 };
