@@ -58,6 +58,9 @@ export const DesktopNavbar: React.FC = () => {
     await logout();
   };
 
+  // Don't render anything on mobile
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+  if (isMobile) return null;
   return (
     <>
       <nav className="hidden md:block bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40 backdrop-blur-sm bg-white/95 dark:bg-gray-800/95">
@@ -158,11 +161,14 @@ export const DesktopNavbar: React.FC = () => {
         </div>
       </nav>
       
-      <LogoutConfirmation
-        isOpen={showLogoutConfirm}
-        onConfirm={handleLogout}
-        onCancel={() => setShowLogoutConfirm(false)}
-      />
+      {/* Only show logout confirmation on tablet and desktop */}
+      <div className="hidden md:block">
+        <LogoutConfirmation
+          isOpen={showLogoutConfirm}
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      </div>
     </>
   );
 };
