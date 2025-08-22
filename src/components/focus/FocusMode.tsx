@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings, Eye, EyeOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -105,6 +105,16 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [backgroundMode, setBackgroundMode] = useState(false);
   const [originalTitle, setOriginalTitle] = useState('');
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
+  const [showGlobalTimer, setShowGlobalTimer] = useState(false);
+  const [globalTimerPosition, setGlobalTimerPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+
+  // Background timer states
+  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [backgroundMode, setBackgroundMode] = useState(false);
+  const [originalTitle, setOriginalTitle] = useState('');
+  const [lastNotificationTime, setLastNotificationTime] = useState(0);
 
   // Music player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -113,12 +123,275 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
-  // Fixed: Use number instead of NodeJS.Timeout for better compatibility
+  // Timer refs
   const intervalRef = useRef<number>();
   const backgroundIntervalRef = useRef<number>();
+  const globalTimerRef = useRef<HTMLDivElement>(null);
+  const backgroundIntervalRef = useRef<number>();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const broadcastChannelRef = useRef<BroadcastChannel | null>(null);
 
   const targetTime = pomodoroSettings[mode];
+
+  // Background timer system
+  const saveTimerState = (timerState: any) => {
+    const state = {
+      ...timerState,
+      lastUpdated: Date.now(),
+      tabId: sessionStorage.getItem('focusTabId') || Date.now().toString()
+    };
+    localStorage.setItem('focusTimerState', JSON.stringify(state));
+    
+    // Broadcast to other tabs
+    if (broadcastChannelRef.current) {
+      broadcastChannelRef.current.postMessage({
+        type: 'TIMER_UPDATE',
+        state
+      });
+    }
+  };
+
+  const loadTimerState = () => {
+    const saved = localStorage.getItem('focusTimerState');
+    if (!saved) return null;
+    
+    try {
+      const state = JSON.parse(saved);
+      // Check if timer was running and calculate elapsed time
+      if (state.isRunning && state.lastUpdated) {
+        const elapsed = Math.floor((Date.now() - state.lastUpdated) / 1000);
+        state.time = Math.min(state.time + elapsed, state.targetTime * 60);
+      }
+      return state;
+    } catch {
+      return null;
+    }
+  };
+
+  const clearTimerState = () => {
+    localStorage.removeItem('focusTimerState');
+    if (broadcastChannelRef.current) {
+      broadcastChannelRef.current.postMessage({
+        type: 'TIMER_CLEARED'
+      });
+    }
+  };
+
+  const updateDocumentTitle = () => {
+    if (!isPageVisible && (isRunning || backgroundMode)) {
+      const remainingTime = Math.max(0, targetTime * 60 - time);
+      const formattedTime = formatTime(remainingTime);
+      const modeText = mode === 'focus' ? '🎯 Focus' : 
+                      mode === 'custom' ? '⚙️ Custom' :
+                      mode === 'shortBreak' ? '☕ Break' : '☕ Long Break';
+      
+      document.title = `${formattedTime} - ${modeText} | ${currentSubject || 'Study Timer'}`;
+    } else if (originalTitle && !showGlobalTimer) {
+      document.title = originalTitle;
+    }
+  };
+
+  const sendBackgroundNotification = (title: string, body: string, isUrgent = false) => {
+    // Desktop notification
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const notification = new Notification(title, {
+        body,
+        icon: '/vite.svg',
+        badge: '/vite.svg',
+        tag: 'focus-timer',
+        requireInteraction: isUrgent,
+        silent: !isUrgent,
+        timestamp: Date.now()
+      });
+
+      if (!isUrgent) {
+        setTimeout(() => notification.close(), 5000);
+      }
+
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    }
+
+    // Try to use system tray notification (if available)
+    if ('serviceWorker' in navigator && isUrgent) {
+      navigator.serviceWorker.ready.then(registration => {
+        registration.showNotification(title, {
+          body,
+          icon: '/vite.svg',
+          badge: '/vite.svg',
+          tag: 'focus-timer-urgent',
+          requireInteraction: true,
+          actions: [
+            { action: 'view', title: 'View Timer' },
+            { action: 'dismiss', title: 'Dismiss' }
+          ]
+        });
+      }).catch(() => {
+        // Fallback handled above
+      });
+    }
+  };
+
+  const handlePageVisibilityChange = () => {
+    const isVisible = document.visibilityState === 'visible';
+    setIsPageVisible(isVisible);
+
+    if (!isVisible && isRunning) {
+      // Page became hidden while timer is running
+      setBackgroundMode(true);
+      setShowGlobalTimer(true);
+      
+      // Save current state
+      saveTimerState({
+        isRunning,
+        time,
+        mode,
+        startTime: Date.now() - (time * 1000),
+        subject: currentSubject,
+        task: currentTask,
+        targetTime
+      });
+
+      // Send notification about background mode
+      sendBackgroundNotification(
+        '🕐 Timer Running in Background',
+        `${mode === 'focus' ? 'Focus session' : 'Break time'} continues. Global timer now visible.`
+      );
+    } else if (isVisible && backgroundMode) {
+      // Page became visible again
+      setBackgroundMode(false);
+      
+      // Load and sync state
+      const savedState = loadTimerState();
+      if (savedState) {
+        setTime(savedState.time);
+        setMode(savedState.mode);
+        setCurrentSubject(savedState.subject);
+        setCurrentTask(savedState.task);
+      }
+    }
+  };
+
+  // Initialize background timer system
+  useEffect(() => {
+    // Store original title
+    setOriginalTitle(document.title);
+
+    // Create unique tab ID
+    if (!sessionStorage.getItem('focusTabId')) {
+      sessionStorage.setItem('focusTabId', Date.now().toString());
+    }
+
+    // Initialize broadcast channel for cross-tab communication
+    broadcastChannelRef.current = new BroadcastChannel('focus-timer');
+    
+    broadcastChannelRef.current.onmessage = (event) => {
+      const { type, state } = event.data;
+      
+      if (type === 'TIMER_UPDATE') {
+        // Update global timer display from other tabs
+        if (state.isRunning && !isRunning) {
+          setTime(state.time);
+          setMode(state.mode);
+          setCurrentSubject(state.subject);
+          setCurrentTask(state.task);
+          setIsRunning(true);
+          setShowGlobalTimer(true);
+        }
+      } else if (type === 'TIMER_CLEARED') {
+        setShowGlobalTimer(false);
+        setIsRunning(false);
+        setTime(0);
+      }
+    };
+
+    // Request notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    // Load previous timer state
+    const savedTimerState = loadTimerState();
+    if (savedTimerState && savedTimerState.isRunning) {
+      setTime(savedTimerState.time);
+      setMode(savedTimerState.mode);
+      setIsRunning(true);
+      setCurrentSubject(savedTimerState.subject);
+      setCurrentTask(savedTimerState.task);
+      setBackgroundMode(true);
+      setShowGlobalTimer(true);
+    }
+
+    // Listen for visibility changes
+    document.addEventListener('visibilitychange', handlePageVisibilityChange);
+
+    // Listen for beforeunload to save state
+    const handleBeforeUnload = () => {
+      if (isRunning) {
+        saveTimerState({
+          isRunning,
+          time,
+          mode,
+      sendBackgroundNotification(
+        '🎉 Focus Session Complete!',
+        `Great work! ${STUDY_TIPS[tipIndex]}`,
+        true
+      );
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    // Cleanup
+    return () => {
+      document.removeEventListener('visibilitychange', handlePageVisibilityChange);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (broadcastChannelRef.current) {
+        broadcastChannelRef.current.close();
+      }
+      if (originalTitle) {
+        document.title = originalTitle;
+      }
+    };
+  }, []);
+
+  // Background notification system
+  useEffect(() => {
+    if (backgroundMode && isRunning) {
+      backgroundIntervalRef.current = window.setInterval(() => {
+        const now = Date.now();
+        const remainingTime = Math.max(0, targetTime * 60 - time);
+        
+        // Send periodic notifications (every 5 minutes for focus, every minute for breaks)
+        const notificationInterval = (mode === 'focus' || mode === 'custom') ? 5 * 60 * 1000 : 60 * 1000;
+        
+        if (now - lastNotificationTime > notificationInterval && remainingTime > 60) {
+          const minutes = Math.floor(remainingTime / 60);
+          sendBackgroundNotification(
+            `⏰ ${minutes} minutes remaining`,
+            `${mode === 'focus' ? 'Focus session' : 'Break time'} - ${currentSubject || 'Study Timer'}`,
+            false
+          );
+          setLastNotificationTime(now);
+        }
+      }, 30000); // Check every 30 seconds
+    } else {
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
+      }
+    }
+
+    return () => {
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
+      }
+    };
+  }, [backgroundMode, isRunning, time, mode, currentSubject, targetTime, lastNotificationTime]);
+
+  // Update document title when timer state changes
+  useEffect(() => {
+    updateDocumentTitle();
+  }, [isRunning, time, mode, currentSubject, isPageVisible, targetTime, showGlobalTimer]);
 
   // Background timer system
   const saveTimerState = (timerState: TimerState) => {
@@ -309,6 +582,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       setVolume(data.musicVolume || 0.6);
       setShowMusicPlayer(data.showMusicPlayer || false);
       setPomodoroSettings(data.pomodoroSettings || DEFAULT_POMODORO_SETTINGS);
+      setGlobalTimerPosition(data.globalTimerPosition || { x: 20, y: 20 });
     }
   }, []);
 
@@ -330,7 +604,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       pomodoroCount,
       musicVolume: volume,
       showMusicPlayer,
-      pomodoroSettings
+      pomodoroSettings,
+      globalTimerPosition
     };
     localStorage.setItem('studentFocusTimer', JSON.stringify(data));
   };
@@ -341,6 +616,19 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       intervalRef.current = window.setInterval(() => {
         setTime(prev => {
           const newTime = prev + 1;
+          
+          // Save state continuously while running
+          saveTimerState({
+            isRunning: true,
+            time: newTime,
+            mode,
+            startTime: Date.now() - (newTime * 1000),
+            subject: currentSubject,
+            task: currentTask,
+            targetTime
+          });
+
+          if (newTime >= targetTime * 60) {
           
           // Save state continuously while running
           saveTimerState({
@@ -368,6 +656,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       // Clear timer state when stopped
       if (!isRunning && time === 0) {
         clearTimerState();
+        setShowGlobalTimer(false);
+      }
+      // Clear timer state when stopped
+      if (!isRunning && time === 0) {
+        clearTimerState();
       }
     }
 
@@ -377,13 +670,6 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       }
     };
   }, [isRunning, targetTime, mode, currentSubject, currentTask]);
-
-  const handleSessionComplete = () => {
-    const newSession: StudySession = {
-      id: Date.now().toString(),
-      subject: currentSubject,
-      task: currentTask,
-      duration: targetTime,
       completedAt: new Date(),
       mode
     };
@@ -412,11 +698,12 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         'Time to get back to studying! You\'ve got this! 💪',
         true
       );
-      setMode('focus');
     }
 
     setStudyHistory(prev => [...prev, newSession]);
     setTime(0);
+    clearTimerState();
+    setShowGlobalTimer(false);
     clearTimerState();
     saveData();
   };
@@ -477,16 +764,22 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setIsRunning(true);
     setBackgroundMode(false);
     setLastNotificationTime(Date.now());
+    setBackgroundMode(false);
+    setLastNotificationTime(Date.now());
   };
 
   const pauseFocus = () => {
     setIsRunning(false);
+    clearTimerState();
     clearTimerState();
   };
 
   const stopFocus = () => {
     setIsRunning(false);
     setTime(0);
+    setBackgroundMode(false);
+    setShowGlobalTimer(false);
+    clearTimerState();
     setBackgroundMode(false);
     clearTimerState();
   };
@@ -495,12 +788,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setTime(0);
     setIsRunning(false);
     clearTimerState();
+    clearTimerState();
   };
 
   const switchMode = (newMode: TimerMode) => {
     if (!isRunning) {
       setMode(newMode);
       setTime(0);
+      clearTimerState();
       clearTimerState();
       if (newMode === 'custom') {
         setShowCustomTimer(true);
@@ -529,6 +824,46 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     stopFocus();
     setIsMinimized(false);
   };
+
+  // Global timer drag handlers
+  const handleGlobalTimerMouseDown = (e: React.MouseEvent) => {
+    if (globalTimerRef.current) {
+      const rect = globalTimerRef.current.getBoundingClientRect();
+      setIsDragging(true);
+      setDragOffset({
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      });
+    }
+  };
+
+  const handleGlobalTimerMouseMove = (e: MouseEvent) => {
+    if (isDragging) {
+      const newPosition = {
+        x: Math.max(0, Math.min(window.innerWidth - 280, e.clientX - dragOffset.x)),
+        y: Math.max(0, Math.min(window.innerHeight - 120, e.clientY - dragOffset.y))
+      };
+      setGlobalTimerPosition(newPosition);
+    }
+  };
+
+  const handleGlobalTimerMouseUp = () => {
+    setIsDragging(false);
+    saveData(); // Save new position
+  };
+
+  // Global mouse event listeners for dragging
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleGlobalTimerMouseMove);
+      document.addEventListener('mouseup', handleGlobalTimerMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalTimerMouseMove);
+      document.removeEventListener('mouseup', handleGlobalTimerMouseUp);
+    };
+  }, [isDragging, dragOffset]);
 
   const getTodaysPomodoros = () => {
     const today = new Date().toDateString();
@@ -578,6 +913,136 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       icon: Settings
     }
   ];
+
+  // Background Status Indicator
+  const BackgroundStatusIndicator = () => {
+    if (!backgroundMode && !isRunning) return null;
+
+    return (
+      <div className="fixed top-4 left-4 z-50">
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-2 p-3 min-w-[200px] ${
+          backgroundMode ? 'border-orange-400' : 'border-green-400'
+        }`}>
+          <div className="flex items-center gap-2 mb-2">
+            <div className={`w-3 h-3 rounded-full animate-pulse ${
+              backgroundMode ? 'bg-orange-400' : 'bg-green-400'
+            }`} />
+            <span className="text-sm font-medium">
+              {backgroundMode ? '🌐 Running in Background' : '🎯 Timer Active'}
+            </span>
+          </div>
+          
+          {backgroundMode && (
+            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+              <div>• Timer continues when tab is closed</div>
+              <div>• Check browser tab title for updates</div>
+              <div>• Global timer visible across all apps</div>
+              <div>• You'll get notifications at intervals</div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Global Timer Component (shows across all tabs/apps)
+  const GlobalTimer = () => {
+    if (!showGlobalTimer || (!isRunning && time === 0)) return null;
+
+    return (
+      <div
+        ref={globalTimerRef}
+        className="fixed z-[9999] select-none"
+        style={{
+          left: `${globalTimerPosition.x}px`,
+          top: `${globalTimerPosition.y}px`,
+          pointerEvents: 'auto'
+        }}
+      >
+        <div className="bg-black/90 backdrop-blur-sm text-white rounded-lg shadow-2xl border border-gray-600 p-3 min-w-[280px] cursor-move"
+             onMouseDown={handleGlobalTimerMouseDown}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className={`p-1 rounded ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-500/30' : 'bg-green-500/30'}`}>
+                {(mode === 'focus' || mode === 'custom') ? (
+                  <Target className="w-4 h-4 text-blue-400" />
+                ) : (
+                  <Coffee className="w-4 h-4 text-green-400" />
+                )}
+              </div>
+              <span className="text-sm font-medium">
+                {mode === 'focus' ? 'Focus Session' : 
+                 mode === 'custom' ? 'Custom Timer' : 
+                 mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+              </span>
+            </div>
+            <div className="flex gap-1">
+              <button
+                onClick={() => setShowGlobalTimer(false)}
+                className="p-1 hover:bg-white/10 rounded transition-colors"
+                title="Hide Global Timer"
+              >
+                <EyeOff className="w-3 h-3 text-gray-400" />
+              </button>
+              <button
+                onClick={handleFloatingStop}
+                className="p-1 hover:bg-white/10 rounded transition-colors"
+                title="Stop Timer"
+              >
+                <Square className="w-3 h-3 text-red-400" />
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mb-3">
+            <div className="text-2xl font-mono font-bold">
+              {formatTime(time)}
+            </div>
+            <div className="text-xs text-gray-400">
+              {formatTime(Math.max(0, targetTime * 60 - time))} remaining • {targetTime}m total
+            </div>
+            {currentSubject && (
+              <div className="text-xs text-blue-400 mt-1">
+                📚 {currentSubject}
+              </div>
+            )}
+          </div>
+
+          <div className="w-full bg-gray-700 rounded-full h-2 mb-3">
+            <div
+              className={`h-2 rounded-full transition-all duration-1000 ${
+                (mode === 'focus' || mode === 'custom') ? 'bg-blue-500' : 'bg-green-500'
+              }`}
+              style={{ width: `${Math.min(getProgress(), 100)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs">
+            <div className={`font-medium flex items-center gap-1 ${isRunning ? 'text-green-400' : 'text-gray-400'}`}>
+              <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`} />
+              {isRunning ? 'Active' : 'Paused'}
+            </div>
+            <div className="flex items-center gap-3 text-gray-400">
+              <div className="flex items-center gap-1">
+                <Flame className="w-3 h-3 text-orange-400" />
+                <span>{currentStreak}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Target className="w-3 h-3 text-blue-400" />
+                <span>{pomodoroCount}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-gray-600">
+            <div className="text-xs text-gray-400 text-center">
+              🖱️ Drag to move • Works across all tabs & apps
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   // Background Status Indicator
   const BackgroundStatusIndicator = () => {
@@ -684,6 +1149,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   return (
     <>
       <BackgroundStatusIndicator />
+      <GlobalTimer />
+      <BackgroundStatusIndicator />
       <FloatingTimer />
 
       {/* Hidden audio element */}
@@ -724,16 +1191,56 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                         </span>
                       </div>
                     )}
+                    {backgroundMode && (
+                      <div className="flex items-center gap-1 mt-1">
+                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                        <span className="text-xs text-orange-600 font-medium">
+                          Background Mode Active
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <Button
-                  onClick={handleMinimize}
-                  icon={Minimize2}
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-gray-700"
-                />
+                <div className="flex gap-2">
+                  {(isRunning || backgroundMode) && (
+                    <Button
+                      onClick={() => setShowGlobalTimer(!showGlobalTimer)}
+                      icon={showGlobalTimer ? EyeOff : Eye}
+                      variant="ghost"
+                      size="sm"
+                      className="text-purple-500 hover:text-purple-700"
+                      title={showGlobalTimer ? "Hide Global Timer" : "Show Global Timer"}
+                    />
+                  )}
+                  <Button
+                    onClick={handleMinimize}
+                    icon={Minimize2}
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-gray-700"
+                  />
+                </div>
               </div>
+
+              {/* Background Mode Information */}
+              {(isRunning || backgroundMode) && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
+                    <span className="font-medium text-blue-800 dark:text-blue-400 text-sm">
+                      Advanced Background Timer Active
+                    </span>
+                  </div>
+                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                    <div>✅ Timer continues when you close this tab or browser</div>
+                    <div>🏷️ Check your browser tab title to see remaining time</div>
+                    <div>🌐 Global timer shows across all tabs and apps</div>
+                    <div>🔔 You'll receive notifications at regular intervals</div>
+                    <div>💾 Your progress is automatically saved and synced</div>
+                    <div>🖱️ Drag the global timer to reposition it anywhere</div>
+                  </div>
+                </div>
+              )}
 
               {/* Background Mode Information */}
               {(isRunning || backgroundMode) && (
