@@ -1,9 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BookOpen, Zap } from 'lucide-react';
 
 export const MobileHeader: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Show header when at top of page
+      if (currentScrollY < 10) {
+        setIsVisible(true);
+      }
+      // Hide when scrolling down, show when scrolling up
+      else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      } else if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false);
+      }
+      
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [lastScrollY]);
+
   return (
-    <div className="md:hidden sticky top-0 z-50">
+    <div className={`md:hidden sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
+      isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
+    }`}>
       {/* Main header */}
       <div className="bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-lg">
         <div className="px-4 py-3">
