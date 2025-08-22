@@ -78,7 +78,6 @@ export const DesktopNavbar: React.FC = () => {
                     Study Tracker
                   </h1>
                   <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
-                    Premium Edition
                   </p>
                 </div>
                 <div className="flex flex-col items-center gap-1">
