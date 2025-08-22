@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Zap, Activity } from 'lucide-react';
+import { Zap } from 'lucide-react';
 
 export const MobileHeader: React.FC = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -39,50 +39,31 @@ export const MobileHeader: React.FC = () => {
         <div className="px-6 py-4">
           {/* Centrally aligned main branding */}
           <div className="flex items-center justify-center mb-3">
-            <div className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500/10 via-cyan-500/10 to-emerald-500/10 rounded-full border border-emerald-200/40 shadow-lg shadow-emerald-500/10 hover:shadow-emerald-500/20 transition-all duration-300 hover:scale-105">
+            <div className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-blue-500/10 rounded-full border border-blue-200/40 shadow-lg shadow-blue-500/10 hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105">
               <div className="relative">
-                <Zap className="w-4 h-4 text-emerald-600 drop-shadow-sm" />
-                <div className="absolute inset-0 w-4 h-4 bg-emerald-400/30 blur-sm rounded-full animate-pulse"></div>
+                <Zap className="w-4 h-4 text-blue-600 drop-shadow-sm" />
+                <div className="absolute inset-0 w-4 h-4 bg-blue-400/30 blur-sm rounded-full animate-pulse"></div>
               </div>
-              <span className="text-sm font-semibold bg-gradient-to-r from-emerald-700 via-cyan-700 to-emerald-700 bg-clip-text text-transparent">
+              <span className="text-sm font-semibold bg-gradient-to-r from-blue-700 via-purple-700 to-blue-700 bg-clip-text text-transparent">
                 Powered By TRMS
               </span>
-              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></div>
+              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-ping"></div>
             </div>
           </div>
           
-          {/* Secondary status row */}
-          <div className="flex items-center justify-center gap-4">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-emerald-50/80 to-cyan-50/80 rounded-full border border-emerald-200/30 backdrop-blur-sm">
-              <Activity className="w-3 h-3 text-emerald-600" />
-              <span className="text-xs font-medium text-emerald-700">
-                System Active
-              </span>
-            </div>
-            
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-cyan-50/80 to-emerald-50/80 rounded-full border border-cyan-200/30 backdrop-blur-sm">
-              <div className="relative">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                <div className="absolute inset-0 w-2 h-2 bg-emerald-400 rounded-full animate-ping"></div>
-              </div>
-              <span className="text-xs font-medium text-emerald-700">
-                Online
-              </span>
-            </div>
-          </div>
         </div>
         
         {/* Animated progress indicator */}
-        <div className="relative h-1 bg-gradient-to-r from-transparent via-emerald-500/20 to-transparent">
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-500 opacity-60 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400 to-cyan-400 opacity-40">
+        <div className="relative h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 via-purple-500 to-blue-500 opacity-60 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 opacity-40">
             <div className="h-full bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer"></div>
           </div>
         </div>
       </div>
       
       {/* Subtle glow effect */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/50 to-transparent"></div>
     </div>
   );
 };
