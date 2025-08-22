@@ -36,7 +36,7 @@ export const MobileHeader: React.FC = () => {
   }, [scrollTimeout]);
 
   return (
-    <div className="md:hidden sticky top-0 z-50">
+    <div className="md:hidden">
       {/* Floating header with scale and fade animation */}
       <div className={`transition-all duration-700 ease-out transform ${
         isVisible 
