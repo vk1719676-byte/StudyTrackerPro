@@ -31,33 +31,33 @@ export const MobileHeader: React.FC = () => {
   }, [lastScrollY]);
 
   return (
-    <div className={`md:hidden sticky top-0 z-50 transition-transform duration-300 ease-in-out ${
-      isVisible ? 'transform translate-y-0' : 'transform -translate-y-full'
+    <div className={`md:hidden sticky top-0 z-50 transition-all duration-300 ease-out ${
+      isVisible ? 'transform translate-y-0 opacity-100' : 'transform -translate-y-full opacity-0'
     }`}>
-      {/* Main header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-lg">
-        <div className="px-4 py-3">
-          <div className="text-center space-y-2">
-            {/* Logo and title */}
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <h1 className="text-lg font-bold text-white">
-              </h1>
+      {/* Compact header with glassmorphism effect */}
+      <div className="bg-white/95 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+        <div className="px-4 py-2.5">
+          <div className="flex items-center justify-between">
+            {/* Left side - Powered By TRMS */}
+            <div className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-full border border-emerald-200/50">
+              <Zap className="w-3 h-3 text-emerald-600" />
+              <span className="text-xs font-medium text-emerald-700">
+                Powered By TRMS
+              </span>
             </div>
             
-            {/* Powered by badge */}
-            <div className="flex items-center justify-center">
-              <div className="flex items-center gap-1 px-3 py-1 bg-white/15 rounded-full backdrop-blur-sm">
-                <Zap className="w-3 h-3 text-orange-300" />
-                <span className="text-xs font-medium text-white">
-                  Powered By TRMS
-                </span>
-              </div>
+            {/* Right side - Status indicator */}
+            <div className="flex items-center gap-1 px-2.5 py-1 bg-gradient-to-r from-emerald-50 to-cyan-50 rounded-full border border-emerald-200/50">
+              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+              <span className="text-xs font-medium text-emerald-700">
+                Active
+              </span>
             </div>
           </div>
         </div>
+        
+        {/* Subtle progress indicator */}
+        <div className="h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-500 to-emerald-500 opacity-60"></div>
       </div>
     </div>
   );
