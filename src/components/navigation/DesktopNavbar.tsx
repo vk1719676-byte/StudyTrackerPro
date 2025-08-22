@@ -83,7 +83,7 @@ export const DesktopNavbar: React.FC = () => {
             </Link>
 
             {/* Desktop Navigation - Hidden on mobile */}
-            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
+            <div className="hidden md:flex items-center space-x-1 xl:space-x-2">
               {navItems.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
@@ -98,8 +98,8 @@ export const DesktopNavbar: React.FC = () => {
                   `}
                 >
                   <Icon className="w-4 h-4" />
-                  <span className="hidden xl:inline">{label}</span>
-                  <span className="lg:inline xl:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
+                  <span className="hidden lg:inline">{label}</span>
+                  <span className="md:inline lg:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
                 </Link>
               ))}
             </div>
@@ -117,7 +117,7 @@ export const DesktopNavbar: React.FC = () => {
               />
               
               {/* User Email - Hidden on mobile, visible on lg+ */}
-              <div className="hidden lg:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
+              <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
                 {user?.email}
               </div>
               
@@ -130,7 +130,7 @@ export const DesktopNavbar: React.FC = () => {
                 className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
                 title="Logout"
               >
-                <span className="hidden lg:inline font-medium">Logout</span>
+                <span className="hidden md:inline font-medium">Logout</span>
               </Button>
             </div>
           </div>
