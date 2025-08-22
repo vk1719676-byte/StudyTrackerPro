@@ -69,72 +69,55 @@ export const DesktopNavbar: React.FC = () => {
             {/* Logo and Brand - Enhanced for all screen sizes */}
             <Link 
               to="/" 
-              className="flex items-center gap-3 hover:opacity-80 transition-opacity duration-200"
+              className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group"
             >
               <Logo size="md" showText={false} />
-              <div className="block">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  Designer Dashboard
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl lg:text-2xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300">
+                  Study Tracker
                 </h1>
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-yellow-600 text-yellow-900 shadow-lg transform hover:scale-105 transition-all duration-200 border border-yellow-300">
+                  Pro
+                </span>
               </div>
             </Link>
 
-            {/* Desktop Navigation - Hidden on mobile and tablet */}
-            <div className="hidden xl:flex items-center space-x-2">
+            {/* Desktop Navigation - Hidden on mobile */}
+            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
               {navItems.map(({ path, label, icon: Icon }) => (
                 <Link
                   key={path}
                   to={path}
                   className={`
-                    flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
-                    transition-all duration-200 hover:scale-105 hover:shadow-md
+                    flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-medium
+                    transition-all duration-200 hover:scale-105 hover:shadow-lg
                     ${location.pathname === path
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg transform scale-105'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
                     }
                   `}
                 >
                   <Icon className="w-4 h-4" />
-                  {label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Tablet Navigation - Visible on lg screens */}
-            <div className="hidden lg:flex xl:hidden items-center space-x-1">
-              {navItems.slice(0, 4).map(({ path, label, icon: Icon }) => (
-                <Link
-                  key={path}
-                  to={path}
-                  className={`
-                    flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
-                    transition-all duration-200 hover:scale-105
-                    ${location.pathname === path
-                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }
-                  `}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden lg:inline">{label}</span>
+                  <span className="hidden xl:inline">{label}</span>
+                  <span className="lg:inline xl:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
                 </Link>
               ))}
             </div>
 
             {/* Right Side Actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-2 lg:gap-3">
               {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="sm"
                 icon={theme === 'dark' ? Sun : Moon}
                 onClick={toggleTheme}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 hover:scale-110 transition-all duration-200"
+                className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
                 title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               />
               
-              {/* User Email - Hidden on mobile, visible on tablet+ */}
-              <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 truncate">
+              {/* User Email - Hidden on mobile, visible on lg+ */}
+              <div className="hidden lg:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
                 {user?.email}
               </div>
               
@@ -144,10 +127,10 @@ export const DesktopNavbar: React.FC = () => {
                 size="sm"
                 icon={LogOut}
                 onClick={() => setShowLogoutConfirm(true)}
-                className="hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+                className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
                 title="Logout"
               >
-                <span className="hidden sm:inline">Logout</span>
+                <span className="hidden lg:inline font-medium">Logout</span>
               </Button>
             </div>
           </div>
