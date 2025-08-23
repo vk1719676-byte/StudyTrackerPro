@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Send, Users, Star, X, ExternalLink, CheckCircle, Play, Clock, Trophy, Zap, Target } from "lucide-react"
+import { Send, Users, Star, X, ExternalLink, CheckCircle, Play, Clock } from "lucide-react"
 import { Card } from "./Card"
 import { Button } from "./Button"
 import { useAuth } from "../../contexts/AuthContext"
@@ -73,13 +73,6 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
     }
   }, [isOpen])
 
-  const getCommunityStats = () => {
-    const joinDate = new Date()
-    const studyStreak = Math.floor(Math.random() * 30) + 1 // Simulated streak
-    const totalMembers = 25150 + Math.floor(Math.random() * 100) // Dynamic member count
-    return { joinDate, studyStreak, totalMembers }
-  }
-
   const handleJoinChannel = (channelId: string, url: string) => {
     // Open Telegram channel
     window.open(url, "_blank")
@@ -100,7 +93,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
   }
 
   const handleTutorial = () => {
-    window.open("https://youtu.be/2qexru15k0c?si=01wYr_K9Yn-I2HWD", "_blank")
+    window.open("https://youtu.be/ne9YlsIMSrI", "_blank")
   }
 
   const formatTime = (seconds: number) => {
@@ -131,8 +124,6 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
       </div>
     )
   }
-
-  const { totalMembers } = getCommunityStats()
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -167,79 +158,6 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             )}
           </div>
 
-          <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 mb-4 border border-blue-200 dark:border-blue-700 relative overflow-hidden">
-            {/* Background decorations */}
-            <div className="absolute top-2 right-3 text-2xl animate-bounce opacity-30">🎯</div>
-            <div className="absolute bottom-2 left-3 text-lg animate-pulse opacity-30">⚡</div>
-
-            <div className="flex items-center gap-4">
-              {/* Animated Trophy */}
-              <div className="flex items-center gap-2 relative">
-                <div className="relative animate-trophy-glow">
-                  <Trophy className="w-8 h-8 text-yellow-500 animate-trophy-bounce" fill="currentColor" />
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-sparkle"></div>
-                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-sparkle-delay"></div>
-                </div>
-
-                {/* Study Streak Indicator */}
-                <div className="flex flex-col items-center">
-                  <Zap className="w-6 h-6 text-orange-500 animate-zap-pulse" fill="currentColor" />
-                  <div className="text-xs font-bold text-orange-600 dark:text-orange-400 animate-number-count">
-                    {Math.floor(Math.random() * 50) + 10}
-                  </div>
-                </div>
-
-                {/* Target Achievement */}
-                <div className="relative">
-                  <Target className="w-6 h-6 text-green-500 animate-target-spin" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-bullseye"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Community Stats */}
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1 rounded-full font-bold">
-                    🔥 Active Community
-                  </span>
-                </div>
-                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">
-                  Join {totalMembers.toLocaleString()}+ Study Champions
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">🎓 Average study streak: 28 days</p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 font-medium">💪 Together we achieve more!</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Tips Section */}
-          <div className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-lg p-4 mb-4 border border-green-200 dark:border-green-700">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 bg-gradient-to-r from-green-500 to-teal-500 rounded-lg">
-                <Star className="w-4 h-4 text-white" />
-              </div>
-              <h4 className="font-bold text-gray-900 dark:text-gray-100">Quick Start Tips</h4>
-            </div>
-            <div className="grid grid-cols-1 gap-2 text-sm">
-              {[
-                { tip: "Set daily study goals", icon: "🎯" },
-                { tip: "Track your progress", icon: "📊" },
-                { tip: "Join study sessions", icon: "👥" },
-                { tip: "Celebrate milestones", icon: "🎉" },
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-2 bg-white/50 dark:bg-gray-800/50 rounded-md"
-                >
-                  <span className="text-base">{item.icon}</span>
-                  <span>{item.tip}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           {/* Tutorial Section */}
           <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg p-4 mb-6 border border-orange-200 dark:border-orange-700">
             <div className="flex items-center justify-between">
@@ -248,7 +166,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
                   <Play className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">App Tutorial</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube Video Tutorial</h3>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Learn how to use Study Tracker</p>
                 </div>
               </div>
@@ -337,119 +255,6 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
           </div>
         </div>
       </Card>
-
-      <style jsx>{`
-        /* Community Achievement Animations */
-        @keyframes trophy-bounce {
-          0%, 100% { 
-            transform: translateY(0px) rotate(-5deg);
-          }
-          50% { 
-            transform: translateY(-8px) rotate(5deg);
-          }
-        }
-
-        @keyframes trophy-glow {
-          0%, 100% { 
-            filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.3));
-          }
-          50% { 
-            filter: drop-shadow(0 0 15px rgba(251, 191, 36, 0.6));
-          }
-        }
-
-        @keyframes sparkle {
-          0%, 100% { 
-            opacity: 0;
-            transform: scale(0) rotate(0deg);
-          }
-          50% { 
-            opacity: 1;
-            transform: scale(1.5) rotate(180deg);
-          }
-        }
-
-        @keyframes sparkle-delay {
-          0%, 100% { 
-            opacity: 0;
-            transform: scale(0) rotate(0deg);
-          }
-          25% { opacity: 0; }
-          75% { 
-            opacity: 1;
-            transform: scale(1.2) rotate(-180deg);
-          }
-        }
-
-        @keyframes zap-pulse {
-          0%, 100% { 
-            transform: scale(1);
-            filter: drop-shadow(0 0 3px rgba(249, 115, 22, 0.5));
-          }
-          50% { 
-            transform: scale(1.2);
-            filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.8));
-          }
-        }
-
-        @keyframes target-spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-
-        @keyframes bullseye {
-          0%, 100% { 
-            transform: scale(1);
-            opacity: 1;
-          }
-          50% { 
-            transform: scale(1.5);
-            opacity: 0.7;
-          }
-        }
-
-        @keyframes number-count {
-          0%, 90%, 100% { 
-            transform: scale(1);
-          }
-          95% { 
-            transform: scale(1.2);
-          }
-        }
-
-        /* Apply new animations */
-        .animate-trophy-bounce {
-          animation: trophy-bounce 2s ease-in-out infinite;
-        }
-
-        .animate-trophy-glow {
-          animation: trophy-glow 3s ease-in-out infinite;
-        }
-
-        .animate-sparkle {
-          animation: sparkle 2s ease-in-out infinite;
-        }
-
-        .animate-sparkle-delay {
-          animation: sparkle-delay 2s ease-in-out infinite;
-        }
-
-        .animate-zap-pulse {
-          animation: zap-pulse 1.5s ease-in-out infinite;
-        }
-
-        .animate-target-spin {
-          animation: target-spin 4s linear infinite;
-        }
-
-        .animate-bullseye {
-          animation: bullseye 2s ease-in-out infinite;
-        }
-
-        .animate-number-count {
-          animation: number-count 3s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   )
 }
