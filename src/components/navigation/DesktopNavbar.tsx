@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, Menu, X } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -38,12 +38,13 @@ const LogoutConfirmation: React.FC<LogoutConfirmationProps> = ({ isOpen, onConfi
   );
 };
 
-export const DesktopNavbar: React.FC = () => {
+export const ResponsiveNavbar: React.FC = () => {
   const location = useLocation();
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [showFocusMode, setShowFocusMode] = React.useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -60,6 +61,10 @@ export const DesktopNavbar: React.FC = () => {
     await logout();
   };
 
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <>
       {/* Focus Mode Modal */}
@@ -71,28 +76,27 @@ export const DesktopNavbar: React.FC = () => {
       {/* Main Navigation Bar */}
       <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-20">
+          <div className="flex justify-between items-center h-16 md:h-20">
             
-            {/* Logo and Brand - Enhanced for all screen sizes with proper spacing */}
-            <div className="flex items-center">
+            {/* Logo and Brand - Responsive sizing */}
+            <div className="flex items-center min-w-0">
               <Link 
                 to="/" 
-                className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group mr-8 lg:mr-12"
+                className="flex items-center gap-2 md:gap-3 hover:opacity-90 transition-all duration-300 group"
+                onClick={closeMobileMenu}
               >
-                <Logo size="md" showText={false} />
-                <div className="flex items-center gap-2">
-                  <div className="flex flex-col">
-                    <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
+                <Logo size="sm" showText={false} className="md:w-8 md:h-8" />
+                <div className="flex items-center gap-1 md:gap-2 min-w-0">
+                  <div className="flex flex-col min-w-0">
+                    <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight truncate">
                       Study Tracker
                     </h1>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
-                    </p>
                   </div>
                   <div className="flex flex-col items-center gap-1">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
+                    <span className="inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
                       PRO
                     </span>
-                    <div className="flex gap-1">
+                    <div className="hidden md:flex gap-1">
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse"></div>
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-75"></div>
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-150"></div>
@@ -102,71 +106,133 @@ export const DesktopNavbar: React.FC = () => {
               </Link>
             </div>
 
-            <div className="flex items-center justify-between flex-1">
-              {/* Desktop Navigation - Hidden on mobile */}
-              <div className="hidden md:flex items-center space-x-1 xl:space-x-2">
-                {navItems.map(({ path, label, icon: Icon }) => (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`
-                      flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-medium
-                      transition-all duration-200 hover:scale-105 hover:shadow-lg
-                      ${location.pathname === path
-                        ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
-                      }
-                    `}
-                  >
-                    <Icon className="w-4 h-4" />
-                    <span className="hidden lg:inline">{label}</span>
-                    <span className="md:inline lg:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
-                  </Link>
-                ))}
-              </div>
-
-              {/* Right Side Actions */}
-              <div className="flex items-center gap-2 lg:gap-3">
-                {/* Theme Toggle */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={theme === 'dark' ? Sun : Moon}
-                  onClick={toggleTheme}
-                  className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
-                  title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                />
-                
-                {/* User Email - Hidden on mobile, visible on lg+ */}
-                <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
-                  {user?.email}
-                </div>
-                
-                {/* Logout Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={LogOut}
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
-                  title="Logout"
+            {/* Desktop Navigation - Hidden on small tablets and mobile */}
+            <div className="hidden lg:flex items-center space-x-1 xl:space-x-2 flex-1 justify-center max-w-4xl mx-8">
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`
+                    flex items-center gap-2 px-3 xl:px-4 py-2.5 rounded-xl text-sm font-medium
+                    transition-all duration-200 hover:scale-105 hover:shadow-lg min-w-0
+                    ${location.pathname === path
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
+                    }
+                  `}
                 >
-                  <span className="hidden md:inline font-medium">Logout</span>
-                </Button>
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{label}</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Tablet Navigation - Visible on medium screens */}
+            <div className="hidden md:flex lg:hidden items-center space-x-1 flex-1 justify-center max-w-2xl mx-4 overflow-x-auto">
+              {navItems.slice(0, 5).map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  className={`
+                    flex items-center gap-1.5 px-2 py-2 rounded-lg text-xs font-medium
+                    transition-all duration-200 hover:scale-105 min-w-0 flex-shrink-0
+                    ${location.pathname === path
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg transform scale-105'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600'
+                    }
+                  `}
+                >
+                  <Icon className="w-4 h-4 flex-shrink-0" />
+                  <span className="hidden md:inline truncate max-w-16">{label}</span>
+                </Link>
+              ))}
+            </div>
+
+            {/* Right Side Actions */}
+            <div className="flex items-center gap-1 md:gap-2 lg:gap-3">
+              {/* Mobile Menu Button - Only visible on mobile */}
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={isMobileMenuOpen ? X : Menu}
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
+                title="Toggle menu"
+              />
+
+              {/* Theme Toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={theme === 'dark' ? Sun : Moon}
+                onClick={toggleTheme}
+                className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
+                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+              />
+              
+              {/* User Email - Progressive disclosure */}
+              <div className="hidden lg:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
+                {user?.email}
               </div>
+              
+              {/* Logout Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={LogOut}
+                onClick={() => setShowLogoutConfirm(true)}
+                className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105 p-2"
+                title="Logout"
+              >
+                <span className="hidden lg:inline font-medium ml-1">Logout</span>
+              </Button>
             </div>
           </div>
+
+          {/* Mobile Menu Dropdown */}
+          {isMobileMenuOpen && (
+            <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-4 space-y-2">
+              {navItems.map(({ path, label, icon: Icon }) => (
+                <Link
+                  key={path}
+                  to={path}
+                  onClick={closeMobileMenu}
+                  className={`
+                    flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium w-full
+                    transition-all duration-200 hover:scale-[1.02] hover:shadow-md
+                    ${location.pathname === path
+                      ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-lg border border-purple-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600'
+                    }
+                  `}
+                >
+                  <Icon className="w-5 h-5 flex-shrink-0" />
+                  <span>{label}</span>
+                </Link>
+              ))}
+              
+              {/* User info in mobile menu */}
+              <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 mt-4">
+                <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+                  Signed in as
+                </div>
+                <div className="text-sm text-gray-900 dark:text-gray-100 font-semibold truncate">
+                  {user?.email}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
-      {/* Fixed Focus Mode Button - Bottom Right */}
+      {/* Fixed Focus Mode Button - Responsive positioning */}
       <Button
         onClick={() => setShowFocusMode(true)}
-        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full p-4 border border-purple-400 hover:border-purple-300"
+        className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full p-3 md:p-4 border border-purple-400 hover:border-purple-300"
         title="Enter Focus Mode"
       >
-        <Shield className="w-6 h-6" />
-        <span className="ml-2 font-semibold hidden sm:inline">Focus Mode</span>
+        <Shield className="w-5 h-5 md:w-6 md:h-6" />
+        <span className="ml-2 font-semibold hidden sm:inline text-sm md:text-base">Focus Mode</span>
       </Button>
       
       <LogoutConfirmation
