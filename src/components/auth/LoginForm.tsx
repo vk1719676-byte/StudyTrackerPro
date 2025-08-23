@@ -62,17 +62,6 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onToggleMode }) => {
             <p className="text-gray-600 dark:text-gray-400">
               Sign in to continue your academic journey and unlock your potential
             </p>
-   <p className="text-red-900 font-semibold bg-red-100 px-4 py-3 rounded-lg border border-red-300">
-  🚨 Critical Alert
-  <br />
-  <span className="text-red-800">Google login now uses native OAuth flow.</span>
-  <br />
-  <span className="text-red-700 font-medium">Enhanced security and better mobile experience.</span>
-  <br />
-  <span className="text-white bg-green-500 px-2 py-1 rounded inline-block text-xs font-semibold mt-2">
-    ✅ Now Available
-  </span>
-</p>
 
 
             <div className="flex items-center justify-center gap-2 text-sm text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 rounded-lg py-2 px-4 mt-3">
