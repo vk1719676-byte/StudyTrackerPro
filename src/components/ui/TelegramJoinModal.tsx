@@ -160,23 +160,40 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
 
           {/* Tutorial Section */}
           <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg p-4 mb-6 border border-orange-200 dark:border-orange-700">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
-                  <Play className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube Video Tutorial</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">Learn how to use Study Tracker</p>
-                </div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
+                <Play className="w-5 h-5 text-white" />
               </div>
+              <div>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube Video Tutorial</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Learn how to use Study Tracker</p>
+              </div>
+            </div>
+            
+            {/* Embedded YouTube Video */}
+            <div className="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden bg-gray-900">
+              <iframe
+                className="absolute top-0 left-0 w-full h-full"
+                src="https://www.youtube.com/embed/ne9YlsIMSrI"
+                title="Study Tracker Tutorial"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="mt-3 flex items-center justify-between">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                📺 Watch to get started quickly
+              </p>
               <Button
                 onClick={handleTutorial}
                 size="sm"
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:shadow-lg"
+                variant="outline"
+                className="text-orange-600 border-orange-300 hover:bg-orange-50"
                 icon={ExternalLink}
               >
-                Watch
+                Open in YouTube
               </Button>
             </div>
           </div>
