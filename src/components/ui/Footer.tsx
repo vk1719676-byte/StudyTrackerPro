@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Timer, Thermometer, Ruler, Weight, Volume, Download, Upload, Save, Trash2, Edit3, Copy, Share2, Play, Pause, SkipForward, RotateCw, CheckCircle, AlertCircle, Info, Layers } from 'lucide-react';
 
-export const Footer: React.FC = () => {
+export const StudyToolsSection: React.FC = () => {
   const [stats, setStats] = useState({
     totalStudents: 12847,
     passedStudents: 9234,
@@ -19,6 +19,10 @@ export const Footer: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
+  const [showUnitConverter, setShowUnitConverter] = useState(false);
+  const [showFormulaLibrary, setShowFormulaLibrary] = useState(false);
+  const [showNoteTaking, setShowNoteTaking] = useState(false);
+  const [showStudyTimer, setShowStudyTimer] = useState(false);
 
   // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -39,6 +43,34 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
+  // Unit Converter States
+  const [unitCategory, setUnitCategory] = useState('length');
+  const [fromUnit, setFromUnit] = useState('meter');
+  const [toUnit, setToUnit] = useState('feet');
+  const [inputValue, setInputValue] = useState('');
+  const [convertedValue, setConvertedValue] = useState('');
+
+  // Formula Library States
+  const [formulaCategory, setFormulaCategory] = useState('mathematics');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Note Taking States
+  const [notes, setNotes] = useState([
+    { id: 1, title: 'Sample Note', content: 'This is a sample note to get you started!', category: 'General', date: new Date().toISOString() }
+  ]);
+  const [currentNote, setCurrentNote] = useState({ id: 0, title: '', content: '', category: 'General' });
+  const [editingNote, setEditingNote] = useState<number | null>(null);
+  const [flashcards, setFlashcards] = useState([
+    { id: 1, front: 'What is the derivative of x²?', back: '2x', category: 'Calculus' }
+  ]);
+
+  // Study Timer States
+  const [timerMode, setTimerMode] = useState('pomodoro'); // pomodoro, short-break, long-break, custom
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [timerSessions, setTimerSessions] = useState(0);
+  const [customTime, setCustomTime] = useState(25);
+
   // Simulate real-time stats updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -53,25 +85,53 @@ export const Footer: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Timer Effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(time => time - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsTimerRunning(false);
+      // Timer finished logic here
+      if (timerMode === 'pomodoro') {
+        setTimerSessions(prev => prev + 1);
+      }
+    }
+    return () => clearInterval(interval);
+  }, [isTimerRunning, timeLeft, timerMode]);
+
   const handleFeatureClick = (featureName: string) => {
-    if (featureName === 'Advanced Calculator') {
-      setShowCalculator(true);
-      return;
+    switch (featureName) {
+      case 'Advanced Calculator':
+        setShowCalculator(true);
+        break;
+      case 'Periodic Table':
+        setShowPeriodicTable(true);
+        break;
+      case 'Grade Calculator':
+        setShowGradeCalculator(true);
+        break;
+      case 'Math Solver':
+        setShowMathSolver(true);
+        break;
+      case 'Unit Converter':
+        setShowUnitConverter(true);
+        break;
+      case 'Formula Library':
+        setShowFormulaLibrary(true);
+        break;
+      case 'Smart Notes':
+        setShowNoteTaking(true);
+        break;
+      case 'Study Timer':
+        setShowStudyTimer(true);
+        break;
+      default:
+        setSelectedFeature(featureName);
+        setShowComingSoon(true);
     }
-    if (featureName === 'Periodic Table') {
-      setShowPeriodicTable(true);
-      return;
-    }
-    if (featureName === 'Grade Calculator') {
-      setShowGradeCalculator(true);
-      return;
-    }
-    if (featureName === 'Math Solver') {
-      setShowMathSolver(true);
-      return;
-    }
-    setSelectedFeature(featureName);
-    setShowComingSoon(true);
   };
 
   const socialLinks = [
@@ -111,28 +171,64 @@ export const Footer: React.FC = () => {
       title: "Advanced Calculator",
       description: "Scientific calculator with graphing capabilities, equation solver, and mathematical functions for all your study needs.",
       gradient: "from-blue-500 to-indigo-600",
-      category: "Math Tools"
+      category: "Math Tools",
+      features: ["Scientific Functions", "Graphing", "History", "Unit Conversion"]
     },
     {
       icon: FlaskConical,
       title: "Periodic Table",
       description: "Interactive periodic table with element details, electron configurations, and chemical properties.",
       gradient: "from-teal-500 to-green-600",
-      category: "Science"
+      category: "Science",
+      features: ["Element Details", "Properties", "Electron Config", "Search"]
     },
     {
       icon: GraduationCap,
       title: "Grade Calculator",
       description: "Calculate your current grades, required scores for target grades, and track academic performance.",
       gradient: "from-orange-500 to-red-500",
-      category: "Academic"
+      category: "Academic",
+      features: ["GPA Calculator", "Grade Tracker", "Progress Analytics", "Target Planning"]
     },
     {
       icon: Brain,
       title: "Math Solver",
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
-      category: "Math Tools"
+      category: "Math Tools",
+      features: ["Step-by-Step", "Multiple Types", "Graphing", "Explanations"]
+    },
+    {
+      icon: Zap,
+      title: "Unit Converter",
+      description: "Convert between different units for physics, chemistry, and engineering calculations.",
+      gradient: "from-purple-500 to-violet-600",
+      category: "Science",
+      features: ["Length", "Weight", "Temperature", "Energy"]
+    },
+    {
+      icon: BookOpen,
+      title: "Formula Library",
+      description: "Comprehensive collection of mathematical, physics, and chemistry formulas with explanations.",
+      gradient: "from-cyan-500 to-blue-600",
+      category: "Reference",
+      features: ["Math Formulas", "Physics", "Chemistry", "Search"]
+    },
+    {
+      icon: FileText,
+      title: "Smart Notes",
+      description: "Advanced note-taking with flashcards, organization tools, and study guides creation.",
+      gradient: "from-emerald-500 to-teal-600",
+      category: "Study Tools",
+      features: ["Rich Text", "Flashcards", "Organization", "Export"]
+    },
+    {
+      icon: Timer,
+      title: "Study Timer",
+      description: "Pomodoro technique timer with break reminders and productivity tracking.",
+      gradient: "from-amber-500 to-yellow-600",
+      category: "Productivity",
+      features: ["Pomodoro Timer", "Break Alerts", "Statistics", "Custom Sessions"]
     }
   ];
 
@@ -572,8 +668,298 @@ export const Footer: React.FC = () => {
     setMathSteps([]);
   };
 
+  // Unit Converter Functions
+  const unitConversions = {
+    length: {
+      meter: { meter: 1, feet: 3.28084, inch: 39.3701, centimeter: 100, kilometer: 0.001 },
+      feet: { meter: 0.3048, feet: 1, inch: 12, centimeter: 30.48, kilometer: 0.0003048 },
+      inch: { meter: 0.0254, feet: 0.0833333, inch: 1, centimeter: 2.54, kilometer: 0.0000254 },
+      centimeter: { meter: 0.01, feet: 0.0328084, inch: 0.393701, centimeter: 1, kilometer: 0.00001 },
+      kilometer: { meter: 1000, feet: 3280.84, inch: 39370.1, centimeter: 100000, kilometer: 1 }
+    },
+    weight: {
+      kilogram: { kilogram: 1, pound: 2.20462, gram: 1000, ounce: 35.274 },
+      pound: { kilogram: 0.453592, pound: 1, gram: 453.592, ounce: 16 },
+      gram: { kilogram: 0.001, pound: 0.00220462, gram: 1, ounce: 0.035274 },
+      ounce: { kilogram: 0.0283495, pound: 0.0625, gram: 28.3495, ounce: 1 }
+    },
+    temperature: {
+      celsius: { celsius: (c: number) => c, fahrenheit: (c: number) => (c * 9/5) + 32, kelvin: (c: number) => c + 273.15 },
+      fahrenheit: { celsius: (f: number) => (f - 32) * 5/9, fahrenheit: (f: number) => f, kelvin: (f: number) => ((f - 32) * 5/9) + 273.15 },
+      kelvin: { celsius: (k: number) => k - 273.15, fahrenheit: (k: number) => ((k - 273.15) * 9/5) + 32, kelvin: (k: number) => k }
+    },
+    volume: {
+      liter: { liter: 1, gallon: 0.264172, milliliter: 1000, cup: 4.22675 },
+      gallon: { liter: 3.78541, gallon: 1, milliliter: 3785.41, cup: 16 },
+      milliliter: { liter: 0.001, gallon: 0.000264172, milliliter: 1, cup: 0.00422675 },
+      cup: { liter: 0.236588, gallon: 0.0625, milliliter: 236.588, cup: 1 }
+    }
+  };
+
+  const convertUnits = () => {
+    if (!inputValue || isNaN(parseFloat(inputValue))) {
+      setConvertedValue('');
+      return;
+    }
+
+    const value = parseFloat(inputValue);
+    const conversions = unitConversions[unitCategory as keyof typeof unitConversions];
+    
+    if (unitCategory === 'temperature') {
+      const tempConversions = conversions[fromUnit as keyof typeof conversions] as any;
+      const convertFunc = tempConversions[toUnit];
+      const result = convertFunc(value);
+      setConvertedValue(result.toFixed(4));
+    } else {
+      const fromConversions = conversions[fromUnit as keyof typeof conversions] as any;
+      const toMultiplier = fromConversions[toUnit];
+      const result = value * toMultiplier;
+      setConvertedValue(result.toFixed(6));
+    }
+  };
+
+  useEffect(() => {
+    convertUnits();
+  }, [inputValue, fromUnit, toUnit, unitCategory]);
+
+  // Formula Library Data
+  const formulaLibrary = {
+    mathematics: [
+      { name: "Quadratic Formula", formula: "x = (-b ± √(b² - 4ac)) / 2a", description: "Solves quadratic equations ax² + bx + c = 0" },
+      { name: "Pythagorean Theorem", formula: "a² + b² = c²", description: "Relationship between sides of a right triangle" },
+      { name: "Area of Circle", formula: "A = πr²", description: "Area of a circle with radius r" },
+      { name: "Distance Formula", formula: "d = √((x₂-x₁)² + (y₂-y₁)²)", description: "Distance between two points in 2D space" }
+    ],
+    physics: [
+      { name: "Newton's Second Law", formula: "F = ma", description: "Force equals mass times acceleration" },
+      { name: "Kinetic Energy", formula: "KE = ½mv²", description: "Energy of motion" },
+      { name: "Potential Energy", formula: "PE = mgh", description: "Gravitational potential energy" },
+      { name: "Ohm's Law", formula: "V = IR", description: "Relationship between voltage, current, and resistance" }
+    ],
+    chemistry: [
+      { name: "Ideal Gas Law", formula: "PV = nRT", description: "Relationship between pressure, volume, temperature, and amount of gas" },
+      { name: "pH Formula", formula: "pH = -log[H⁺]", description: "Measure of acidity/basicity" },
+      { name: "Molarity", formula: "M = n/V", description: "Concentration of a solution" },
+      { name: "Boyle's Law", formula: "P₁V₁ = P₂V₂", description: "Pressure-volume relationship at constant temperature" }
+    ]
+  };
+
+  const filteredFormulas = formulaLibrary[formulaCategory as keyof typeof formulaLibrary].filter(formula =>
+    formula.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    formula.formula.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    formula.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Note Taking Functions
+  const saveNote = () => {
+    if (!currentNote.title.trim() && !currentNote.content.trim()) return;
+
+    if (editingNote) {
+      setNotes(notes.map(note => 
+        note.id === editingNote 
+          ? { ...currentNote, id: editingNote, date: new Date().toISOString() }
+          : note
+      ));
+      setEditingNote(null);
+    } else {
+      const newNote = {
+        ...currentNote,
+        id: Date.now(),
+        date: new Date().toISOString()
+      };
+      setNotes([...notes, newNote]);
+    }
+
+    setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
+  };
+
+  const editNote = (note: any) => {
+    setCurrentNote(note);
+    setEditingNote(note.id);
+  };
+
+  const deleteNote = (id: number) => {
+    setNotes(notes.filter(note => note.id !== id));
+    if (editingNote === id) {
+      setEditingNote(null);
+      setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
+    }
+  };
+
+  // Study Timer Functions
+  const startTimer = () => {
+    setIsTimerRunning(true);
+  };
+
+  const pauseTimer = () => {
+    setIsTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setIsTimerRunning(false);
+    switch (timerMode) {
+      case 'pomodoro':
+        setTimeLeft(25 * 60);
+        break;
+      case 'short-break':
+        setTimeLeft(5 * 60);
+        break;
+      case 'long-break':
+        setTimeLeft(15 * 60);
+        break;
+      case 'custom':
+        setTimeLeft(customTime * 60);
+        break;
+    }
+  };
+
+  const switchTimerMode = (mode: string) => {
+    setTimerMode(mode);
+    setIsTimerRunning(false);
+    switch (mode) {
+      case 'pomodoro':
+        setTimeLeft(25 * 60);
+        break;
+      case 'short-break':
+        setTimeLeft(5 * 60);
+        break;
+      case 'long-break':
+        setTimeLeft(15 * 60);
+        break;
+      case 'custom':
+        setTimeLeft(customTime * 60);
+        break;
+    }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <>
+      {/* Main Study Tools Section */}
+      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="text-center mb-12 sm:mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-4">
+              <Brain className="w-4 h-4" />
+              Interactive Study Tools
+            </div>
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">
+              Advanced Study Tools
+              <span className="block text-2xl sm:text-3xl lg:text-4xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                for Academic Success
+              </span>
+            </h2>
+            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
+              Comprehensive collection of educational tools designed to enhance your learning experience with interactive calculators, 
+              reference materials, and productivity features.
+            </p>
+          </div>
+
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {stats.totalStudents.toLocaleString()}+
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Students</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {stats.passedStudents.toLocaleString()}+
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Passed</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                  <Clock className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {stats.totalStudyHours.toLocaleString()}+
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Study Hours</div>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                  <Star className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    {stats.averageScore.toFixed(1)}%
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">Avg Score</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Tools Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+            {studyTools.map((tool, index) => (
+              <div
+                key={index}
+                onClick={() => handleFeatureClick(tool.title)}
+                className="group bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer touch-manipulation"
+              >
+                <div className="mb-6">
+                  <div className={`w-16 h-16 bg-gradient-to-r ${tool.gradient} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <tool.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">
+                      {tool.title}
+                    </h3>
+                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
+                      {tool.category}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
+                    {tool.description}
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {tool.features?.map((feature, idx) => (
+                      <span key={idx} className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md">
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
+                  <span className="text-sm">Open Tool</span>
+                  <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* All Modal Components Below */}
+
       {/* Coming Soon Modal */}
       {showComingSoon && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1245,6 +1631,534 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
+      {/* Unit Converter Modal */}
+      {showUnitConverter && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Unit Converter
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Convert between different measurement units
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowUnitConverter(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Category Selection */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Unit Category</h4>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                  {[
+                    { key: 'length', label: 'Length', icon: Ruler },
+                    { key: 'weight', label: 'Weight', icon: Weight },
+                    { key: 'temperature', label: 'Temperature', icon: Thermometer },
+                    { key: 'volume', label: 'Volume', icon: Volume }
+                  ].map(category => (
+                    <button
+                      key={category.key}
+                      onClick={() => {
+                        setUnitCategory(category.key);
+                        // Reset units when category changes
+                        if (category.key === 'length') {
+                          setFromUnit('meter');
+                          setToUnit('feet');
+                        } else if (category.key === 'weight') {
+                          setFromUnit('kilogram');
+                          setToUnit('pound');
+                        } else if (category.key === 'temperature') {
+                          setFromUnit('celsius');
+                          setToUnit('fahrenheit');
+                        } else if (category.key === 'volume') {
+                          setFromUnit('liter');
+                          setToUnit('gallon');
+                        }
+                      }}
+                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                        unitCategory === category.key
+                          ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
+                    >
+                      <category.icon className="w-4 h-4" />
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conversion Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* From Unit */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    From
+                  </label>
+                  <select
+                    value={fromUnit}
+                    onChange={(e) => setFromUnit(e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3 touch-manipulation"
+                  >
+                    {Object.keys(unitConversions[unitCategory as keyof typeof unitConversions]).map(unit => (
+                      <option key={unit} value={unit} className="capitalize">
+                        {unit.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    type="number"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Enter value"
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent touch-manipulation"
+                  />
+                </div>
+
+                {/* To Unit */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    To
+                  </label>
+                  <select
+                    value={toUnit}
+                    onChange={(e) => setToUnit(e.target.value)}
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3 touch-manipulation"
+                  >
+                    {Object.keys(unitConversions[unitCategory as keyof typeof unitConversions]).map(unit => (
+                      <option key={unit} value={unit} className="capitalize">
+                        {unit.replace(/([A-Z])/g, ' $1').toLowerCase()}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-lg">
+                    {convertedValue || '0'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Convert Buttons */}
+              <div className="mt-6 flex flex-wrap gap-2">
+                {['1', '10', '100', '1000'].map(value => (
+                  <button
+                    key={value}
+                    onClick={() => setInputValue(value)}
+                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors duration-200 touch-manipulation"
+                  >
+                    {value}
+                  </button>
+                ))}
+              </div>
+
+              <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                <p className="text-xs text-purple-600 dark:text-purple-400 text-center">
+                  🔄 Convert between different units with high precision calculations
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Formula Library Modal */}
+      {showFormulaLibrary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
+                    <BookOpen className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Formula Library
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Comprehensive collection of formulas
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowFormulaLibrary(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Category and Search */}
+              <div className="mb-6 space-y-4">
+                {/* Category Selection */}
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Subject</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { key: 'mathematics', label: 'Mathematics', icon: Calculator },
+                      { key: 'physics', label: 'Physics', icon: Activity },
+                      { key: 'chemistry', label: 'Chemistry', icon: FlaskConical }
+                    ].map(category => (
+                      <button
+                        key={category.key}
+                        onClick={() => setFormulaCategory(category.key)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                          formulaCategory === category.key
+                            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
+                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                      >
+                        <category.icon className="w-4 h-4" />
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search formulas..."
+                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-transparent touch-manipulation"
+                  />
+                </div>
+              </div>
+
+              {/* Formulas Grid */}
+              <div className="space-y-4">
+                {filteredFormulas.map((formula, index) => (
+                  <div key={index} className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl p-4 sm:p-6 border border-cyan-200 dark:border-cyan-700">
+                    <div className="mb-3">
+                      <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+                        {formula.name}
+                      </h4>
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-cyan-200 dark:border-cyan-600">
+                        <div className="text-xl sm:text-2xl font-mono text-cyan-700 dark:text-cyan-300 text-center">
+                          {formula.formula}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {formula.description}
+                    </p>
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        onClick={() => navigator.clipboard?.writeText(formula.formula)}
+                        className="flex items-center gap-2 px-3 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg hover:bg-cyan-200 dark:hover:bg-cyan-900/50 transition-colors duration-200 touch-manipulation"
+                      >
+                        <Copy className="w-3 h-3" />
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
+                <p className="text-xs text-cyan-600 dark:text-cyan-400 text-center">
+                  📚 Searchable formula library with explanations for mathematics, physics, and chemistry
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Note Taking Modal */}
+      {showNoteTaking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
+                    <FileText className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Smart Notes
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Advanced note-taking with flashcards
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowNoteTaking(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Note Editor */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                      {editingNote ? 'Edit Note' : 'Create Note'}
+                    </h4>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={saveNote}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 touch-manipulation"
+                      >
+                        <Save className="w-4 h-4" />
+                        Save
+                      </button>
+                      {editingNote && (
+                        <button
+                          onClick={() => {
+                            setEditingNote(null);
+                            setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
+                          }}
+                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 touch-manipulation"
+                        >
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <input
+                      type="text"
+                      value={currentNote.title}
+                      onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
+                      placeholder="Note title..."
+                      className="w-full px-4 py-3 text-xl font-semibold border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent touch-manipulation"
+                    />
+
+                    <select
+                      value={currentNote.category}
+                      onChange={(e) => setCurrentNote({ ...currentNote, category: e.target.value })}
+                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent touch-manipulation"
+                    >
+                      <option value="General">General</option>
+                      <option value="Mathematics">Mathematics</option>
+                      <option value="Science">Science</option>
+                      <option value="History">History</option>
+                      <option value="Literature">Literature</option>
+                    </select>
+
+                    <textarea
+                      value={currentNote.content}
+                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
+                      placeholder="Write your note here..."
+                      rows={15}
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none touch-manipulation"
+                    />
+                  </div>
+                </div>
+
+                {/* Notes List */}
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">My Notes</h4>
+                  
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {notes.map(note => (
+                      <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                              {note.title || 'Untitled'}
+                            </h5>
+                            <span className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
+                              {note.category}
+                            </span>
+                          </div>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => editNote(note)}
+                              className="p-1 text-gray-500 hover:text-emerald-600 transition-colors duration-200 touch-manipulation"
+                            >
+                              <Edit3 className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => deleteNote(note.id)}
+                              className="p-1 text-gray-500 hover:text-red-600 transition-colors duration-200 touch-manipulation"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                          {note.content}
+                        </p>
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                          {new Date(note.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 text-center">
+                  📝 Create, organize, and manage your study notes with categories and search functionality
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Study Timer Modal */}
+      {showStudyTimer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                    <Timer className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      Study Timer
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
+                      {timerMode.replace('-', ' ')} Mode
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowStudyTimer(false)}
+                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                >
+                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </button>
+              </div>
+
+              {/* Timer Display */}
+              <div className="text-center mb-8">
+                <div className="w-48 h-48 mx-auto bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-full flex items-center justify-center border-8 border-amber-200 dark:border-amber-700 mb-6">
+                  <div className="text-4xl sm:text-5xl font-mono font-bold text-amber-700 dark:text-amber-300">
+                    {formatTime(timeLeft)}
+                  </div>
+                </div>
+
+                {/* Timer Controls */}
+                <div className="flex items-center justify-center gap-4 mb-6">
+                  <button
+                    onClick={isTimerRunning ? pauseTimer : startTimer}
+                    className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-110 touch-manipulation"
+                  >
+                    {isTimerRunning ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+                  </button>
+                  <button
+                    onClick={resetTimer}
+                    className="flex items-center justify-center w-12 h-12 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 touch-manipulation"
+                  >
+                    <RotateCw className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Session Counter */}
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 mb-6">
+                  <div className="flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    <span className="text-amber-700 dark:text-amber-300 font-medium">
+                      Completed Sessions: {timerSessions}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Timer Mode Selection */}
+              <div className="mb-6">
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Timer Mode</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => switchTimerMode('pomodoro')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                      timerMode === 'pomodoro'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <Target className="w-4 h-4" />
+                    Pomodoro (25m)
+                  </button>
+                  <button
+                    onClick={() => switchTimerMode('short-break')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                      timerMode === 'short-break'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <Clock className="w-4 h-4" />
+                    Short Break (5m)
+                  </button>
+                  <button
+                    onClick={() => switchTimerMode('long-break')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                      timerMode === 'long-break'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <SkipForward className="w-4 h-4" />
+                    Long Break (15m)
+                  </button>
+                  <button
+                    onClick={() => switchTimerMode('custom')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
+                      timerMode === 'custom'
+                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Custom
+                  </button>
+                </div>
+              </div>
+
+              {/* Custom Time Input */}
+              {timerMode === 'custom' && (
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Custom Time (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    value={customTime}
+                    onChange={(e) => setCustomTime(parseInt(e.target.value) || 1)}
+                    min="1"
+                    max="120"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent touch-manipulation"
+                  />
+                </div>
+              )}
+
+              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
+                  ⏰ Use the Pomodoro Technique to boost focus and productivity with timed study sessions
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Compact Modern Footer */}
       <footer className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white relative overflow-hidden">
         {/* Background Pattern */}
@@ -1335,8 +2249,6 @@ export const Footer: React.FC = () => {
                 >
                   Vinay Kumar
                 </a>
-                <span className="text-sm text-gray-400">&</span>
-                <span className="font-semibold text-blue-400">Ayush Mishra</span>
               </div>
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>Powered by</span>
