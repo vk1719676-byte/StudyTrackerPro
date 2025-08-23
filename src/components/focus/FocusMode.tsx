@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, BookOpen, Trophy, Flame, Coffee, Brain, Lightbulb, Music, Volume2, VolumeX, SkipForward, SkipBack, Radio, Settings, PictureInPicture, Monitor, Eye } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -100,11 +100,17 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
   const [showCustomTimer, setShowCustomTimer] = useState(false);
 
-  // Background timer states
+  // Enhanced background timer states
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [backgroundMode, setBackgroundMode] = useState(false);
   const [originalTitle, setOriginalTitle] = useState('');
   const [lastNotificationTime, setLastNotificationTime] = useState(0);
+  
+  // Picture-in-Picture states
+  const [isPipSupported, setIsPipSupported] = useState(false);
+  const [isPipActive, setIsPipActive] = useState(false);
+  const [pipMode, setPipMode] = useState<'auto' | 'manual' | 'off'>('auto');
+  const [alwaysOnTop, setAlwaysOnTop] = useState(true);
 
   // Music player state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -113,12 +119,170 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [isMuted, setIsMuted] = useState(false);
   const [showMusicPlayer, setShowMusicPlayer] = useState(false);
 
-  // Fixed: Use number instead of NodeJS.Timeout for better compatibility
+  // Refs
   const intervalRef = useRef<number>();
   const backgroundIntervalRef = useRef<number>();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const pipVideoRef = useRef<HTMLVideoElement>(null);
+  const pipCanvasRef = useRef<HTMLCanvasElement>(null);
+  const pipStreamRef = useRef<MediaStream | null>(null);
 
   const targetTime = pomodoroSettings[mode];
+
+  // Check Picture-in-Picture support
+  useEffect(() => {
+    setIsPipSupported(
+      'pictureInPictureEnabled' in document && 
+      document.pictureInPictureEnabled
+    );
+  }, []);
+
+  // Picture-in-Picture functions
+  const createPipCanvas = () => {
+    const canvas = pipCanvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Set canvas size
+    canvas.width = 320;
+    canvas.height = 180;
+
+    // Clear canvas
+    ctx.fillStyle = mode === 'focus' || mode === 'custom' ? '#1e40af' : '#059669';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw timer background
+    ctx.fillStyle = 'white';
+    ctx.fillRect(10, 10, canvas.width - 20, canvas.height - 20);
+
+    // Draw progress circle
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 50;
+    const progress = getProgress() / 100;
+
+    // Background circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 8;
+    ctx.stroke();
+
+    // Progress circle
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, -Math.PI / 2, (-Math.PI / 2) + (2 * Math.PI * progress));
+    ctx.strokeStyle = mode === 'focus' || mode === 'custom' ? '#3b82f6' : '#10b981';
+    ctx.lineWidth = 8;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Draw time text
+    ctx.fillStyle = '#111827';
+    ctx.font = 'bold 24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(formatTime(time), centerX, centerY + 5);
+
+    // Draw remaining time
+    ctx.fillStyle = '#6b7280';
+    ctx.font = '14px Arial';
+    ctx.fillText(`${formatTime(Math.max(0, targetTime * 60 - time))} left`, centerX, centerY + 25);
+
+    // Draw mode text
+    ctx.fillStyle = mode === 'focus' || mode === 'custom' ? '#1e40af' : '#059669';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(
+      mode === 'focus' ? 'Focus Time' : 
+      mode === 'custom' ? 'Custom Timer' : 
+      mode === 'shortBreak' ? 'Short Break' : 'Long Break',
+      centerX, 30
+    );
+
+    // Draw subject if available
+    if (currentSubject && (mode === 'focus' || mode === 'custom')) {
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px Arial';
+      ctx.fillText(currentSubject, centerX, canvas.height - 20);
+    }
+
+    // Draw status indicator
+    const statusText = isRunning ? '● Running' : '⏸ Paused';
+    ctx.fillStyle = isRunning ? '#10b981' : '#ef4444';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(statusText, centerX, canvas.height - 40);
+  };
+
+  const startPictureInPicture = async () => {
+    if (!isPipSupported || !pipVideoRef.current || !pipCanvasRef.current) return;
+
+    try {
+      // Create canvas stream
+      createPipCanvas();
+      const stream = pipCanvasRef.current.captureStream(1); // 1 FPS
+      pipStreamRef.current = stream;
+
+      // Set video source to canvas stream
+      pipVideoRef.current.srcObject = stream;
+      pipVideoRef.current.muted = true;
+      await pipVideoRef.current.play();
+
+      // Enter Picture-in-Picture
+      await pipVideoRef.current.requestPictureInPicture();
+      setIsPipActive(true);
+
+      // Update canvas periodically
+      const updateCanvas = () => {
+        if (isPipActive) {
+          createPipCanvas();
+          requestAnimationFrame(updateCanvas);
+        }
+      };
+      updateCanvas();
+
+    } catch (error) {
+      console.error('Failed to start Picture-in-Picture:', error);
+    }
+  };
+
+  const stopPictureInPicture = async () => {
+    try {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      }
+      if (pipStreamRef.current) {
+        pipStreamRef.current.getTracks().forEach(track => track.stop());
+        pipStreamRef.current = null;
+      }
+      setIsPipActive(false);
+    } catch (error) {
+      console.error('Failed to stop Picture-in-Picture:', error);
+    }
+  };
+
+  // Handle PiP events
+  useEffect(() => {
+    const video = pipVideoRef.current;
+    if (!video) return;
+
+    const handleEnterPip = () => setIsPipActive(true);
+    const handleLeavePip = () => setIsPipActive(false);
+
+    video.addEventListener('enterpictureinpicture', handleEnterPip);
+    video.addEventListener('leavepictureinpicture', handleLeavePip);
+
+    return () => {
+      video.removeEventListener('enterpictureinpicture', handleEnterPip);
+      video.removeEventListener('leavepictureinpicture', handleLeavePip);
+    };
+  }, []);
+
+  // Auto-start PiP when page becomes hidden
+  useEffect(() => {
+    if (pipMode === 'auto' && backgroundMode && isRunning && isPipSupported && !isPipActive) {
+      startPictureInPicture();
+    }
+  }, [backgroundMode, isRunning, pipMode, isPipSupported, isPipActive]);
 
   // Background timer system
   const saveTimerState = (timerState: TimerState) => {
@@ -208,7 +372,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       // Send notification about background mode
       sendBackgroundNotification(
         '🕐 Timer Running in Background',
-        `${mode === 'focus' ? 'Focus session' : 'Break time'} continues in background. Check tab title for updates.`
+        `${mode === 'focus' ? 'Focus session' : 'Break time'} continues in background. ${isPipSupported ? 'Picture-in-Picture activated!' : 'Check tab title for updates.'}`
       );
     } else if (isVisible && backgroundMode) {
       // Page became visible again
@@ -246,6 +410,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       setBackgroundMode(true);
     }
 
+    // Load PiP preferences
+    const savedPrefs = localStorage.getItem('focusPipPreferences');
+    if (savedPrefs) {
+      const prefs = JSON.parse(savedPrefs);
+      setPipMode(prefs.pipMode || 'auto');
+      setAlwaysOnTop(prefs.alwaysOnTop ?? true);
+    }
+
     // Listen for visibility changes
     document.addEventListener('visibilitychange', handlePageVisibilityChange);
 
@@ -255,8 +427,17 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       if (originalTitle) {
         document.title = originalTitle;
       }
+      if (pipStreamRef.current) {
+        pipStreamRef.current.getTracks().forEach(track => track.stop());
+      }
     };
   }, []);
+
+  // Save PiP preferences
+  useEffect(() => {
+    const prefs = { pipMode, alwaysOnTop };
+    localStorage.setItem('focusPipPreferences', JSON.stringify(prefs));
+  }, [pipMode, alwaysOnTop]);
 
   // Background notification system
   useEffect(() => {
@@ -368,6 +549,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
       // Clear timer state when stopped
       if (!isRunning && time === 0) {
         clearTimerState();
+        if (isPipActive) {
+          stopPictureInPicture();
+        }
       }
     }
 
@@ -419,6 +603,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setTime(0);
     clearTimerState();
     saveData();
+
+    // Stop PiP after session completion
+    if (isPipActive) {
+      stopPictureInPicture();
+    }
   };
 
   // Music player functions
@@ -489,12 +678,18 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setTime(0);
     setBackgroundMode(false);
     clearTimerState();
+    if (isPipActive) {
+      stopPictureInPicture();
+    }
   };
 
   const resetSession = () => {
     setTime(0);
     setIsRunning(false);
     clearTimerState();
+    if (isPipActive) {
+      stopPictureInPicture();
+    }
   };
 
   const switchMode = (newMode: TimerMode) => {
@@ -579,29 +774,152 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     }
   ];
 
-  // Background Status Indicator
+  // Enhanced Background Status Indicator
   const BackgroundStatusIndicator = () => {
-    if (!backgroundMode && !isRunning) return null;
+    if (!backgroundMode && !isRunning && !isPipActive) return null;
 
     return (
       <div className="fixed top-4 left-4 z-50">
-        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-lg border-2 p-3 min-w-[200px] ${
+        <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 p-3 min-w-[280px] ${
+          isPipActive ? 'border-purple-400' :
           backgroundMode ? 'border-orange-400' : 'border-green-400'
         }`}>
           <div className="flex items-center gap-2 mb-2">
             <div className={`w-3 h-3 rounded-full animate-pulse ${
+              isPipActive ? 'bg-purple-400' :
               backgroundMode ? 'bg-orange-400' : 'bg-green-400'
             }`} />
             <span className="text-sm font-medium">
-              {backgroundMode ? '🌐 Running in Background' : '🎯 Timer Active'}
+              {isPipActive ? '🖼️ Picture-in-Picture Active' :
+               backgroundMode ? '🌐 Running in Background' : '🎯 Timer Active'}
             </span>
           </div>
           
-          {backgroundMode && (
-            <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-              <div>• Timer continues when tab is closed</div>
-              <div>• Check browser tab title for updates</div>
-              <div>• You'll get notifications at intervals</div>
+          <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+            {isPipActive ? (
+              <>
+                <div>• Timer displayed in floating window</div>
+                <div>• Visible over other applications</div>
+                <div>• Timer updates in real-time</div>
+              </>
+            ) : backgroundMode ? (
+              <>
+                <div>• Timer continues when tab is closed</div>
+                <div>• Check browser tab title for updates</div>
+                <div>• You'll get notifications at intervals</div>
+              </>
+            ) : (
+              <div>• Timer is actively running</div>
+            )}
+          </div>
+          
+          {isPipSupported && backgroundMode && !isPipActive && (
+            <button
+              onClick={startPictureInPicture}
+              className="mt-2 w-full px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded text-xs hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors"
+            >
+              Enable Picture-in-Picture
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Enhanced Floating Timer Component
+  const FloatingTimer = () => {
+    if (!isMinimized || (!isRunning && time === 0)) return null;
+
+    return (
+      <div className={`fixed top-4 right-4 z-50 ${alwaysOnTop ? 'z-[9999]' : ''}`}>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl border-2 border-gray-200 dark:border-gray-600 p-4 min-w-[280px] max-w-[320px] backdrop-blur-sm bg-opacity-95">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <div className={`p-2 rounded-lg ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
+                {(mode === 'focus' || mode === 'custom') ? (
+                  <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                ) : (
+                  <Coffee className="w-5 h-5 text-green-600 dark:text-green-400" />
+                )}
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  {mode === 'focus' ? 'Focus Time' : mode === 'custom' ? 'Custom Timer' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+                </span>
+                {currentSubject && (mode === 'focus' || mode === 'custom') && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[140px]">
+                    {currentSubject}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex gap-1">
+              {isPipSupported && !isPipActive && (
+                <button
+                  onClick={startPictureInPicture}
+                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  title="Picture-in-Picture"
+                >
+                  <PictureInPicture className="w-4 h-4 text-purple-500" />
+                </button>
+              )}
+              <button
+                onClick={handleMaximize}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title="Maximize"
+              >
+                <Maximize2 className="w-4 h-4 text-gray-500" />
+              </button>
+              <button
+                onClick={handleFloatingStop}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                title="Stop Timer"
+              >
+                <Square className="w-4 h-4 text-red-500" />
+              </button>
+            </div>
+          </div>
+
+          <div className="text-center mb-3">
+            <div className="text-2xl font-mono font-bold text-gray-900 dark:text-gray-100">
+              {formatTime(time)}
+            </div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              {formatTime(Math.max(0, targetTime * 60 - time))} remaining
+            </div>
+          </div>
+
+          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 mb-3">
+            <div
+              className={`h-3 rounded-full transition-all duration-1000 ${
+                (mode === 'focus' || mode === 'custom') ? 'bg-gradient-to-r from-blue-500 to-blue-600' : 'bg-gradient-to-r from-green-500 to-green-600'
+              }`}
+              style={{ width: `${Math.min(getProgress(), 100)}%` }}
+            />
+          </div>
+
+          <div className="flex items-center justify-between text-xs">
+            <div className={`flex items-center gap-1 font-medium ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+              {isRunning ? 'Running' : 'Paused'}
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
+                <Flame className="w-3 h-3" />
+                <span>{currentStreak}</span>
+              </div>
+              <div className="text-gray-500">
+                {getTodaysPomodoros()}/{dailyGoal}
+              </div>
+            </div>
+          </div>
+
+          {isPipActive && (
+            <div className="mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded">
+              <div className="flex items-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+                <PictureInPicture className="w-3 h-3" />
+                Picture-in-Picture Active
+              </div>
             </div>
           )}
         </div>
@@ -609,75 +927,68 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     );
   };
 
-  // Floating Timer Component
-  const FloatingTimer = () => {
-    if (!isMinimized || (!isRunning && time === 0)) return null;
-
-    return (
-      <div className="fixed top-4 right-4 z-50">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 min-w-[240px]">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className={`p-1 rounded ${(mode === 'focus' || mode === 'custom') ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
-                {(mode === 'focus' || mode === 'custom') ? (
-                  <Target className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                ) : (
-                  <Coffee className="w-4 h-4 text-green-600 dark:text-green-400" />
-                )}
-              </div>
-              <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                {mode === 'focus' ? 'Focus' : mode === 'custom' ? 'Custom' : mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
-              </span>
-            </div>
-            <div className="flex gap-1">
+  // Picture-in-Picture Settings Component
+  const PipSettings = () => (
+    <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <PictureInPicture className="w-5 h-5 text-purple-600" />
+        <span className="font-medium text-purple-800 dark:text-purple-400">
+          Picture-in-Picture Settings
+        </span>
+      </div>
+      
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            PiP Mode
+          </label>
+          <div className="flex gap-2">
+            {[
+              { value: 'auto', label: 'Auto', description: 'Start automatically when tab is hidden' },
+              { value: 'manual', label: 'Manual', description: 'Start only when requested' },
+              { value: 'off', label: 'Off', description: 'Disable Picture-in-Picture' }
+            ].map((option) => (
               <button
-                onClick={handleMaximize}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Maximize"
+                key={option.value}
+                onClick={() => setPipMode(option.value as any)}
+                className={`px-3 py-2 text-xs rounded ${
+                  pipMode === option.value
+                    ? 'bg-purple-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
+                } transition-colors`}
+                title={option.description}
               >
-                <Maximize2 className="w-3 h-3 text-gray-500" />
+                {option.label}
               </button>
-              <button
-                onClick={handleFloatingStop}
-                className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
-                title="Stop Timer"
-              >
-                <Square className="w-3 h-3 text-red-500" />
-              </button>
-            </div>
-          </div>
-
-          <div className="text-center mb-2">
-            <div className="text-xl font-mono font-bold text-gray-900 dark:text-gray-100">
-              {formatTime(time)}
-            </div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">
-              / {targetTime}m {currentSubject && `• ${currentSubject}`}
-            </div>
-          </div>
-
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-3">
-            <div
-              className={`h-2 rounded-full transition-all duration-1000 ${
-                (mode === 'focus' || mode === 'custom') ? 'bg-blue-600 dark:bg-blue-400' : 'bg-green-600 dark:bg-green-400'
-              }`}
-              style={{ width: `${Math.min(getProgress(), 100)}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <div className={`font-medium ${isRunning ? 'text-green-600 dark:text-green-400' : 'text-gray-500'}`}>
-              {isRunning ? '● Active' : '⏸ Paused'}
-            </div>
-            <div className="flex items-center gap-1 text-orange-600 dark:text-orange-400">
-              <Flame className="w-3 h-3" />
-              <span>{currentStreak}</span>
-            </div>
+            ))}
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="alwaysOnTop"
+            checked={alwaysOnTop}
+            onChange={(e) => setAlwaysOnTop(e.target.checked)}
+            className="rounded"
+          />
+          <label htmlFor="alwaysOnTop" className="text-sm text-gray-700 dark:text-gray-300">
+            Try to stay above other windows (floating timer)
+          </label>
+        </div>
+
+        {isPipSupported ? (
+          <div className="text-xs text-green-600 dark:text-green-400">
+            ✅ Picture-in-Picture is supported in your browser
+          </div>
+        ) : (
+          <div className="text-xs text-orange-600 dark:text-orange-400">
+            ⚠️ Picture-in-Picture is not supported in your browser
+          </div>
+        )}
       </div>
-    );
-  };
+    </div>
+  );
 
   if (!isOpen && !isMinimized) return null;
 
@@ -685,6 +996,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     <>
       <BackgroundStatusIndicator />
       <FloatingTimer />
+
+      {/* Hidden Picture-in-Picture elements */}
+      <canvas ref={pipCanvasRef} style={{ display: 'none' }} />
+      <video ref={pipVideoRef} style={{ display: 'none' }} muted playsInline />
 
       {/* Hidden audio element */}
       <audio
@@ -716,41 +1031,95 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(mode === 'focus' || mode === 'custom') ? 'Time to concentrate and learn!' : 'Take a well-deserved break!'}
                     </p>
-                    {backgroundMode && (
-                      <div className="flex items-center gap-1 mt-1">
-                        <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
-                        <span className="text-xs text-orange-600 font-medium">
-                          Background Mode Active
-                        </span>
-                      </div>
-                    )}
+                    <div className="flex items-center gap-3 mt-1">
+                      {backgroundMode && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" />
+                          <span className="text-xs text-orange-600 font-medium">
+                            Background Mode
+                          </span>
+                        </div>
+                      )}
+                      {isPipActive && (
+                        <div className="flex items-center gap-1">
+                          <PictureInPicture className="w-3 h-3 text-purple-500" />
+                          <span className="text-xs text-purple-600 font-medium">
+                            Picture-in-Picture
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <Button
-                  onClick={handleMinimize}
-                  icon={Minimize2}
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-500 hover:text-gray-700"
-                />
+                <div className="flex gap-2">
+                  {isPipSupported && isRunning && !isPipActive && (
+                    <Button
+                      onClick={startPictureInPicture}
+                      icon={PictureInPicture}
+                      variant="ghost"
+                      size="sm"
+                      className="text-purple-500 hover:text-purple-700"
+                      title="Enable Picture-in-Picture"
+                    />
+                  )}
+                  <Button
+                    onClick={handleMinimize}
+                    icon={Minimize2}
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-500 hover:text-gray-700"
+                  />
+                </div>
               </div>
 
-              {/* Background Mode Information */}
-              {(isRunning || backgroundMode) && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" />
-                    <span className="font-medium text-blue-800 dark:text-blue-400 text-sm">
-                      Background Timer Active
+              {/* Enhanced Background Mode Information */}
+              {(isRunning || backgroundMode || isPipActive) && (
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-4 h-4 rounded-full animate-pulse ${
+                      isPipActive ? 'bg-purple-500' : 'bg-blue-500'
+                    }`} />
+                    <span className="font-semibold text-gray-800 dark:text-gray-200 text-sm">
+                      {isPipActive ? '🖼️ Picture-in-Picture Active' : '🌐 Advanced Background Timer'}
                     </span>
                   </div>
-                  <div className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
-                    <div>✅ Timer continues when you close this tab or app</div>
-                    <div>🏷️ Check your browser tab title to see remaining time</div>
-                    <div>🔔 You'll receive notifications at regular intervals</div>
-                    <div>💾 Your progress is automatically saved</div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-gray-300">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        {isPipActive ? (
+                          <>
+                            <Monitor className="w-4 h-4" />
+                            <span>Floating window over other apps</span>
+                          </>
+                        ) : (
+                          <>
+                            <Eye className="w-4 h-4" />
+                            <span>Continues when tab is closed</span>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        <span>Real-time progress updates</span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Target className="w-4 h-4" />
+                        <span>Browser tab title shows time</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        <span>Smart notifications & alerts</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
+
+              {/* Picture-in-Picture Settings */}
+              {isPipSupported && (
+                <PipSettings />
               )}
 
               {/* Enhanced Mode Switcher - Fixed overlap issues */}
