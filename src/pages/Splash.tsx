@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, BookOpen, Clock, Target, TrendingUp, Users, Trophy, Star, Zap, Brain, Award, CheckCircle, Sparkles } from 'lucide-react';
+import { ArrowRight, BookOpen, Clock, Target, TrendingUp, Users, Trophy, Star, Zap, Brain, CheckCircle, Sparkles } from 'lucide-react';
 
-function App() {
+interface SplashProps {
+  onGetStarted: () => void;
+}
+
+export const Splash: React.FC<SplashProps> = ({ onGetStarted }) => {
   const [mounted, setMounted] = useState(false);
   const [currentFeature, setCurrentFeature] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -61,10 +65,6 @@ function App() {
       window.removeEventListener('mousemove', handleMouseMove);
     };
   }, []);
-
-  const handleGetStarted = () => {
-    console.log('Get Started clicked!');
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden relative">
@@ -238,7 +238,7 @@ function App() {
         >
           <div className="group perspective-1000">
             <button
-              onClick={handleGetStarted}
+              onClick={onGetStarted}
               className="relative bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-semibold px-8 py-4 rounded-2xl shadow-2xl transform-gpu transition-all duration-300 hover:scale-105 hover:-translate-y-1 group-hover:shadow-purple-500/50"
               style={{
                 transformStyle: 'preserve-3d'
@@ -348,6 +348,4 @@ function App() {
       `}</style>
     </div>
   );
-}
-
-export default App;
+};
