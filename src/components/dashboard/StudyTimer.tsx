@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Plus } from 'lucide-react';
+import { Play, Pause, Square, Plus, Bell, BellOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -21,12 +21,68 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [manualDuration, setManualDuration] = useState('');
   const [efficiency, setEfficiency] = useState(5);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [isTabVisible, setIsTabVisible] = useState(true);
   
   const { user } = useAuth();
   const intervalRef = useRef<NodeJS.Timeout>();
+  const startTimeRef = useRef<number>(0);
+  const lastNotificationRef = useRef<number>(0);
 
+  // Initialize notifications and page visibility
   useEffect(() => {
-    if (isRunning) {
+    // Request notification permission
+    if ('Notification' in window) {
+      Notification.requestPermission().then(permission => {
+        setNotificationsEnabled(permission === 'granted');
+      });
+    }
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(console.error);
+    }
+
+    // Handle page visibility changes
+    const handleVisibilityChange = () => {
+      const visible = !document.hidden;
+      setIsTabVisible(visible);
+      
+      if (isRunning) {
+        if (!visible) {
+          // Tab hidden - store timer state and start background notifications
+          const currentTime = Date.now();
+          localStorage.setItem('timerState', JSON.stringify({
+            isRunning: true,
+            startTime: startTimeRef.current,
+            elapsed: time,
+            subject,
+            topic,
+            hiddenAt: currentTime
+          }));
+          startBackgroundNotifications();
+        } else {
+          // Tab visible - restore timer state
+          restoreTimerState();
+          stopBackgroundNotifications();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Restore timer state on component mount
+    restoreTimerState();
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      stopBackgroundNotifications();
+    };
+  }, []);
+
+  // Main timer effect
+  useEffect(() => {
+    if (isRunning && isTabVisible) {
       intervalRef.current = setInterval(() => {
         setTime(prev => prev + 1);
       }, 1000);
@@ -41,7 +97,96 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
         clearInterval(intervalRef.current);
       }
     };
-  }, [isRunning]);
+  }, [isRunning, isTabVisible]);
+
+  const restoreTimerState = () => {
+    const savedState = localStorage.getItem('timerState');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        if (state.isRunning) {
+          const now = Date.now();
+          const backgroundTime = Math.floor((now - state.hiddenAt) / 1000);
+          const totalTime = state.elapsed + backgroundTime;
+          
+          setTime(totalTime);
+          setIsRunning(true);
+          setSubject(state.subject);
+          setTopic(state.topic);
+          startTimeRef.current = state.startTime;
+
+          // Show notification about time spent in background
+          if (backgroundTime > 30 && notificationsEnabled) {
+            showNotification(
+              'Timer Continued in Background',
+              `Added ${formatTime(backgroundTime)} while tab was closed. Total: ${formatTime(totalTime)}`
+            );
+          }
+        }
+        localStorage.removeItem('timerState');
+      } catch (error) {
+        console.error('Error restoring timer state:', error);
+      }
+    }
+  };
+
+  const startBackgroundNotifications = () => {
+    if (!notificationsEnabled) return;
+
+    // Show initial notification
+    showNotification(
+      'Study Timer Running in Background',
+      `${subject} - ${topic} | Time: ${formatTime(time)}`
+    );
+
+    // Schedule periodic notifications every 5 minutes
+    const notificationInterval = setInterval(() => {
+      const now = Date.now();
+      const savedState = localStorage.getItem('timerState');
+      if (savedState) {
+        const state = JSON.parse(savedState);
+        const backgroundTime = Math.floor((now - state.hiddenAt) / 1000);
+        const totalTime = state.elapsed + backgroundTime;
+        
+        showNotification(
+          'Study Timer Update',
+          `${state.subject} - ${state.topic} | Time: ${formatTime(totalTime)}`
+        );
+      }
+    }, 5 * 60 * 1000); // 5 minutes
+
+    localStorage.setItem('notificationInterval', notificationInterval.toString());
+  };
+
+  const stopBackgroundNotifications = () => {
+    const intervalId = localStorage.getItem('notificationInterval');
+    if (intervalId) {
+      clearInterval(parseInt(intervalId));
+      localStorage.removeItem('notificationInterval');
+    }
+  };
+
+  const showNotification = (title: string, body: string) => {
+    if (notificationsEnabled && 'Notification' in window) {
+      const notification = new Notification(title, {
+        body,
+        icon: '/vite.svg',
+        badge: '/vite.svg',
+        tag: 'study-timer',
+        requireInteraction: false,
+        silent: false
+      });
+
+      // Auto-close after 5 seconds
+      setTimeout(() => notification.close(), 5000);
+
+      // Handle notification clicks
+      notification.onclick = () => {
+        window.focus();
+        notification.close();
+      };
+    }
+  };
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -50,12 +195,44 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const startTimer = () => setIsRunning(true);
-  const pauseTimer = () => setIsRunning(false);
+  const startTimer = () => {
+    setIsRunning(true);
+    startTimeRef.current = Date.now();
+    
+    if (notificationsEnabled) {
+      showNotification(
+        'Study Session Started',
+        `${subject} - ${topic}`
+      );
+    }
+  };
+
+  const pauseTimer = () => {
+    setIsRunning(false);
+    localStorage.removeItem('timerState');
+    stopBackgroundNotifications();
+    
+    if (notificationsEnabled) {
+      showNotification(
+        'Study Session Paused',
+        `Total time: ${formatTime(time)}`
+      );
+    }
+  };
   
   const stopTimer = async () => {
     setIsRunning(false);
+    localStorage.removeItem('timerState');
+    stopBackgroundNotifications();
+    
     if (time > 0 && user && subject && topic && selectedExam) {
+      if (notificationsEnabled) {
+        showNotification(
+          'Study Session Completed',
+          `${subject} - ${topic} | Duration: ${formatTime(time)}`
+        );
+      }
+      
       await saveSession(Math.floor(time / 60));
       setTime(0);
       resetForm();
@@ -98,17 +275,45 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
     setSelectedExam('');
     setManualDuration('');
     setEfficiency(5);
+    startTimeRef.current = 0;
+  };
+
+  const toggleNotifications = async () => {
+    if (!notificationsEnabled && 'Notification' in window) {
+      const permission = await Notification.requestPermission();
+      setNotificationsEnabled(permission === 'granted');
+    } else {
+      setNotificationsEnabled(false);
+    }
   };
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Study Timer</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Study Timer</h2>
+        <Button
+          onClick={toggleNotifications}
+          variant="ghost"
+          icon={notificationsEnabled ? Bell : BellOff}
+          className={`${notificationsEnabled ? 'text-green-600' : 'text-gray-400'}`}
+        >
+          {notificationsEnabled ? 'Notifications On' : 'Enable Notifications'}
+        </Button>
+      </div>
       
       <Card className="p-6 space-y-4" gradient>
         <div className="text-center">
           <div className="text-4xl font-mono font-bold text-purple-600 dark:text-purple-400 mb-4">
             {formatTime(time)}
           </div>
+          
+          {!isTabVisible && isRunning && (
+            <div className="mb-4 p-2 bg-yellow-100 dark:bg-yellow-800 rounded-lg">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                ⚠️ Timer continues running in background with notifications
+              </p>
+            </div>
+          )}
           
           <div className="flex justify-center gap-2 mb-4">
             {!isRunning ? (
@@ -226,6 +431,14 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
             </div>
           )}
         </div>
+
+        {notificationsEnabled && (
+          <div className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+            <p className="text-sm text-green-700 dark:text-green-300">
+              🔔 Background timer enabled! You'll receive notifications every 5 minutes when the tab is closed.
+            </p>
+          </div>
+        )}
       </Card>
     </div>
   );
