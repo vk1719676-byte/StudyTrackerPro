@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Timer, Thermometer, Ruler, Weight, Volume, Download, Upload, Save, Trash2, Edit3, Copy, Share2, Play, Pause, SkipForward, RotateCw, CheckCircle, AlertCircle, Info, Layers } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
 
-export const StudyToolsSection: React.FC = () => {
+export const Footer: React.FC = () => {
   const [stats, setStats] = useState({
     totalStudents: 12847,
     passedStudents: 9234,
@@ -19,10 +19,6 @@ export const StudyToolsSection: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
-  const [showUnitConverter, setShowUnitConverter] = useState(false);
-  const [showFormulaLibrary, setShowFormulaLibrary] = useState(false);
-  const [showNoteTaking, setShowNoteTaking] = useState(false);
-  const [showStudyTimer, setShowStudyTimer] = useState(false);
 
   // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -43,34 +39,6 @@ export const StudyToolsSection: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Unit Converter States
-  const [unitCategory, setUnitCategory] = useState('length');
-  const [fromUnit, setFromUnit] = useState('meter');
-  const [toUnit, setToUnit] = useState('feet');
-  const [inputValue, setInputValue] = useState('');
-  const [convertedValue, setConvertedValue] = useState('');
-
-  // Formula Library States
-  const [formulaCategory, setFormulaCategory] = useState('mathematics');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Note Taking States
-  const [notes, setNotes] = useState([
-    { id: 1, title: 'Sample Note', content: 'This is a sample note to get you started!', category: 'General', date: new Date().toISOString() }
-  ]);
-  const [currentNote, setCurrentNote] = useState({ id: 0, title: '', content: '', category: 'General' });
-  const [editingNote, setEditingNote] = useState<number | null>(null);
-  const [flashcards, setFlashcards] = useState([
-    { id: 1, front: 'What is the derivative of x²?', back: '2x', category: 'Calculus' }
-  ]);
-
-  // Study Timer States
-  const [timerMode, setTimerMode] = useState('pomodoro'); // pomodoro, short-break, long-break, custom
-  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes in seconds
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [timerSessions, setTimerSessions] = useState(0);
-  const [customTime, setCustomTime] = useState(25);
-
   // Simulate real-time stats updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -85,53 +53,25 @@ export const StudyToolsSection: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Timer Effect
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isTimerRunning && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(time => time - 1);
-      }, 1000);
-    } else if (timeLeft === 0) {
-      setIsTimerRunning(false);
-      // Timer finished logic here
-      if (timerMode === 'pomodoro') {
-        setTimerSessions(prev => prev + 1);
-      }
-    }
-    return () => clearInterval(interval);
-  }, [isTimerRunning, timeLeft, timerMode]);
-
   const handleFeatureClick = (featureName: string) => {
-    switch (featureName) {
-      case 'Advanced Calculator':
-        setShowCalculator(true);
-        break;
-      case 'Periodic Table':
-        setShowPeriodicTable(true);
-        break;
-      case 'Grade Calculator':
-        setShowGradeCalculator(true);
-        break;
-      case 'Math Solver':
-        setShowMathSolver(true);
-        break;
-      case 'Unit Converter':
-        setShowUnitConverter(true);
-        break;
-      case 'Formula Library':
-        setShowFormulaLibrary(true);
-        break;
-      case 'Smart Notes':
-        setShowNoteTaking(true);
-        break;
-      case 'Study Timer':
-        setShowStudyTimer(true);
-        break;
-      default:
-        setSelectedFeature(featureName);
-        setShowComingSoon(true);
+    if (featureName === 'Advanced Calculator') {
+      setShowCalculator(true);
+      return;
     }
+    if (featureName === 'Periodic Table') {
+      setShowPeriodicTable(true);
+      return;
+    }
+    if (featureName === 'Grade Calculator') {
+      setShowGradeCalculator(true);
+      return;
+    }
+    if (featureName === 'Math Solver') {
+      setShowMathSolver(true);
+      return;
+    }
+    setSelectedFeature(featureName);
+    setShowComingSoon(true);
   };
 
   const socialLinks = [
@@ -165,70 +105,67 @@ export const StudyToolsSection: React.FC = () => {
     }
   ];
 
+  const quickLinks = [
+    { name: 'Privacy Policy', href: '/privacy-policy', icon: Shield },
+    { name: 'Terms of Service', href: '/terms-of-service', icon: FileText },
+    { name: 'Help Center', href: '/help-center', icon: HelpCircle },
+    { name: 'Contact Us', href: '/contact-us', icon: MessageCircle },
+  ];
+
   const studyTools = [
     {
       icon: Calculator,
       title: "Advanced Calculator",
       description: "Scientific calculator with graphing capabilities, equation solver, and mathematical functions for all your study needs.",
       gradient: "from-blue-500 to-indigo-600",
-      category: "Math Tools",
-      features: ["Scientific Functions", "Graphing", "History", "Unit Conversion"]
+      category: "Math Tools"
     },
     {
       icon: FlaskConical,
       title: "Periodic Table",
       description: "Interactive periodic table with element details, electron configurations, and chemical properties.",
       gradient: "from-teal-500 to-green-600",
-      category: "Science",
-      features: ["Element Details", "Properties", "Electron Config", "Search"]
+      category: "Science"
     },
     {
       icon: GraduationCap,
       title: "Grade Calculator",
       description: "Calculate your current grades, required scores for target grades, and track academic performance.",
       gradient: "from-orange-500 to-red-500",
-      category: "Academic",
-      features: ["GPA Calculator", "Grade Tracker", "Progress Analytics", "Target Planning"]
+      category: "Academic"
     },
     {
       icon: Brain,
       title: "Math Solver",
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
-      category: "Math Tools",
-      features: ["Step-by-Step", "Multiple Types", "Graphing", "Explanations"]
+      category: "Math Tools"
+    }
+  ];
+
+  // Team Members Data
+  const teamMembers = [
+    {
+      name: "Vinay Kumar",
+      role: "Co-Owner & Developer Of Study Tracker Pro",
+      description: "Lead developer and visionary behind Study Tracker Pro, dedicated to creating innovative educational solutions.",
+      icon: Code,
+      gradient: "from-purple-500 to-indigo-600",
+      social: {
+        linkedin: "https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in",
+        github: "https://github.com/Vinayk2007"
+      }
     },
     {
-      icon: Zap,
-      title: "Unit Converter",
-      description: "Convert between different units for physics, chemistry, and engineering calculations.",
-      gradient: "from-purple-500 to-violet-600",
-      category: "Science",
-      features: ["Length", "Weight", "Temperature", "Energy"]
-    },
-    {
-      icon: BookOpen,
-      title: "Formula Library",
-      description: "Comprehensive collection of mathematical, physics, and chemistry formulas with explanations.",
-      gradient: "from-cyan-500 to-blue-600",
-      category: "Reference",
-      features: ["Math Formulas", "Physics", "Chemistry", "Search"]
-    },
-    {
-      icon: FileText,
-      title: "Smart Notes",
-      description: "Advanced note-taking with flashcards, organization tools, and study guides creation.",
+      name: "Ayush Mishra",
+      role: "Co-Owner of Study Tracker Pro & Owner Of TRMs",
+      description: "Strategic co-owner focused on business development and owner of TRMs, driving educational technology forward.",
+      icon: Award,
       gradient: "from-emerald-500 to-teal-600",
-      category: "Study Tools",
-      features: ["Rich Text", "Flashcards", "Organization", "Export"]
-    },
-    {
-      icon: Timer,
-      title: "Study Timer",
-      description: "Pomodoro technique timer with break reminders and productivity tracking.",
-      gradient: "from-amber-500 to-yellow-600",
-      category: "Productivity",
-      features: ["Pomodoro Timer", "Break Alerts", "Statistics", "Custom Sessions"]
+      social: {
+        linkedin: "#",
+        github: "#"
+      }
     }
   ];
 
@@ -668,298 +605,8 @@ export const StudyToolsSection: React.FC = () => {
     setMathSteps([]);
   };
 
-  // Unit Converter Functions
-  const unitConversions = {
-    length: {
-      meter: { meter: 1, feet: 3.28084, inch: 39.3701, centimeter: 100, kilometer: 0.001 },
-      feet: { meter: 0.3048, feet: 1, inch: 12, centimeter: 30.48, kilometer: 0.0003048 },
-      inch: { meter: 0.0254, feet: 0.0833333, inch: 1, centimeter: 2.54, kilometer: 0.0000254 },
-      centimeter: { meter: 0.01, feet: 0.0328084, inch: 0.393701, centimeter: 1, kilometer: 0.00001 },
-      kilometer: { meter: 1000, feet: 3280.84, inch: 39370.1, centimeter: 100000, kilometer: 1 }
-    },
-    weight: {
-      kilogram: { kilogram: 1, pound: 2.20462, gram: 1000, ounce: 35.274 },
-      pound: { kilogram: 0.453592, pound: 1, gram: 453.592, ounce: 16 },
-      gram: { kilogram: 0.001, pound: 0.00220462, gram: 1, ounce: 0.035274 },
-      ounce: { kilogram: 0.0283495, pound: 0.0625, gram: 28.3495, ounce: 1 }
-    },
-    temperature: {
-      celsius: { celsius: (c: number) => c, fahrenheit: (c: number) => (c * 9/5) + 32, kelvin: (c: number) => c + 273.15 },
-      fahrenheit: { celsius: (f: number) => (f - 32) * 5/9, fahrenheit: (f: number) => f, kelvin: (f: number) => ((f - 32) * 5/9) + 273.15 },
-      kelvin: { celsius: (k: number) => k - 273.15, fahrenheit: (k: number) => ((k - 273.15) * 9/5) + 32, kelvin: (k: number) => k }
-    },
-    volume: {
-      liter: { liter: 1, gallon: 0.264172, milliliter: 1000, cup: 4.22675 },
-      gallon: { liter: 3.78541, gallon: 1, milliliter: 3785.41, cup: 16 },
-      milliliter: { liter: 0.001, gallon: 0.000264172, milliliter: 1, cup: 0.00422675 },
-      cup: { liter: 0.236588, gallon: 0.0625, milliliter: 236.588, cup: 1 }
-    }
-  };
-
-  const convertUnits = () => {
-    if (!inputValue || isNaN(parseFloat(inputValue))) {
-      setConvertedValue('');
-      return;
-    }
-
-    const value = parseFloat(inputValue);
-    const conversions = unitConversions[unitCategory as keyof typeof unitConversions];
-    
-    if (unitCategory === 'temperature') {
-      const tempConversions = conversions[fromUnit as keyof typeof conversions] as any;
-      const convertFunc = tempConversions[toUnit];
-      const result = convertFunc(value);
-      setConvertedValue(result.toFixed(4));
-    } else {
-      const fromConversions = conversions[fromUnit as keyof typeof conversions] as any;
-      const toMultiplier = fromConversions[toUnit];
-      const result = value * toMultiplier;
-      setConvertedValue(result.toFixed(6));
-    }
-  };
-
-  useEffect(() => {
-    convertUnits();
-  }, [inputValue, fromUnit, toUnit, unitCategory]);
-
-  // Formula Library Data
-  const formulaLibrary = {
-    mathematics: [
-      { name: "Quadratic Formula", formula: "x = (-b ± √(b² - 4ac)) / 2a", description: "Solves quadratic equations ax² + bx + c = 0" },
-      { name: "Pythagorean Theorem", formula: "a² + b² = c²", description: "Relationship between sides of a right triangle" },
-      { name: "Area of Circle", formula: "A = πr²", description: "Area of a circle with radius r" },
-      { name: "Distance Formula", formula: "d = √((x₂-x₁)² + (y₂-y₁)²)", description: "Distance between two points in 2D space" }
-    ],
-    physics: [
-      { name: "Newton's Second Law", formula: "F = ma", description: "Force equals mass times acceleration" },
-      { name: "Kinetic Energy", formula: "KE = ½mv²", description: "Energy of motion" },
-      { name: "Potential Energy", formula: "PE = mgh", description: "Gravitational potential energy" },
-      { name: "Ohm's Law", formula: "V = IR", description: "Relationship between voltage, current, and resistance" }
-    ],
-    chemistry: [
-      { name: "Ideal Gas Law", formula: "PV = nRT", description: "Relationship between pressure, volume, temperature, and amount of gas" },
-      { name: "pH Formula", formula: "pH = -log[H⁺]", description: "Measure of acidity/basicity" },
-      { name: "Molarity", formula: "M = n/V", description: "Concentration of a solution" },
-      { name: "Boyle's Law", formula: "P₁V₁ = P₂V₂", description: "Pressure-volume relationship at constant temperature" }
-    ]
-  };
-
-  const filteredFormulas = formulaLibrary[formulaCategory as keyof typeof formulaLibrary].filter(formula =>
-    formula.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    formula.formula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    formula.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Note Taking Functions
-  const saveNote = () => {
-    if (!currentNote.title.trim() && !currentNote.content.trim()) return;
-
-    if (editingNote) {
-      setNotes(notes.map(note => 
-        note.id === editingNote 
-          ? { ...currentNote, id: editingNote, date: new Date().toISOString() }
-          : note
-      ));
-      setEditingNote(null);
-    } else {
-      const newNote = {
-        ...currentNote,
-        id: Date.now(),
-        date: new Date().toISOString()
-      };
-      setNotes([...notes, newNote]);
-    }
-
-    setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
-  };
-
-  const editNote = (note: any) => {
-    setCurrentNote(note);
-    setEditingNote(note.id);
-  };
-
-  const deleteNote = (id: number) => {
-    setNotes(notes.filter(note => note.id !== id));
-    if (editingNote === id) {
-      setEditingNote(null);
-      setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
-    }
-  };
-
-  // Study Timer Functions
-  const startTimer = () => {
-    setIsTimerRunning(true);
-  };
-
-  const pauseTimer = () => {
-    setIsTimerRunning(false);
-  };
-
-  const resetTimer = () => {
-    setIsTimerRunning(false);
-    switch (timerMode) {
-      case 'pomodoro':
-        setTimeLeft(25 * 60);
-        break;
-      case 'short-break':
-        setTimeLeft(5 * 60);
-        break;
-      case 'long-break':
-        setTimeLeft(15 * 60);
-        break;
-      case 'custom':
-        setTimeLeft(customTime * 60);
-        break;
-    }
-  };
-
-  const switchTimerMode = (mode: string) => {
-    setTimerMode(mode);
-    setIsTimerRunning(false);
-    switch (mode) {
-      case 'pomodoro':
-        setTimeLeft(25 * 60);
-        break;
-      case 'short-break':
-        setTimeLeft(5 * 60);
-        break;
-      case 'long-break':
-        setTimeLeft(15 * 60);
-        break;
-      case 'custom':
-        setTimeLeft(customTime * 60);
-        break;
-    }
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <>
-      {/* Main Study Tools Section */}
-      <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-12 sm:mb-16">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 dark:bg-blue-900/30 rounded-full text-blue-600 dark:text-blue-400 text-sm font-medium mb-4">
-              <Brain className="w-4 h-4" />
-              Interactive Study Tools
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">
-              Advanced Study Tools
-              <span className="block text-2xl sm:text-3xl lg:text-4xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
-                for Academic Success
-              </span>
-            </h2>
-            <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-              Comprehensive collection of educational tools designed to enhance your learning experience with interactive calculators, 
-              reference materials, and productivity features.
-            </p>
-          </div>
-
-          {/* Stats Section */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12 sm:mb-16">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <Users className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stats.totalStudents.toLocaleString()}+
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Students</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-teal-600 rounded-lg flex items-center justify-center">
-                  <Trophy className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stats.passedStudents.toLocaleString()}+
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Passed</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stats.totalStudyHours.toLocaleString()}+
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Study Hours</div>
-                </div>
-              </div>
-            </div>
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100 dark:border-gray-700">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                  <Star className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                    {stats.averageScore.toFixed(1)}%
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">Avg Score</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Tools Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
-            {studyTools.map((tool, index) => (
-              <div
-                key={index}
-                onClick={() => handleFeatureClick(tool.title)}
-                className="group bg-white dark:bg-gray-800 rounded-2xl p-6 sm:p-8 shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer touch-manipulation"
-              >
-                <div className="mb-6">
-                  <div className={`w-16 h-16 bg-gradient-to-r ${tool.gradient} rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                    <tool.icon className="w-8 h-8 text-white" />
-                  </div>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-blue-600 group-hover:to-purple-600 group-hover:bg-clip-text transition-all duration-300">
-                      {tool.title}
-                    </h3>
-                    <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-full">
-                      {tool.category}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-4">
-                    {tool.description}
-                  </p>
-                  <div className="flex flex-wrap gap-1">
-                    {tool.features?.map((feature, idx) => (
-                      <span key={idx} className="text-xs px-2 py-1 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-md">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-                <div className="flex items-center text-blue-600 dark:text-blue-400 font-medium group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-                  <span className="text-sm">Open Tool</span>
-                  <ArrowRight className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform duration-300" />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* All Modal Components Below */}
-
       {/* Coming Soon Modal */}
       {showComingSoon && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -1631,640 +1278,301 @@ export const StudyToolsSection: React.FC = () => {
         </div>
       )}
 
-      {/* Unit Converter Modal */}
-      {showUnitConverter && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      Unit Converter
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Convert between different measurement units
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowUnitConverter(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              {/* Category Selection */}
-              <div className="mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Unit Category</h4>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                  {[
-                    { key: 'length', label: 'Length', icon: Ruler },
-                    { key: 'weight', label: 'Weight', icon: Weight },
-                    { key: 'temperature', label: 'Temperature', icon: Thermometer },
-                    { key: 'volume', label: 'Volume', icon: Volume }
-                  ].map(category => (
-                    <button
-                      key={category.key}
-                      onClick={() => {
-                        setUnitCategory(category.key);
-                        // Reset units when category changes
-                        if (category.key === 'length') {
-                          setFromUnit('meter');
-                          setToUnit('feet');
-                        } else if (category.key === 'weight') {
-                          setFromUnit('kilogram');
-                          setToUnit('pound');
-                        } else if (category.key === 'temperature') {
-                          setFromUnit('celsius');
-                          setToUnit('fahrenheit');
-                        } else if (category.key === 'volume') {
-                          setFromUnit('liter');
-                          setToUnit('gallon');
-                        }
-                      }}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                        unitCategory === category.key
-                          ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    >
-                      <category.icon className="w-4 h-4" />
-                      {category.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Conversion Section */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* From Unit */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    From
-                  </label>
-                  <select
-                    value={fromUnit}
-                    onChange={(e) => setFromUnit(e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3 touch-manipulation"
-                  >
-                    {Object.keys(unitConversions[unitCategory as keyof typeof unitConversions]).map(unit => (
-                      <option key={unit} value={unit} className="capitalize">
-                        {unit.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Enter value"
-                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent touch-manipulation"
-                  />
-                </div>
-
-                {/* To Unit */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    To
-                  </label>
-                  <select
-                    value={toUnit}
-                    onChange={(e) => setToUnit(e.target.value)}
-                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent mb-3 touch-manipulation"
-                  >
-                    {Object.keys(unitConversions[unitCategory as keyof typeof unitConversions]).map(unit => (
-                      <option key={unit} value={unit} className="capitalize">
-                        {unit.replace(/([A-Z])/g, ' $1').toLowerCase()}
-                      </option>
-                    ))}
-                  </select>
-                  <div className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 font-mono text-lg">
-                    {convertedValue || '0'}
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Convert Buttons */}
-              <div className="mt-6 flex flex-wrap gap-2">
-                {['1', '10', '100', '1000'].map(value => (
-                  <button
-                    key={value}
-                    onClick={() => setInputValue(value)}
-                    className="px-3 py-1 text-sm bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors duration-200 touch-manipulation"
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <p className="text-xs text-purple-600 dark:text-purple-400 text-center">
-                  🔄 Convert between different units with high precision calculations
-                </p>
-              </div>
+      {/* Compact Footer */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
+        {/* Success Analytics Banner - More Compact */}
+        <div className="bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-indigo-600/20 border-b border-purple-200/50 dark:border-purple-700/50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
+            <div className="text-center mb-3">
+              <h3 className="text-lg sm:text-xl font-bold text-purple-800 dark:text-purple-300 mb-1">
+                🌟 Empowering Student Success Worldwide
+              </h3>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Formula Library Modal */}
-      {showFormulaLibrary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center">
-                    <BookOpen className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      Formula Library
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Comprehensive collection of formulas
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowFormulaLibrary(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              {/* Category and Search */}
-              <div className="mb-6 space-y-4">
-                {/* Category Selection */}
-                <div>
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Subject</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      { key: 'mathematics', label: 'Mathematics', icon: Calculator },
-                      { key: 'physics', label: 'Physics', icon: Activity },
-                      { key: 'chemistry', label: 'Chemistry', icon: FlaskConical }
-                    ].map(category => (
-                      <button
-                        key={category.key}
-                        onClick={() => setFormulaCategory(category.key)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                          formulaCategory === category.key
-                            ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg'
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        <category.icon className="w-4 h-4" />
-                        {category.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Search */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search formulas..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-cyan-500 focus:border-transparent touch-manipulation"
-                  />
-                </div>
-              </div>
-
-              {/* Formulas Grid */}
-              <div className="space-y-4">
-                {filteredFormulas.map((formula, index) => (
-                  <div key={index} className="bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 rounded-xl p-4 sm:p-6 border border-cyan-200 dark:border-cyan-700">
-                    <div className="mb-3">
-                      <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
-                        {formula.name}
-                      </h4>
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-cyan-200 dark:border-cyan-600">
-                        <div className="text-xl sm:text-2xl font-mono text-cyan-700 dark:text-cyan-300 text-center">
-                          {formula.formula}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      {formula.description}
-                    </p>
-                    <div className="mt-3 flex justify-end">
-                      <button
-                        onClick={() => navigator.clipboard?.writeText(formula.formula)}
-                        className="flex items-center gap-2 px-3 py-1 text-xs bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg hover:bg-cyan-200 dark:hover:bg-cyan-900/50 transition-colors duration-200 touch-manipulation"
-                      >
-                        <Copy className="w-3 h-3" />
-                        Copy
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-6 p-3 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg">
-                <p className="text-xs text-cyan-600 dark:text-cyan-400 text-center">
-                  📚 Searchable formula library with explanations for mathematics, physics, and chemistry
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Note Taking Modal */}
-      {showNoteTaking && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center">
-                    <FileText className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      Smart Notes
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Advanced note-taking with flashcards
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowNoteTaking(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Note Editor */}
-                <div className="lg:col-span-2 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                      {editingNote ? 'Edit Note' : 'Create Note'}
-                    </h4>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={saveNote}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 touch-manipulation"
-                      >
-                        <Save className="w-4 h-4" />
-                        Save
-                      </button>
-                      {editingNote && (
-                        <button
-                          onClick={() => {
-                            setEditingNote(null);
-                            setCurrentNote({ id: 0, title: '', content: '', category: 'General' });
-                          }}
-                          className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 touch-manipulation"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={currentNote.title}
-                      onChange={(e) => setCurrentNote({ ...currentNote, title: e.target.value })}
-                      placeholder="Note title..."
-                      className="w-full px-4 py-3 text-xl font-semibold border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent touch-manipulation"
-                    />
-
-                    <select
-                      value={currentNote.category}
-                      onChange={(e) => setCurrentNote({ ...currentNote, category: e.target.value })}
-                      className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent touch-manipulation"
-                    >
-                      <option value="General">General</option>
-                      <option value="Mathematics">Mathematics</option>
-                      <option value="Science">Science</option>
-                      <option value="History">History</option>
-                      <option value="Literature">Literature</option>
-                    </select>
-
-                    <textarea
-                      value={currentNote.content}
-                      onChange={(e) => setCurrentNote({ ...currentNote, content: e.target.value })}
-                      placeholder="Write your note here..."
-                      rows={15}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none touch-manipulation"
-                    />
-                  </div>
-                </div>
-
-                {/* Notes List */}
-                <div className="space-y-4">
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">My Notes</h4>
-                  
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {notes.map(note => (
-                      <div key={note.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <div className="flex-1 min-w-0">
-                            <h5 className="font-medium text-gray-900 dark:text-gray-100 truncate">
-                              {note.title || 'Untitled'}
-                            </h5>
-                            <span className="text-xs text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
-                              {note.category}
-                            </span>
-                          </div>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => editNote(note)}
-                              className="p-1 text-gray-500 hover:text-emerald-600 transition-colors duration-200 touch-manipulation"
-                            >
-                              <Edit3 className="w-3 h-3" />
-                            </button>
-                            <button
-                              onClick={() => deleteNote(note.id)}
-                              className="p-1 text-gray-500 hover:text-red-600 transition-colors duration-200 touch-manipulation"
-                            >
-                              <Trash2 className="w-3 h-3" />
-                            </button>
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
-                          {note.content}
-                        </p>
-                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                          {new Date(note.date).toLocaleDateString()}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                <p className="text-xs text-emerald-600 dark:text-emerald-400 text-center">
-                  📝 Create, organize, and manage your study notes with categories and search functionality
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Study Timer Modal */}
-      {showStudyTimer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                    <Timer className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      Study Timer
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
-                      {timerMode.replace('-', ' ')} Mode
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowStudyTimer(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              {/* Timer Display */}
-              <div className="text-center mb-8">
-                <div className="w-48 h-48 mx-auto bg-gradient-to-br from-amber-100 to-yellow-100 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-full flex items-center justify-center border-8 border-amber-200 dark:border-amber-700 mb-6">
-                  <div className="text-4xl sm:text-5xl font-mono font-bold text-amber-700 dark:text-amber-300">
-                    {formatTime(timeLeft)}
-                  </div>
-                </div>
-
-                {/* Timer Controls */}
-                <div className="flex items-center justify-center gap-4 mb-6">
-                  <button
-                    onClick={isTimerRunning ? pauseTimer : startTimer}
-                    className="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-amber-500 to-yellow-600 text-white rounded-full hover:shadow-lg transition-all duration-300 transform hover:scale-110 touch-manipulation"
-                  >
-                    {isTimerRunning ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
-                  </button>
-                  <button
-                    onClick={resetTimer}
-                    className="flex items-center justify-center w-12 h-12 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 touch-manipulation"
-                  >
-                    <RotateCw className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Session Counter */}
-                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 mb-6">
-                  <div className="flex items-center justify-center gap-2">
-                    <CheckCircle className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                    <span className="text-amber-700 dark:text-amber-300 font-medium">
-                      Completed Sessions: {timerSessions}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Timer Mode Selection */}
-              <div className="mb-6">
-                <h4 className="text-sm font-semibold text-gray-900 dark:text-gray-100 mb-3">Timer Mode</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => switchTimerMode('pomodoro')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                      timerMode === 'pomodoro'
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <Target className="w-4 h-4" />
-                    Pomodoro (25m)
-                  </button>
-                  <button
-                    onClick={() => switchTimerMode('short-break')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                      timerMode === 'short-break'
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <Clock className="w-4 h-4" />
-                    Short Break (5m)
-                  </button>
-                  <button
-                    onClick={() => switchTimerMode('long-break')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                      timerMode === 'long-break'
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <SkipForward className="w-4 h-4" />
-                    Long Break (15m)
-                  </button>
-                  <button
-                    onClick={() => switchTimerMode('custom')}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                      timerMode === 'custom'
-                        ? 'bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-lg'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                  >
-                    <Settings className="w-4 h-4" />
-                    Custom
-                  </button>
-                </div>
-              </div>
-
-              {/* Custom Time Input */}
-              {timerMode === 'custom' && (
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Custom Time (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    value={customTime}
-                    onChange={(e) => setCustomTime(parseInt(e.target.value) || 1)}
-                    min="1"
-                    max="120"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent touch-manipulation"
-                  />
-                </div>
-              )}
-
-              <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
-                <p className="text-xs text-amber-600 dark:text-amber-400 text-center">
-                  ⏰ Use the Pomodoro Technique to boost focus and productivity with timed study sessions
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Compact Modern Footer */}
-      <footer className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white relative overflow-hidden">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
-          backgroundSize: '20px 20px'
-        }}></div>
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-          {/* Main Footer Content */}
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
             
-            {/* Brand Section */}
-            <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <BookOpen className="w-5 h-5 text-white" />
+            {/* Compact Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  <span className="text-lg sm:text-xl font-bold text-purple-800 dark:text-purple-300">
+                    {Math.floor(stats.totalStudents / 1000)}K+
+                  </span>
                 </div>
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
-                    Study Tracker Pro
-                  </h2>
-                  <div className="flex items-center gap-1 text-xs text-gray-400">
-                    <Star className="w-3 h-3 text-yellow-400" />
-                    <span>Trusted by {Math.floor(stats.totalStudents / 1000)}K+ students worldwide</span>
-                  </div>
-                </div>
+                <p className="text-purple-600 dark:text-purple-300 font-medium text-xs">Students</p>
               </div>
-              <p className="text-sm text-gray-300 max-w-md">
-                Your ultimate study companion with advanced tools and analytics for academic success
+              
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Trophy className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-lg sm:text-xl font-bold text-blue-800 dark:text-blue-300">
+                    {Math.floor(stats.passedStudents / 1000)}K+
+                  </span>
+                </div>
+                <p className="text-blue-600 dark:text-blue-300 font-medium text-xs">Goals Met</p>
+              </div>
+              
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                  <span className="text-lg sm:text-xl font-bold text-indigo-800 dark:text-indigo-300">
+                    {Math.floor(stats.totalStudyHours / 1000)}K+
+                  </span>
+                </div>
+                <p className="text-indigo-600 dark:text-indigo-300 font-medium text-xs">Study Hours</p>
+              </div>
+              
+              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Star className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+                  <span className="text-lg sm:text-xl font-bold text-yellow-800 dark:text-yellow-300">
+                    {stats.averageScore.toFixed(1)}%
+                  </span>
+                </div>
+                <p className="text-yellow-600 dark:text-yellow-300 font-medium text-xs">Success</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Study Tools Section - More Compact */}
+        <section className="bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <Lightbulb className="w-6 h-6 text-blue-600 animate-pulse" />
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Essential Study Tools
+                </h2>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
+                Powerful tools to enhance your learning experience
               </p>
             </div>
 
-            {/* Social Links & Study Tools */}
-            <div className="flex flex-col items-center gap-4">
-              {/* Social Links */}
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-400 font-medium">Connect:</span>
-                <div className="flex gap-2">
-                  {socialLinks.map((link) => (
-                    <a
-                      key={link.name}
-                      href={link.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2.5 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 group touch-manipulation"
-                      title={link.name}
-                    >
-                      <link.icon className="w-4 h-4 text-gray-300 group-hover:text-purple-400 transition-colors duration-300" />
-                    </a>
-                  ))}
+            {/* Compact Study Tools Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              {studyTools.map((tool, index) => (
+                <div
+                  key={index}
+                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300"
+                  onClick={() => handleFeatureClick(tool.title)}
+                >
+                  <div className={`h-1 bg-gradient-to-r ${tool.gradient}`}></div>
+                  
+                  <div className="p-4">
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className={`w-10 h-10 bg-gradient-to-br ${tool.gradient} rounded-lg flex items-center justify-center flex-shrink-0`}>
+                        <tool.icon className="w-5 h-5 text-white" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
+                          {tool.title}
+                        </h3>
+                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full">
+                          {tool.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3 line-clamp-2">
+                      {tool.description}
+                    </p>
+
+                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1 touch-manipulation`}>
+                      Open Tool
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Quick Stats */}
+            <div className="mt-6 text-center">
+              <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-1">
+                  <Calculator className="w-4 h-4 text-blue-500" />
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4 Tools</span>
+                </div>
+                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center gap-1">
+                  <Zap className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Ready Now</span>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
 
-              {/* Study Tools Quick Access */}
-              <div className="flex flex-wrap items-center justify-center gap-2">
-                {studyTools.slice(0, 4).map((tool, index) => (
-                  <button
-                    key={index}
-                    onClick={() => handleFeatureClick(tool.title)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 group touch-manipulation"
+        {/* Team Members Section - More Compact */}
+        <section className="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-indigo-900/20 dark:via-gray-800 dark:to-cyan-900/20 py-6 sm:py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <UserCheck className="w-6 h-6 text-indigo-600" />
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
+                  Meet Our Team
+                </h2>
+              </div>
+            </div>
+
+            {/* Compact Team Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              {teamMembers.map((member, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-300"
+                >
+                  <div className={`h-1 bg-gradient-to-r ${member.gradient}`}></div>
+                  
+                  <div className="p-4 sm:p-5">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-12 h-12 bg-gradient-to-br ${member.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}>
+                        <member.icon className="w-6 h-6 text-white" />
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                          {member.name}
+                        </h3>
+                        
+                        <p className="text-sm font-medium bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">
+                          {member.role}
+                        </p>
+                        
+                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
+                          {member.description}
+                        </p>
+
+                        {/* Social Links */}
+                        <div className="flex gap-2">
+                          {member.social.linkedin !== "#" && (
+                            <a
+                              href={member.social.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:scale-110 transition-all duration-300 touch-manipulation"
+                            >
+                              <Linkedin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                            </a>
+                          )}
+                          {member.social.github !== "#" && (
+                            <a
+                              href={member.social.github}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300 touch-manipulation"
+                            >
+                              <Github className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Main Footer Content - Compact */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
+          {/* Brand Section */}
+          <div className="text-center mb-6">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-white" />
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                Study Tracker Pro
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
+              Your ultimate study companion with advanced tools and analytics
+            </p>
+            <div className="flex items-center justify-center gap-1 text-xs text-purple-600 dark:text-purple-400">
+              <TrendingUp className="w-3 h-3" />
+              <span>Trusted by {Math.floor(stats.totalStudents / 1000)}K+ students worldwide</span>
+            </div>
+          </div>
+
+          {/* Compact Footer Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+            {/* Quick Links */}
+            <div className="text-center md:text-left">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Quick Links</h4>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                {quickLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 hover:underline"
                   >
-                    <tool.icon className="w-3 h-3 text-gray-400 group-hover:text-blue-400 transition-colors duration-300" />
-                    <span className="text-gray-300 group-hover:text-blue-400 transition-colors duration-300">{tool.title}</span>
-                  </button>
+                    {link.name}
+                  </a>
                 ))}
+              </div>
+            </div>
+
+            {/* Social Links */}
+            <div className="text-center">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Connect With Us</h4>
+              <div className="flex justify-center gap-2">
+                {socialLinks.map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group touch-manipulation"
+                    title={link.name}
+                  >
+                    <link.icon className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" />
+                  </a>
+                ))}
+              </div>
+            </div>
+
+            {/* Features */}
+            <div className="text-center md:text-right">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Features</h4>
+              <div className="flex flex-wrap justify-center md:justify-end gap-1 text-xs">
+                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">Calculator</span>
+                <span className="px-2 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-full">Chemistry</span>
+                <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">GPA</span>
+                <span className="px-2 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full">Math Solver</span>
               </div>
             </div>
           </div>
 
-          {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6"></div>
-
-          {/* Bottom Section */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Enhanced Credits */}
-            <div className="flex flex-col items-center md:items-start gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Crafted with</span>
-                <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" />
-                <span className="text-sm text-gray-400">by</span>
-                <a
-                  href="https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-purple-400 hover:text-purple-300 transition-colors duration-300 hover:underline touch-manipulation"
-                >
-                  Vinay Kumar
-                </a>
+          {/* Bottom Section - Compact */}
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+              {/* Creator Credit */}
+              <div className="flex flex-col items-center md:items-start gap-1">
+                <div className="flex items-center gap-1">
+                  <span className="text-gray-600 dark:text-gray-400">Created with</span>
+                  <Heart className="w-3 h-3 text-red-500 fill-current animate-pulse" />
+                  <span className="text-gray-600 dark:text-gray-400">by</span>
+                  <a
+                    href="https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-bold text-purple-600 dark:text-purple-400 hover:underline transition-all duration-200 hover:text-purple-700 dark:hover:text-purple-300 touch-manipulation"
+                  >
+                    Vinay Kumar
+                  </a>
+                </div>
+                <span className="text-gray-500 dark:text-gray-500">
+                  Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">TRMS</span>
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>Powered by</span>
-                <span className="font-bold text-transparent bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text">TRMS</span>
-                <span className="text-gray-600">•</span>
-                <span>Built with React & TypeScript</span>
-              </div>
-            </div>
 
-            {/* Enhanced Copyright */}
-            <div className="flex flex-col items-center md:items-end gap-1">
-              <div className="text-sm font-medium text-gray-300">
+              {/* Copyright */}
+              <div className="text-gray-500 dark:text-gray-500 font-medium">
                 © {new Date().getFullYear()} Study Tracker Pro
-              </div>
-              <div className="text-xs text-gray-500">
-                All rights reserved • Version 2.0
               </div>
             </div>
           </div>
