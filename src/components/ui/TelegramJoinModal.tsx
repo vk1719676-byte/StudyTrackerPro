@@ -30,7 +30,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
       name: "Study Tracker Pro",
       url: "https://t.me/studytrackerpro",
       description: "Main community for updates, tips, and study motivation",
-      members: "150+ members",
+      members: "260+ members",
       icon: "📚",
       color: "from-blue-500 to-cyan-500",
     },
