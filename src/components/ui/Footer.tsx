@@ -105,13 +105,6 @@ export const Footer: React.FC = () => {
     }
   ];
 
-  const quickLinks = [
-    { name: 'Privacy Policy', href: '/privacy-policy', icon: Shield },
-    { name: 'Terms of Service', href: '/terms-of-service', icon: FileText },
-    { name: 'Help Center', href: '/help-center', icon: HelpCircle },
-    { name: 'Contact Us', href: '/contact-us', icon: MessageCircle },
-  ];
-
   const studyTools = [
     {
       icon: Calculator,
@@ -140,32 +133,6 @@ export const Footer: React.FC = () => {
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
       category: "Math Tools"
-    }
-  ];
-
-  // Team Members Data
-  const teamMembers = [
-    {
-      name: "Vinay Kumar",
-      role: "Co-Owner & Developer Of Study Tracker Pro",
-      description: "Lead developer and visionary behind Study Tracker Pro, dedicated to creating innovative educational solutions.",
-      icon: Code,
-      gradient: "from-purple-500 to-indigo-600",
-      social: {
-        linkedin: "https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in",
-        github: "https://github.com/Vinayk2007"
-      }
-    },
-    {
-      name: "Ayush Mishra",
-      role: "Co-Owner of Study Tracker Pro & Owner Of TRMs",
-      description: "Strategic co-owner focused on business development and owner of TRMs, driving educational technology forward.",
-      icon: Award,
-      gradient: "from-emerald-500 to-teal-600",
-      social: {
-        linkedin: "#",
-        github: "#"
-      }
     }
   ];
 
@@ -1278,301 +1245,114 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* Compact Footer */}
-      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
-        {/* Success Analytics Banner - More Compact */}
-        <div className="bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-indigo-600/10 dark:from-purple-600/20 dark:via-blue-600/20 dark:to-indigo-600/20 border-b border-purple-200/50 dark:border-purple-700/50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-5">
-            <div className="text-center mb-3">
-              <h3 className="text-lg sm:text-xl font-bold text-purple-800 dark:text-purple-300 mb-1">
-                🌟 Empowering Student Success Worldwide
-              </h3>
-            </div>
-            
-            {/* Compact Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Users className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  <span className="text-lg sm:text-xl font-bold text-purple-800 dark:text-purple-300">
-                    {Math.floor(stats.totalStudents / 1000)}K+
-                  </span>
-                </div>
-                <p className="text-purple-600 dark:text-purple-300 font-medium text-xs">Students</p>
-              </div>
-              
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Trophy className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  <span className="text-lg sm:text-xl font-bold text-blue-800 dark:text-blue-300">
-                    {Math.floor(stats.passedStudents / 1000)}K+
-                  </span>
-                </div>
-                <p className="text-blue-600 dark:text-blue-300 font-medium text-xs">Goals Met</p>
-              </div>
-              
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                  <span className="text-lg sm:text-xl font-bold text-indigo-800 dark:text-indigo-300">
-                    {Math.floor(stats.totalStudyHours / 1000)}K+
-                  </span>
-                </div>
-                <p className="text-indigo-600 dark:text-indigo-300 font-medium text-xs">Study Hours</p>
-              </div>
-              
-              <div className="text-center bg-white/60 dark:bg-gray-800/60 rounded-lg p-3 border border-white/50 dark:border-gray-700/50">
-                <div className="flex items-center justify-center gap-1 mb-1">
-                  <Star className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
-                  <span className="text-lg sm:text-xl font-bold text-yellow-800 dark:text-yellow-300">
-                    {stats.averageScore.toFixed(1)}%
-                  </span>
-                </div>
-                <p className="text-yellow-600 dark:text-yellow-300 font-medium text-xs">Success</p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Compact Modern Footer */}
+      <footer className="bg-gradient-to-br from-slate-900 via-gray-900 to-slate-800 text-white relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0)`,
+          backgroundSize: '20px 20px'
+        }}></div>
 
-        {/* Study Tools Section - More Compact */}
-        <section className="bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 py-6 sm:py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <Lightbulb className="w-6 h-6 text-blue-600 animate-pulse" />
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  Essential Study Tools
-                </h2>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+          {/* Main Footer Content */}
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-6">
+            
+            {/* Brand Section */}
+            <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 via-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <BookOpen className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-indigo-400 bg-clip-text text-transparent">
+                    Study Tracker Pro
+                  </h2>
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Star className="w-3 h-3 text-yellow-400" />
+                    <span>Trusted by {Math.floor(stats.totalStudents / 1000)}K+ students worldwide</span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-                Powerful tools to enhance your learning experience
+              <p className="text-sm text-gray-300 max-w-md">
+                Your ultimate study companion with advanced tools and analytics for academic success
               </p>
             </div>
 
-            {/* Compact Study Tools Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-              {studyTools.map((tool, index) => (
-                <div
-                  key={index}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300"
-                  onClick={() => handleFeatureClick(tool.title)}
-                >
-                  <div className={`h-1 bg-gradient-to-r ${tool.gradient}`}></div>
-                  
-                  <div className="p-4">
-                    <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${tool.gradient} rounded-lg flex items-center justify-center flex-shrink-0`}>
-                        <tool.icon className="w-5 h-5 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
-                          {tool.title}
-                        </h3>
-                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full">
-                          {tool.category}
-                        </span>
-                      </div>
-                    </div>
-
-                    <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3 line-clamp-2">
-                      {tool.description}
-                    </p>
-
-                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1 touch-manipulation`}>
-                      Open Tool
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick Stats */}
-            <div className="mt-6 text-center">
-              <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex items-center gap-1">
-                  <Calculator className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4 Tools</span>
-                </div>
-                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center gap-1">
-                  <Zap className="w-4 h-4 text-yellow-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Ready Now</span>
+            {/* Social Links & Study Tools */}
+            <div className="flex flex-col items-center gap-4">
+              {/* Social Links */}
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-gray-400 font-medium">Connect:</span>
+                <div className="flex gap-2">
+                  {socialLinks.map((link) => (
+                    <a
+                      key={link.name}
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2.5 bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 hover:border-purple-400/50 hover:bg-purple-500/10 transition-all duration-300 group touch-manipulation"
+                      title={link.name}
+                    >
+                      <link.icon className="w-4 h-4 text-gray-300 group-hover:text-purple-400 transition-colors duration-300" />
+                    </a>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Team Members Section - More Compact */}
-        <section className="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-indigo-900/20 dark:via-gray-800 dark:to-cyan-900/20 py-6 sm:py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <UserCheck className="w-6 h-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
-                  Meet Our Team
-                </h2>
-              </div>
-            </div>
-
-            {/* Compact Team Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {teamMembers.map((member, index) => (
-                <div
-                  key={index}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                >
-                  <div className={`h-1 bg-gradient-to-r ${member.gradient}`}></div>
-                  
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 bg-gradient-to-br ${member.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                        <member.icon className="w-6 h-6 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                          {member.name}
-                        </h3>
-                        
-                        <p className="text-sm font-medium bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-                          {member.role}
-                        </p>
-                        
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
-                          {member.description}
-                        </p>
-
-                        {/* Social Links */}
-                        <div className="flex gap-2">
-                          {member.social.linkedin !== "#" && (
-                            <a
-                              href={member.social.linkedin}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:scale-110 transition-all duration-300 touch-manipulation"
-                            >
-                              <Linkedin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            </a>
-                          )}
-                          {member.social.github !== "#" && (
-                            <a
-                              href={member.social.github}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300 touch-manipulation"
-                            >
-                              <Github className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Main Footer Content - Compact */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
-          {/* Brand Section */}
-          <div className="text-center mb-6">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-white" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Study Tracker Pro
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Your ultimate study companion with advanced tools and analytics
-            </p>
-            <div className="flex items-center justify-center gap-1 text-xs text-purple-600 dark:text-purple-400">
-              <TrendingUp className="w-3 h-3" />
-              <span>Trusted by {Math.floor(stats.totalStudents / 1000)}K+ students worldwide</span>
-            </div>
-          </div>
-
-          {/* Compact Footer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Quick Links */}
-            <div className="text-center md:text-left">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Quick Links</h4>
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {quickLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 hover:underline"
+              {/* Study Tools Quick Access */}
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {studyTools.slice(0, 4).map((tool, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleFeatureClick(tool.title)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-white/5 backdrop-blur-sm rounded-lg border border-white/10 hover:border-blue-400/50 hover:bg-blue-500/10 transition-all duration-300 group touch-manipulation"
                   >
-                    {link.name}
-                  </a>
+                    <tool.icon className="w-3 h-3 text-gray-400 group-hover:text-blue-400 transition-colors duration-300" />
+                    <span className="text-gray-300 group-hover:text-blue-400 transition-colors duration-300">{tool.title}</span>
+                  </button>
                 ))}
               </div>
             </div>
-
-            {/* Social Links */}
-            <div className="text-center">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Connect With Us</h4>
-              <div className="flex justify-center gap-2">
-                {socialLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group touch-manipulation"
-                    title={link.name}
-                  >
-                    <link.icon className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Features */}
-            <div className="text-center md:text-right">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Features</h4>
-              <div className="flex flex-wrap justify-center md:justify-end gap-1 text-xs">
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">Calculator</span>
-                <span className="px-2 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-full">Chemistry</span>
-                <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">GPA</span>
-                <span className="px-2 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full">Math Solver</span>
-              </div>
-            </div>
           </div>
 
-          {/* Bottom Section - Compact */}
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
-              {/* Creator Credit */}
-              <div className="flex flex-col items-center md:items-start gap-1">
-                <div className="flex items-center gap-1">
-                  <span className="text-gray-600 dark:text-gray-400">Created with</span>
-                  <Heart className="w-3 h-3 text-red-500 fill-current animate-pulse" />
-                  <span className="text-gray-600 dark:text-gray-400">by</span>
-                  <a
-                    href="https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="font-bold text-purple-600 dark:text-purple-400 hover:underline transition-all duration-200 hover:text-purple-700 dark:hover:text-purple-300 touch-manipulation"
-                  >
-                    Vinay Kumar
-                  </a>
-                </div>
-                <span className="text-gray-500 dark:text-gray-500">
-                  Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">TRMS</span>
-                </span>
-              </div>
+          {/* Divider */}
+          <div className="h-px bg-gradient-to-r from-transparent via-white/20 to-transparent mb-6"></div>
 
-              {/* Copyright */}
-              <div className="text-gray-500 dark:text-gray-500 font-medium">
+          {/* Bottom Section */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* Enhanced Credits */}
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-400">Crafted with</span>
+                <Heart className="w-4 h-4 text-red-500 fill-current animate-pulse" />
+                <span className="text-sm text-gray-400">by</span>
+                <a
+                  href="https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-purple-400 hover:text-purple-300 transition-colors duration-300 hover:underline touch-manipulation"
+                >
+                  Vinay Kumar
+                </a>
+                <span className="text-sm text-gray-400">&</span>
+                <span className="font-semibold text-blue-400">Ayush Mishra</span>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-500">
+                <span>Powered by</span>
+                <span className="font-bold text-transparent bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text">TRMS</span>
+                <span className="text-gray-600">•</span>
+                <span>Built with React & TypeScript</span>
+              </div>
+            </div>
+
+            {/* Enhanced Copyright */}
+            <div className="flex flex-col items-center md:items-end gap-1">
+              <div className="text-sm font-medium text-gray-300">
                 © {new Date().getFullYear()} Study Tracker Pro
+              </div>
+              <div className="text-xs text-gray-500">
+                All rights reserved • Version 2.0
               </div>
             </div>
           </div>
