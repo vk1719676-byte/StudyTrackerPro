@@ -6,7 +6,6 @@ import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FocusMode } from '../focus/FocusMode';
-import NotificationCenter from '../notifications/NotificationCenter';
 
 interface LogoutConfirmationProps {
   isOpen: boolean;
