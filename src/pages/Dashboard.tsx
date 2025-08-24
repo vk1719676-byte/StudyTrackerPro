@@ -111,7 +111,7 @@ const ImageBannersSection: React.FC = () => {
         onClick={handleBannerClick}
       >
         {/* Compact Banner - Responsive height that fits screen better */}
-        <div className="relative w-full h-32 sm:h-40 md:h-48 lg:h-56">
+        <div className="relative w-full aspect-[6/5]">
           <img
             src={currentBannerData.imageUrl}
             alt="Banner"
