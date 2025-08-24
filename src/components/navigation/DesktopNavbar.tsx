@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Bell, HelpCircle, Star } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Brain, Zap, Users, BookOpen, Trophy, Timer } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -343,74 +343,18 @@ export const DesktopNavbar: React.FC = () => {
                       
                       {/* Menu Items */}
                       <div className="p-2">
-                        {/* Avatar Management */}
-                        <div className="mb-2">
-                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-1">Avatar</p>
-                          <div className="flex gap-1">
-                            <button
-                              onClick={() => fileInputRef.current?.click()}
-                              className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
-                            >
-                              <Upload className="w-4 h-4 text-gray-500" />
-                              Upload Photo
-                            </button>
-                            {userAvatar && (
-                              <button
-                                onClick={handleRemoveAvatar}
-                                className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 font-medium"
-                                title="Remove avatar"
-                              >
-                                Remove
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Divider */}
-                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-                        
-                        {/* Quick Actions */}
-                        <div className="space-y-1">
-                          <Link
-                            to="/settings"
-                            onClick={() => setShowProfileDropdown(false)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
-                          >
-                            <Settings className="w-4 h-4 text-gray-500" />
-                            Account Settings
-                          </Link>
-                          
-                          <button
-                            onClick={() => setShowProfileDropdown(false)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
-                          >
-                            <Bell className="w-4 h-4 text-gray-500" />
-                            Notifications
-                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">3</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => setShowProfileDropdown(false)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
-                          >
-                            <Star className="w-4 h-4 text-gray-500" />
-                            Upgrade Plan
-                            <span className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 text-xs rounded-full px-2 py-0.5 font-semibold">PRO</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => setShowProfileDropdown(false)}
-                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
-                          >
-                            <HelpCircle className="w-4 h-4 text-gray-500" />
-                            Help & Support
-                          </button>
-                        </div>
-                        
-                        {/* Divider */}
-                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
-                        
                         {/* Settings Link */}
+                        <button
+                          onClick={() => setShowProfileDropdown(false)}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                        >
+                          <Settings className="w-4 h-4 text-gray-500" />
+                          Account Settings
+                        </button>
+                        
+                        {/* Divider */}
+                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                        
                         {/* Logout Button */}
                         <button
                           onClick={() => {
