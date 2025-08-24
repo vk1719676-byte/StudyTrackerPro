@@ -345,11 +345,23 @@ export const DesktopNavbar: React.FC = () => {
                       <div className="p-2">
                         {/* Settings Link */}
                         <button
-                          onClick={() => setShowProfileDropdown(false)}
+                          onClick={() => {
+                            toggleTheme();
+                            setShowProfileDropdown(false);
+                          }}
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
                         >
-                          <Settings className="w-4 h-4 text-gray-500" />
-                          Account Settings
+                          {theme === 'dark' ? (
+                            <>
+                              <Sun className="w-4 h-4 text-yellow-500" />
+                              Switch to Light Mode
+                            </>
+                          ) : (
+                            <>
+                              <Moon className="w-4 h-4 text-indigo-500" />
+                              Switch to Dark Mode
+                            </>
+                          )}
                         </button>
                         
                         {/* Divider */}
