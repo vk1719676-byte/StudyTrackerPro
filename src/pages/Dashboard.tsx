@@ -67,25 +67,34 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Image Banners Section - Simplified to image only
+// Image Banners Section
 const ImageBannersSection: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
     {
       id: 1,
-      imageUrl: 'https://image2url.com/images/1756015942810-2c13a33c-fb22-4ad9-ad5a-8ce8dcf7eda2.jpg',
-      link: 'https://youtu.be/ne9YlsIMSrI?si=B9v5gcY23sQEK35L'
+      title: 'Learn how to use Study Tracker Pro',
+      subtitle: 'Unlock your potential with smart Tracking Platform',
+      imageUrl: 'https://image2url.com/images/1756015942810-2c13a33c-fb22-4ad9-ad5a-8ce8dcf7eda2.jpg', // Placeholder - will add proper link later
+      gradient: 'from-blue-600/80 to-purple-600/80',
+      link: 'https://youtu.be/ne9YlsIMSrI?si=B9v5gcY23sQEK35L' // To be added later
     },
     {
       id: 2,
-      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=3840',
-      link: '#'
+      title: 'Premium Features',
+      subtitle: 'Get personalized AI insights and advanced analytics',
+      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-emerald-600/80 to-teal-600/80',
+      link: '#' // To be added later
     },
     {
       id: 3,
-      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=3840',
-      link: '#'
+      title: 'Study Groups',
+      subtitle: 'Connect with peers and learn together',
+      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-orange-600/80 to-red-600/80',
+      link: '#' // To be added later
     }
   ];
 
@@ -98,61 +107,60 @@ const ImageBannersSection: React.FC = () => {
 
   const currentBannerData = banners[currentBanner];
 
-  const handleBannerClick = () => {
-    if (currentBannerData.link && currentBannerData.link !== '#') {
-      window.open(currentBannerData.link, '_blank');
-    }
-  };
-
   return (
     <div className="mb-8">
-      <div 
-        className="relative overflow-hidden rounded-3xl shadow-2xl cursor-pointer group transition-all duration-500 hover:shadow-3xl hover:scale-[1.02]"
-        onClick={handleBannerClick}
-      >
-        {/* Background Image - Optimized for 4K */}
-        <div className="relative w-full h-64 sm:h-80 md:h-96 lg:h-[28rem] xl:h-[32rem]">
-          <img
-            src={currentBannerData.imageUrl}
-            alt="Banner"
-            className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 group-hover:scale-105"
-            style={{
-              imageRendering: 'crisp-edges',
-              imageRendering: '-webkit-optimize-contrast'
-            }}
-          />
-          
-          {/* Subtle overlay for better visual appeal */}
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/5 transition-all duration-500" />
-          
-          {/* Hover effect indicator */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500" />
-          
-          {/* Optional: Corner indicator for clickable area */}
-          <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <ArrowRight className="w-5 h-5 text-white" />
+      <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-r from-gray-900 to-gray-800">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+          style={{
+            backgroundImage: `url(${currentBannerData.imageUrl})`,
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`} />
+        
+        {/* Content */}
+        <div className="relative z-10 p-8 md:p-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-white space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black leading-tight">
+                  {currentBannerData.title}
+                </h2>
+                <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl">
+                  {currentBannerData.subtitle}
+                </p>
+                <button 
+                  onClick={() => window.open(currentBannerData.link, '_blank')}
+                  className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group"
+                >
+                  Learn More
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+              </div>
+              
+              {/* Banner Navigation Dots */}
+              <div className="flex gap-3">
+                {banners.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentBanner(index)}
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      index === currentBanner 
+                        ? 'bg-white shadow-lg scale-110' 
+                        : 'bg-white/40 hover:bg-white/60'
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
         
-        {/* Navigation indicators - minimal design */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="flex gap-2">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentBanner(index);
-                }}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  index === currentBanner 
-                    ? 'bg-white shadow-lg' 
-                    : 'bg-white/50 hover:bg-white/75'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Animated Accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
       </div>
     </div>
   );
