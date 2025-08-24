@@ -74,15 +74,15 @@ const CompactTextBanner: React.FC = () => {
   const banners = [
     {
       id: 1,
-      title: 'Boost Your Grades by 40%',
-      subtitle: 'Join 50,000+ students using proven study techniques to ace their exams',
+      title: 'Learn How To Use Study Tracker Pro',
+      subtitle: 'Full Tutorial In Hindi',
       gradient: 'from-blue-600 to-indigo-600',
       icon: Brain,
-      action: 'Start Free Course',
-      link: '/study-techniques',
+      action: 'Watch Now On YouTube',
+      link: 'https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX',
       onClick: () => {
         // Navigate to study techniques page
-        window.open('/study-techniques', '_blank');
+        window.open('https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX', '_blank');
       }
     },
     {
