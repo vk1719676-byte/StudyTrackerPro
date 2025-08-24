@@ -67,41 +67,114 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Smart notification system
+// Advanced notification system with enhanced features
 const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) => {
   const [currentTip, setCurrentTip] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const tips = [
     {
       icon: Lightbulb,
-      title: 'Smart Study',
-      message: 'Research shows 25-minute focused sessions improve retention by 40%.',
+      title: 'Smart Study Technique',
+      message: 'Research shows 25-minute focused sessions improve retention by 40%. Try the Pomodoro technique for maximum efficiency.',
       color: 'amber',
-      action: 'Try Pomodoro'
+      action: 'Start Session',
+      category: 'Productivity'
     },
     {
       icon: Brain,
-      title: 'Peak Performance',
-      message: `Your ${studyStreak}-day streak shows dedication! Consistency builds neural pathways.`,
+      title: 'Peak Performance Mode',
+      message: `Incredible! Your ${studyStreak}-day streak demonstrates real commitment. Consistency literally rewires your brain for success.`,
       color: 'purple',
-      action: 'Keep Going'
+      action: 'Keep Going',
+      category: 'Motivation'
     },
     {
       icon: Target,
-      title: 'Goal Setting',
-      message: 'Students who set specific study goals are 3x more likely to succeed.',
+      title: 'Strategic Goal Setting',
+      message: 'Students who set specific, measurable study goals are 3x more likely to achieve academic success. Define your targets clearly.',
       color: 'blue',
-      action: 'Set Goals'
+      action: 'Set Goals',
+      category: 'Strategy'
+    },
+    {
+      icon: Clock,
+      title: 'Optimal Timing',
+      message: 'Your brain is most receptive to new information during the first 2 hours after waking. Schedule complex topics early.',
+      color: 'emerald',
+      action: 'Plan Schedule',
+      category: 'Science'
+    },
+    {
+      icon: Trophy,
+      title: 'Achievement Unlocked',
+      message: 'Celebrating small wins releases dopamine, reinforcing positive study habits. Acknowledge your daily progress.',
+      color: 'orange',
+      action: 'View Achievements',
+      category: 'Psychology'
+    },
+    {
+      icon: Zap,
+      title: 'Energy Optimization',
+      message: 'Taking a 10-minute break every hour can increase focus by 23%. Your brain needs recovery time to consolidate learning.',
+      color: 'indigo',
+      action: 'Take Break',
+      category: 'Wellness'
     }
   ];
 
+  const ROTATION_INTERVAL = 10000; // 10 seconds
+  const PROGRESS_INTERVAL = 50; // Update progress every 50ms
+
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (isPaused || !isVisible) return;
+
+    const progressTimer = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return 0;
+        }
+        return prev + (100 / (ROTATION_INTERVAL / PROGRESS_INTERVAL));
+      });
+    }, PROGRESS_INTERVAL);
+
+    const rotationTimer = setInterval(() => {
+      setIsAnimating(true);
+      setTimeout(() => {
+        setCurrentTip((prev) => (prev + 1) % tips.length);
+        setProgress(0);
+        setIsAnimating(false);
+      }, 300);
+    }, ROTATION_INTERVAL);
+
+    return () => {
+      clearInterval(progressTimer);
+      clearInterval(rotationTimer);
+    };
+  }, [tips.length, isPaused, isVisible]);
+
+  const handlePauseToggle = () => {
+    setIsPaused(!isPaused);
+  };
+
+  const handleManualRotate = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
       setCurrentTip((prev) => (prev + 1) % tips.length);
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [tips.length]);
+      setProgress(0);
+      setIsAnimating(false);
+    }, 300);
+  };
+
+  const handleDismiss = () => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsVisible(false);
+    }, 300);
+  };
 
   if (!isVisible) return null;
 
@@ -109,35 +182,149 @@ const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) =
   const IconComponent = tip.icon;
 
   const colorStyles = {
-    amber: 'bg-amber-50 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-800/60 text-amber-900 dark:text-amber-100',
-    purple: 'bg-purple-50 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60 text-purple-900 dark:text-purple-100',
-    blue: 'bg-blue-50 dark:bg-blue-900/10 border-blue-200/60 dark:border-blue-800/60 text-blue-900 dark:text-blue-100'
+    amber: {
+      bg: 'bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-900/10 dark:to-amber-800/5',
+      border: 'border-amber-200/60 dark:border-amber-700/40',
+      text: 'text-amber-900 dark:text-amber-100',
+      iconBg: 'bg-amber-100/80 dark:bg-amber-800/20',
+      button: 'bg-amber-100/60 hover:bg-amber-200/80 dark:bg-amber-800/30 dark:hover:bg-amber-700/50',
+      progress: 'bg-amber-400 dark:bg-amber-500'
+    },
+    purple: {
+      bg: 'bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/10 dark:to-purple-800/5',
+      border: 'border-purple-200/60 dark:border-purple-700/40',
+      text: 'text-purple-900 dark:text-purple-100',
+      iconBg: 'bg-purple-100/80 dark:bg-purple-800/20',
+      button: 'bg-purple-100/60 hover:bg-purple-200/80 dark:bg-purple-800/30 dark:hover:bg-purple-700/50',
+      progress: 'bg-purple-400 dark:bg-purple-500'
+    },
+    blue: {
+      bg: 'bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-900/10 dark:to-blue-800/5',
+      border: 'border-blue-200/60 dark:border-blue-700/40',
+      text: 'text-blue-900 dark:text-blue-100',
+      iconBg: 'bg-blue-100/80 dark:bg-blue-800/20',
+      button: 'bg-blue-100/60 hover:bg-blue-200/80 dark:bg-blue-800/30 dark:hover:bg-blue-700/50',
+      progress: 'bg-blue-400 dark:bg-blue-500'
+    },
+    emerald: {
+      bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-900/10 dark:to-emerald-800/5',
+      border: 'border-emerald-200/60 dark:border-emerald-700/40',
+      text: 'text-emerald-900 dark:text-emerald-100',
+      iconBg: 'bg-emerald-100/80 dark:bg-emerald-800/20',
+      button: 'bg-emerald-100/60 hover:bg-emerald-200/80 dark:bg-emerald-800/30 dark:hover:bg-emerald-700/50',
+      progress: 'bg-emerald-400 dark:bg-emerald-500'
+    },
+    orange: {
+      bg: 'bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-900/10 dark:to-orange-800/5',
+      border: 'border-orange-200/60 dark:border-orange-700/40',
+      text: 'text-orange-900 dark:text-orange-100',
+      iconBg: 'bg-orange-100/80 dark:bg-orange-800/20',
+      button: 'bg-orange-100/60 hover:bg-orange-200/80 dark:bg-orange-800/30 dark:hover:bg-orange-700/50',
+      progress: 'bg-orange-400 dark:bg-orange-500'
+    },
+    indigo: {
+      bg: 'bg-gradient-to-br from-indigo-50 to-indigo-100/50 dark:from-indigo-900/10 dark:to-indigo-800/5',
+      border: 'border-indigo-200/60 dark:border-indigo-700/40',
+      text: 'text-indigo-900 dark:text-indigo-100',
+      iconBg: 'bg-indigo-100/80 dark:bg-indigo-800/20',
+      button: 'bg-indigo-100/60 hover:bg-indigo-200/80 dark:bg-indigo-800/30 dark:hover:bg-indigo-700/50',
+      progress: 'bg-indigo-400 dark:bg-indigo-500'
+    }
   };
 
+  const currentStyles = colorStyles[tip.color as keyof typeof colorStyles];
+
   return (
-    <div className="mb-8">
-      <div className={`rounded-2xl border p-6 backdrop-blur-sm transition-all duration-500 hover:shadow-lg ${colorStyles[tip.color as keyof typeof colorStyles]}`}>
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 p-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-sm">
-            <IconComponent className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-lg mb-1">{tip.title}</h3>
-                <p className="text-sm opacity-90 leading-relaxed mb-3">{tip.message}</p>
-                <button className="inline-flex items-center gap-2 text-sm font-semibold bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200">
-                  {tip.action}
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+    <div className="mb-8 relative">
+      {/* Progress bar */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gray-200/50 dark:bg-gray-700/50 rounded-t-2xl overflow-hidden">
+        <div 
+          className={`h-full ${currentStyles.progress} transition-all duration-75 ease-linear ${isPaused ? 'animation-paused' : ''}`}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className={`rounded-2xl border backdrop-blur-sm transition-all duration-500 hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 ${currentStyles.bg} ${currentStyles.border} ${currentStyles.text} ${isAnimating ? 'scale-[0.98] opacity-80' : 'scale-100 opacity-100'}`}>
+        <div className="p-6 pt-7">
+          <div className="flex items-start gap-4">
+            {/* Enhanced Icon */}
+            <div className={`flex-shrink-0 p-3 ${currentStyles.iconBg} rounded-2xl shadow-sm ring-1 ring-black/5 dark:ring-white/10 transition-all duration-300 group-hover:scale-105`}>
+              <IconComponent className="w-6 h-6" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4 mb-2">
+                {/* Category Badge */}
+                <div className="flex items-center gap-3">
+                  <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${currentStyles.button} transition-colors duration-200`}>
+                    {tip.category}
+                  </span>
+                  <span className="text-sm font-medium opacity-60">
+                    {currentTip + 1} of {tips.length}
+                  </span>
+                </div>
+
+                {/* Controls */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handlePauseToggle}
+                    className="p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-all duration-200 hover:scale-105"
+                    title={isPaused ? 'Resume' : 'Pause'}
+                  >
+                    {isPaused ? <Play className="w-4 h-4 opacity-60" /> : <Pause className="w-4 h-4 opacity-60" />}
+                  </button>
+                  <button
+                    onClick={handleManualRotate}
+                    className="p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-all duration-200 hover:scale-105"
+                    title="Next tip"
+                  >
+                    <RotateCcw className="w-4 h-4 opacity-60" />
+                  </button>
+                  <button
+                    onClick={handleDismiss}
+                    className="p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-all duration-200 hover:scale-105"
+                    title="Dismiss"
+                  >
+                    <X className="w-4 h-4 opacity-60" />
+                  </button>
+                </div>
               </div>
-              <button
-                onClick={() => setIsVisible(false)}
-                className="flex-shrink-0 p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-colors duration-200"
-              >
-                <X className="w-5 h-5 opacity-60" />
+
+              {/* Content */}
+              <h3 className="font-bold text-xl mb-2 leading-tight">{tip.title}</h3>
+              <p className="text-sm opacity-90 leading-relaxed mb-4 max-w-2xl">{tip.message}</p>
+              
+              {/* Action Button */}
+              <button className={`inline-flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-xl transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-sm hover:shadow-md ${currentStyles.button}`}>
+                {tip.action}
+                <ArrowRight className="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" />
               </button>
             </div>
+          </div>
+        </div>
+
+        {/* Tip Navigation Dots */}
+        <div className="px-6 pb-4">
+          <div className="flex items-center justify-center gap-2">
+            {tips.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setIsAnimating(true);
+                  setTimeout(() => {
+                    setCurrentTip(index);
+                    setProgress(0);
+                    setIsAnimating(false);
+                  }, 300);
+                }}
+                className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                  index === currentTip 
+                    ? `${currentStyles.progress} scale-125` 
+                    : 'bg-gray-300/60 dark:bg-gray-600/60 hover:bg-gray-400/80 dark:hover:bg-gray-500/80'
+                }`}
+                title={`Go to tip ${index + 1}: ${tips[index].title}`}
+              />
+            ))}
           </div>
         </div>
       </div>
