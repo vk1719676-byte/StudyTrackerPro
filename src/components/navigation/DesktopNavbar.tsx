@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -44,6 +44,8 @@ export const DesktopNavbar: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [showFocusMode, setShowFocusMode] = React.useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -57,8 +59,23 @@ export const DesktopNavbar: React.FC = () => {
 
   const handleLogout = async () => {
     setShowLogoutConfirm(false);
+    setShowProfileDropdown(false);
     await logout();
   };
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowProfileDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <>
@@ -137,22 +154,48 @@ export const DesktopNavbar: React.FC = () => {
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 />
                 
-                {/* User Email - Hidden on mobile, visible on lg+ */}
-                <div className="hidden md:block text-sm text-gray-600 dark:text-gray-400 max-w-32 xl:max-w-40 truncate font-medium">
-                  {user?.email}
+                {/* Profile Button with Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={User}
+                    onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                    className="p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/20 dark:hover:to-blue-800/20 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
+                    title="Profile"
+                  >
+                    <span className="hidden md:inline font-medium">Profile</span>
+                  </Button>
+                  
+                  {/* Profile Dropdown */}
+                  {showProfileDropdown && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right">
+                      {/* User Info */}
+                      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {user?.email}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Signed in
+                        </p>
+                      </div>
+                      
+                      {/* Logout Option */}
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setShowProfileDropdown(false);
+                            setShowLogoutConfirm(true);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 font-medium"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                
-                {/* Logout Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={LogOut}
-                  onClick={() => setShowLogoutConfirm(true)}
-                  className="hover:bg-gradient-to-r hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/20 dark:hover:to-red-800/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md hover:scale-105"
-                  title="Logout"
-                >
-                  <span className="hidden md:inline font-medium">Logout</span>
-                </Button>
               </div>
             </div>
           </div>
