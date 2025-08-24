@@ -67,79 +67,100 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Smart notification system
-const SmartNotification: React.FC<{ studyStreak: number }> = ({ studyStreak }) => {
-  const [currentTip, setCurrentTip] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
+// Image Banners Section
+const ImageBannersSection: React.FC = () => {
+  const [currentBanner, setCurrentBanner] = useState(0);
 
-  const tips = [
+  const banners = [
     {
-      icon: Lightbulb,
-      title: 'Smart Study',
-      message: 'Research shows 25-minute focused sessions improve retention by 40%.',
-      color: 'amber',
-      action: 'Try Pomodoro'
+      id: 1,
+      title: 'Master Your Studies',
+      subtitle: 'Unlock your potential with smart learning techniques',
+      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-blue-600/80 to-purple-600/80',
+      link: '#' // To be added later
     },
     {
-      icon: Brain,
-      title: 'Peak Performance',
-      message: `Your ${studyStreak}-day streak shows dedication! Consistency builds neural pathways.`,
-      color: 'purple',
-      action: 'Keep Going'
+      id: 2,
+      title: 'Premium Features',
+      subtitle: 'Get personalized AI insights and advanced analytics',
+      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-emerald-600/80 to-teal-600/80',
+      link: '#' // To be added later
     },
     {
-      icon: Target,
-      title: 'Goal Setting',
-      message: 'Students who set specific study goals are 3x more likely to succeed.',
-      color: 'blue',
-      action: 'Set Goals'
+      id: 3,
+      title: 'Study Groups',
+      subtitle: 'Connect with peers and learn together',
+      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-orange-600/80 to-red-600/80',
+      link: '#' // To be added later
     }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTip((prev) => (prev + 1) % tips.length);
+      setCurrentBanner((prev) => (prev + 1) % banners.length);
     }, 8000);
     return () => clearInterval(interval);
-  }, [tips.length]);
+  }, [banners.length]);
 
-  if (!isVisible) return null;
-
-  const tip = tips[currentTip];
-  const IconComponent = tip.icon;
-
-  const colorStyles = {
-    amber: 'bg-amber-50 dark:bg-amber-900/10 border-amber-200/60 dark:border-amber-800/60 text-amber-900 dark:text-amber-100',
-    purple: 'bg-purple-50 dark:bg-purple-900/10 border-purple-200/60 dark:border-purple-800/60 text-purple-900 dark:text-purple-100',
-    blue: 'bg-blue-50 dark:bg-blue-900/10 border-blue-200/60 dark:border-blue-800/60 text-blue-900 dark:text-blue-100'
-  };
+  const currentBannerData = banners[currentBanner];
 
   return (
     <div className="mb-8">
-      <div className={`rounded-2xl border p-6 backdrop-blur-sm transition-all duration-500 hover:shadow-lg ${colorStyles[tip.color as keyof typeof colorStyles]}`}>
-        <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 p-3 bg-white/80 dark:bg-gray-800/80 rounded-2xl shadow-sm">
-            <IconComponent className="w-5 h-5" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                <h3 className="font-bold text-lg mb-1">{tip.title}</h3>
-                <p className="text-sm opacity-90 leading-relaxed mb-3">{tip.message}</p>
-                <button className="inline-flex items-center gap-2 text-sm font-semibold bg-white/60 dark:bg-gray-800/60 px-4 py-2 rounded-xl hover:bg-white/80 dark:hover:bg-gray-700/80 transition-all duration-200">
-                  {tip.action}
-                  <ArrowRight className="w-4 h-4" />
+      <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-r from-gray-900 to-gray-800">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+          style={{
+            backgroundImage: `url(${currentBannerData.imageUrl})`,
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`} />
+        
+        {/* Content */}
+        <div className="relative z-10 p-8 md:p-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-white space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black leading-tight">
+                  {currentBannerData.title}
+                </h2>
+                <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl">
+                  {currentBannerData.subtitle}
+                </p>
+                <button 
+                  onClick={() => window.open(currentBannerData.link, '_blank')}
+                  className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group"
+                >
+                  Learn More
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
               </div>
-              <button
-                onClick={() => setIsVisible(false)}
-                className="flex-shrink-0 p-2 hover:bg-white/60 dark:hover:bg-gray-800/60 rounded-xl transition-colors duration-200"
-              >
-                <X className="w-5 h-5 opacity-60" />
-              </button>
+              
+              {/* Banner Navigation Dots */}
+              <div className="flex gap-3">
+                {banners.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentBanner(index)}
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      index === currentBanner 
+                        ? 'bg-white shadow-lg scale-110' 
+                        : 'bg-white/40 hover:bg-white/60'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
+        
+        {/* Animated Accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
       </div>
     </div>
   );
@@ -412,8 +433,8 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Smart Notification */}
-        <SmartNotification studyStreak={studyStreak} />
+        {/* Image Banners Section */}
+        <ImageBannersSection />
         
         {/* Modern Hero Section */}
         <div className="mb-10">
