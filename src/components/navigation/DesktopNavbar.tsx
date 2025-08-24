@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Bell, HelpCircle, Star } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -45,7 +45,11 @@ export const DesktopNavbar: React.FC = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [showFocusMode, setShowFocusMode] = React.useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
+  const [userAvatar, setUserAvatar] = React.useState<string | null>(null);
+  const [userName, setUserName] = React.useState<string>('');
+  const [showEditProfile, setShowEditProfile] = React.useState(false);
   const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
@@ -63,6 +67,41 @@ export const DesktopNavbar: React.FC = () => {
     await logout();
   };
 
+  // Load user data from localStorage on component mount
+  React.useEffect(() => {
+    const savedAvatar = localStorage.getItem('userAvatar');
+    const savedName = localStorage.getItem('userName');
+    if (savedAvatar) setUserAvatar(savedAvatar);
+    if (savedName) setUserName(savedName);
+  }, []);
+
+  // Handle avatar upload
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setUserAvatar(result);
+        localStorage.setItem('userAvatar', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle name update
+  const handleNameUpdate = (newName: string) => {
+    setUserName(newName);
+    localStorage.setItem('userName', newName);
+    setShowEditProfile(false);
+  };
+
+  // Remove avatar
+  const handleRemoveAvatar = () => {
+    setUserAvatar(null);
+    localStorage.removeItem('userAvatar');
+  };
+
   // Get user initials for avatar
   const getUserInitials = (email: string | undefined) => {
     if (!email) return 'U';
@@ -70,11 +109,18 @@ export const DesktopNavbar: React.FC = () => {
     return parts.charAt(0).toUpperCase();
   };
 
+  // Get display name
+  const getDisplayName = () => {
+    if (userName) return userName;
+    return user?.email?.split('@')[0] || 'User';
+  };
+
   // Close dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowProfileDropdown(false);
+        setShowEditProfile(false);
       }
     };
 
@@ -177,15 +223,29 @@ export const DesktopNavbar: React.FC = () => {
                   >
                     {/* Avatar Circle */}
                     <div className="relative">
-                      <div className={`
-                        w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
-                        ${showProfileDropdown 
-                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
-                          : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-md'
-                        }
-                      `}>
-                        {getUserInitials(user?.email)}
-                      </div>
+                      {userAvatar ? (
+                        <img
+                          src={userAvatar}
+                          alt="Profile"
+                          className={`
+                            w-8 h-8 rounded-full object-cover transition-all duration-200 border-2
+                            ${showProfileDropdown 
+                              ? 'border-blue-500 shadow-lg scale-105' 
+                              : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 shadow-md'
+                            }
+                          `}
+                        />
+                      ) : (
+                        <div className={`
+                          w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
+                          ${showProfileDropdown 
+                            ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
+                            : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-md'
+                          }
+                        `}>
+                          {getUserInitials(user?.email)}
+                        </div>
+                      )}
                       {/* Online Status Indicator */}
                       <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full animate-pulse"></div>
                     </div>
@@ -193,11 +253,15 @@ export const DesktopNavbar: React.FC = () => {
                     {/* User Info (hidden on small screens) */}
                     <div className="hidden md:flex flex-col items-start">
                       <span className="text-sm font-medium leading-tight">
-                        {user?.email?.split('@')[0] || 'User'}
+                        {getDisplayName()}
                       </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 leading-tight">
-                        Pro Member
-                      </span>
+                      <div className="flex items-center gap-1">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900">
+                          PRO
+                        </span>
+                        <div className="w-1 h-1 bg-green-400 rounded-full"></div>
+                        <span className="text-xs text-green-600 dark:text-green-400 font-medium">Online</span>
+                      </div>
                     </div>
                     
                     {/* Chevron Icon */}
@@ -206,17 +270,44 @@ export const DesktopNavbar: React.FC = () => {
                   
                   {/* Enhanced Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-3 w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
+                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
                       {/* User Info Header */}
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-lg font-bold shadow-lg">
-                            {getUserInitials(user?.email)}
+                          <div className="relative">
+                            {userAvatar ? (
+                              <img
+                                src={userAvatar}
+                                alt="Profile"
+                                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-lg font-bold shadow-lg">
+                                {getUserInitials(user?.email)}
+                              </div>
+                            )}
+                            {/* Camera overlay for avatar upload */}
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200"
+                              title="Change avatar"
+                            >
+                              <Camera className="w-4 h-4 text-white" />
+                            </button>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
-                              {user?.email?.split('@')[0] || 'User'}
-                            </p>
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 truncate">
+                                {getDisplayName()}
+                              </p>
+                              <button
+                                onClick={() => setShowEditProfile(!showEditProfile)}
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                                title="Edit name"
+                              >
+                                <Edit3 className="w-3 h-3 text-gray-500" />
+                              </button>
+                            </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                               {user?.email}
                             </p>
@@ -229,30 +320,104 @@ export const DesktopNavbar: React.FC = () => {
                             </div>
                           </div>
                         </div>
+                        
+                        {/* Edit Profile Form */}
+                        {showEditProfile && (
+                          <div className="mt-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                            <input
+                              type="text"
+                              placeholder="Enter your name"
+                              defaultValue={userName}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleNameUpdate((e.target as HTMLInputElement).value);
+                                }
+                              }}
+                              onBlur={(e) => handleNameUpdate(e.target.value)}
+                              autoFocus
+                            />
+                          </div>
+                        )}
                       </div>
                       
                       {/* Menu Items */}
                       <div className="p-2">
-                        {/* Settings Link */}
-                        <Link
-                          to="/settings"
-                          onClick={() => setShowProfileDropdown(false)}
-                          className="w-full flex items-center gap-3 px-3 py-3 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-all duration-200 font-medium hover:scale-[0.98]"
-                        >
-                          <Settings className="w-4 h-4 text-gray-500" />
-                          Account Settings
-                        </Link>
+                        {/* Avatar Management */}
+                        <div className="mb-2">
+                          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 px-3 py-1">Avatar</p>
+                          <div className="flex gap-1">
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="flex-1 flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                            >
+                              <Upload className="w-4 h-4 text-gray-500" />
+                              Upload Photo
+                            </button>
+                            {userAvatar && (
+                              <button
+                                onClick={handleRemoveAvatar}
+                                className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 font-medium"
+                                title="Remove avatar"
+                              >
+                                Remove
+                              </button>
+                            )}
+                          </div>
+                        </div>
                         
                         {/* Divider */}
                         <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
                         
+                        {/* Quick Actions */}
+                        <div className="space-y-1">
+                          <Link
+                            to="/settings"
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Settings className="w-4 h-4 text-gray-500" />
+                            Account Settings
+                          </Link>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Bell className="w-4 h-4 text-gray-500" />
+                            Notifications
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">3</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Star className="w-4 h-4 text-gray-500" />
+                            Upgrade Plan
+                            <span className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 text-xs rounded-full px-2 py-0.5 font-semibold">PRO</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <HelpCircle className="w-4 h-4 text-gray-500" />
+                            Help & Support
+                          </button>
+                        </div>
+                        
+                        {/* Divider */}
+                        <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
+                        
+                        {/* Settings Link */}
                         {/* Logout Button */}
                         <button
                           onClick={() => {
                             setShowProfileDropdown(false);
                             setShowLogoutConfirm(true);
                           }}
-                          className="w-full flex items-center gap-3 px-3 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all duration-200 font-medium hover:scale-[0.98]"
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 font-medium"
                         >
                           <LogOut className="w-4 h-4" />
                           Sign Out
@@ -265,6 +430,15 @@ export const DesktopNavbar: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        {/* Hidden file input for avatar upload */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleAvatarUpload}
+          className="hidden"
+        />
       </nav>
 
       {/* Fixed Focus Mode Button - Bottom Right */}
