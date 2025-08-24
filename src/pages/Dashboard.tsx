@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, Play, ChevronLeft, ExternalLink } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -67,100 +67,230 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Image Banners Section
+// Compact Image Banners Section
 const ImageBannersSection: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const banners = [
     {
       id: 1,
       title: 'Master Your Studies',
-      subtitle: 'Unlock your potential with smart learning techniques',
-      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-blue-600/80 to-purple-600/80',
-      link: '#' // To be added later
+      subtitle: 'Smart Learning Techniques',
+      description: 'Unlock your potential with AI-powered study methods',
+      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800',
+      gradient: 'from-blue-600/90 to-indigo-700/90',
+      primaryCTA: {
+        text: 'Start Learning',
+        action: () => console.log('Start Learning clicked'),
+        icon: Play
+      },
+      secondaryCTA: {
+        text: 'Learn More',
+        action: () => console.log('Learn More clicked'),
+        icon: BookOpen
+      },
+      badge: 'Popular'
     },
     {
       id: 2,
       title: 'Premium Features',
-      subtitle: 'Get personalized AI insights and advanced analytics',
-      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-emerald-600/80 to-teal-600/80',
-      link: '#' // To be added later
+      subtitle: 'AI-Powered Insights',
+      description: 'Get personalized analytics and advanced study tracking',
+      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800',
+      gradient: 'from-emerald-600/90 to-green-700/90',
+      primaryCTA: {
+        text: 'Upgrade Now',
+        action: () => console.log('Upgrade clicked'),
+        icon: Sparkles
+      },
+      secondaryCTA: {
+        text: 'View Features',
+        action: () => console.log('View Features clicked'),
+        icon: Target
+      },
+      badge: 'Premium'
     },
     {
       id: 3,
       title: 'Study Groups',
-      subtitle: 'Connect with peers and learn together',
-      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-orange-600/80 to-red-600/80',
-      link: '#' // To be added later
+      subtitle: 'Learn Together',
+      description: 'Connect with peers and achieve goals collaboratively',
+      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800',
+      gradient: 'from-purple-600/90 to-pink-700/90',
+      primaryCTA: {
+        text: 'Join Groups',
+        action: () => console.log('Join Groups clicked'),
+        icon: Users
+      },
+      secondaryCTA: {
+        text: 'Create Group',
+        action: () => console.log('Create Group clicked'),
+        icon: Plus
+      },
+      badge: 'New'
     }
   ];
 
   useEffect(() => {
+    if (!isAutoPlaying) return;
+    
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 8000);
+    }, 6000);
+    
     return () => clearInterval(interval);
-  }, [banners.length]);
+  }, [isAutoPlaying, banners.length]);
+
+  const nextBanner = () => {
+    setCurrentBanner((prev) => (prev + 1) % banners.length);
+    setIsAutoPlaying(false);
+  };
+
+  const prevBanner = () => {
+    setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
+    setIsAutoPlaying(false);
+  };
 
   const currentBannerData = banners[currentBanner];
+  const PrimaryIcon = currentBannerData.primaryCTA.icon;
+  const SecondaryIcon = currentBannerData.secondaryCTA.icon;
 
   return (
-    <div className="mb-8">
-      <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-r from-gray-900 to-gray-800">
+    <div className="mb-6">
+      <div className="relative overflow-hidden rounded-2xl md:rounded-3xl shadow-xl bg-gradient-to-r from-gray-900 to-gray-800 h-48 md:h-56 lg:h-64">
         {/* Background Image */}
         <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000 scale-105"
           style={{
             backgroundImage: `url(${currentBannerData.imageUrl})`,
           }}
         />
         
         {/* Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`} />
+        <div className={`absolute inset-0 bg-gradient-to-br ${currentBannerData.gradient} transition-all duration-1000`} />
         
-        {/* Content */}
-        <div className="relative z-10 p-8 md:p-12">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="text-white space-y-4">
-                <h2 className="text-3xl md:text-4xl font-black leading-tight">
-                  {currentBannerData.title}
-                </h2>
-                <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl">
-                  {currentBannerData.subtitle}
-                </p>
-                <button 
-                  onClick={() => window.open(currentBannerData.link, '_blank')}
-                  className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group"
-                >
-                  Learn More
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
-              </div>
-              
-              {/* Banner Navigation Dots */}
-              <div className="flex gap-3">
-                {banners.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentBanner(index)}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
-                      index === currentBanner 
-                        ? 'bg-white shadow-lg scale-110' 
-                        : 'bg-white/40 hover:bg-white/60'
-                    }`}
-                  />
-                ))}
+        {/* Navigation Arrows - Hidden on mobile */}
+        <button 
+          onClick={prevBanner}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 group"
+          aria-label="Previous banner"
+        >
+          <ChevronLeft className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
+        </button>
+        
+        <button 
+          onClick={nextBanner}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 hidden md:flex items-center justify-center w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 group"
+          aria-label="Next banner"
+        >
+          <ChevronRight className="w-5 h-5 text-white group-hover:scale-110 transition-transform duration-300" />
+        </button>
+        
+        {/* Content Container */}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="w-full px-4 md:px-6 lg:px-8">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
+                
+                {/* Left Content */}
+                <div className="text-white space-y-3 md:space-y-4">
+                  {/* Badge */}
+                  {currentBannerData.badge && (
+                    <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-full text-sm font-bold border border-white/30">
+                      <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                      {currentBannerData.badge}
+                    </div>
+                  )}
+                  
+                  {/* Title and Subtitle */}
+                  <div className="space-y-2">
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black leading-tight">
+                      {currentBannerData.title}
+                    </h2>
+                    <p className="text-lg md:text-xl text-white/90 font-semibold">
+                      {currentBannerData.subtitle}
+                    </p>
+                    <p className="text-sm md:text-base text-white/80 max-w-md hidden md:block">
+                      {currentBannerData.description}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Right Content - CTAs */}
+                <div className="flex flex-col sm:flex-row lg:flex-col gap-3 lg:items-end">
+                  {/* Primary CTA */}
+                  <button 
+                    onClick={currentBannerData.primaryCTA.action}
+                    className="flex items-center justify-center gap-3 bg-white/95 hover:bg-white text-gray-900 font-bold px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 group min-w-0"
+                  >
+                    <PrimaryIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                    <span className="truncate">{currentBannerData.primaryCTA.text}</span>
+                    <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform duration-300 flex-shrink-0" />
+                  </button>
+                  
+                  {/* Secondary CTA */}
+                  <button 
+                    onClick={currentBannerData.secondaryCTA.action}
+                    className="flex items-center justify-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group min-w-0"
+                  >
+                    <SecondaryIcon className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+                    <span className="truncate">{currentBannerData.secondaryCTA.text}</span>
+                    <ExternalLink className="w-3 h-3 md:w-4 md:h-4 group-hover:scale-110 transition-transform duration-300 flex-shrink-0" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
         
-        {/* Animated Accent */}
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
+        {/* Bottom Controls */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4">
+          {/* Dots Indicator */}
+          <div className="flex gap-2">
+            {banners.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  setCurrentBanner(index);
+                  setIsAutoPlaying(false);
+                }}
+                className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
+                  index === currentBanner 
+                    ? 'bg-white scale-125 shadow-lg' 
+                    : 'bg-white/40 hover:bg-white/60'
+                }`}
+                aria-label={`Go to slide ${index + 1}`}
+              />
+            ))}
+          </div>
+          
+          {/* Play/Pause Button */}
+          <button
+            onClick={() => setIsAutoPlaying(!isAutoPlaying)}
+            className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full transition-all duration-300 group"
+            aria-label={isAutoPlaying ? 'Pause autoplay' : 'Resume autoplay'}
+          >
+            {isAutoPlaying ? (
+              <div className="flex gap-1">
+                <div className="w-1 h-3 bg-white rounded-full"></div>
+                <div className="w-1 h-3 bg-white rounded-full"></div>
+              </div>
+            ) : (
+              <Play className="w-4 h-4 text-white ml-0.5" />
+            )}
+          </button>
+        </div>
+        
+        {/* Progress Bar */}
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+          <div 
+            className="h-full bg-white transition-all duration-300"
+            style={{ 
+              width: `${((currentBanner + 1) / banners.length) * 100}%` 
+            }}
+          />
+        </div>
       </div>
     </div>
   );
@@ -433,7 +563,7 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Image Banners Section */}
+        {/* Compact Image Banners Section */}
         <ImageBannersSection />
         
         {/* Modern Hero Section */}
