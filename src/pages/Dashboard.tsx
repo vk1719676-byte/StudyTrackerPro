@@ -67,8 +67,8 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Image Banners Section
-const ImageBannersSection: React.FC = () => {
+// Compact Text Banner Section
+const CompactTextBanner: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
@@ -76,80 +76,79 @@ const ImageBannersSection: React.FC = () => {
       id: 1,
       title: 'Master Your Studies',
       subtitle: 'Unlock your potential with smart learning techniques',
-      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-blue-600/80 to-purple-600/80',
-      link: '#' // To be added later
+      gradient: 'from-blue-600 to-indigo-600',
+      icon: Brain,
+      action: 'Start Learning'
     },
     {
       id: 2,
       title: 'Premium Features',
       subtitle: 'Get personalized AI insights and advanced analytics',
-      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-emerald-600/80 to-teal-600/80',
-      link: '#' // To be added later
+      gradient: 'from-emerald-600 to-teal-600',
+      icon: Sparkles,
+      action: 'Upgrade Now'
     },
     {
       id: 3,
       title: 'Study Groups',
       subtitle: 'Connect with peers and learn together',
-      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
-      gradient: 'from-orange-600/80 to-red-600/80',
-      link: '#' // To be added later
+      gradient: 'from-orange-600 to-red-600',
+      icon: Users,
+      action: 'Join Community'
     }
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 8000);
+    }, 6000);
     return () => clearInterval(interval);
   }, [banners.length]);
 
   const currentBannerData = banners[currentBanner];
+  const Icon = currentBannerData.icon;
 
   return (
-    <div className="mb-8">
-      <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-r from-gray-900 to-gray-800">
-        {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
-          style={{
-            backgroundImage: `url(${currentBannerData.imageUrl})`,
-          }}
-        />
-        
-        {/* Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`} />
+    <div className="mb-6">
+      <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`}>
+        {/* Animated background pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-white rounded-full blur-xl animate-pulse"></div>
+          <div className="absolute bottom-1/4 right-1/4 w-12 h-12 bg-white rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
         
         {/* Content */}
-        <div className="relative z-10 p-8 md:p-12">
-          <div className="max-w-4xl mx-auto">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-              <div className="text-white space-y-4">
-                <h2 className="text-3xl md:text-4xl font-black leading-tight">
+        <div className="relative z-10 p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4 text-white flex-1 min-w-0">
+              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                <Icon className="w-6 h-6" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-lg font-bold mb-1 truncate">
                   {currentBannerData.title}
-                </h2>
-                <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl">
+                </h3>
+                <p className="text-sm text-white/90 font-medium truncate">
                   {currentBannerData.subtitle}
                 </p>
-                <button 
-                  onClick={() => window.open(currentBannerData.link, '_blank')}
-                  className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group"
-                >
-                  Learn More
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
-                </button>
               </div>
+            </div>
+            
+            <div className="flex items-center gap-4 flex-shrink-0">
+              <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-4 py-2 rounded-xl border border-white/30 hover:border-white/50 transition-all duration-300 text-sm flex items-center gap-2 group">
+                {currentBannerData.action}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
+              </button>
               
-              {/* Banner Navigation Dots */}
-              <div className="flex gap-3">
+              {/* Navigation dots */}
+              <div className="flex gap-2">
                 {banners.map((_, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentBanner(index)}
-                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       index === currentBanner 
-                        ? 'bg-white shadow-lg scale-110' 
+                        ? 'bg-white scale-125' 
                         : 'bg-white/40 hover:bg-white/60'
                     }`}
                   />
@@ -158,9 +157,6 @@ const ImageBannersSection: React.FC = () => {
             </div>
           </div>
         </div>
-        
-        {/* Animated Accent */}
-        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
       </div>
     </div>
   );
@@ -433,8 +429,8 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Image Banners Section */}
-        <ImageBannersSection />
+        {/* Compact Text Banner */}
+        <CompactTextBanner />
         
         {/* Modern Hero Section */}
         <div className="mb-10">
