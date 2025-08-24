@@ -74,11 +74,11 @@ const ImageBannersSection: React.FC = () => {
   const banners = [
     {
       id: 1,
-      title: 'Master Your Studies',
-      subtitle: 'Unlock your potential with smart learning techniques',
-      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      title: 'Learn how to use Study Tracker Pro',
+      subtitle: 'Unlock your potential with smart Tracking Platform',
+      imageUrl: 'https://image2url.com/images/1756015942810-2c13a33c-fb22-4ad9-ad5a-8ce8dcf7eda2.jpg', // Placeholder - will add proper link later
       gradient: 'from-blue-600/80 to-purple-600/80',
-      link: '#' // To be added later
+      link: 'https://youtu.be/ne9YlsIMSrI?si=B9v5gcY23sQEK35L' // To be added later
     },
     {
       id: 2,
