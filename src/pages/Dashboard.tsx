@@ -67,34 +67,49 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Compact Text Banner Section
+// Compact Text Banner Section with Enhanced Links
 const CompactTextBanner: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
     {
       id: 1,
-      title: 'Master Your Studies',
-      subtitle: 'Unlock your potential with smart learning techniques',
+      title: 'Boost Your Grades by 40%',
+      subtitle: 'Join 50,000+ students using proven study techniques to ace their exams',
       gradient: 'from-blue-600 to-indigo-600',
       icon: Brain,
-      action: 'Start Learning'
+      action: 'Start Free Course',
+      link: '/study-techniques',
+      onClick: () => {
+        // Navigate to study techniques page
+        window.open('/study-techniques', '_blank');
+      }
     },
     {
       id: 2,
-      title: 'Premium Features',
-      subtitle: 'Get personalized AI insights and advanced analytics',
+      title: 'Unlock AI Study Assistant',
+      subtitle: 'Get personalized study plans, smart reminders & performance analytics',
       gradient: 'from-emerald-600 to-teal-600',
       icon: Sparkles,
-      action: 'Upgrade Now'
+      action: 'Try Premium Free',
+      link: '/premium',
+      onClick: () => {
+        // Navigate to premium upgrade page
+        window.open('/premium', '_blank');
+      }
     },
     {
       id: 3,
-      title: 'Study Groups',
-      subtitle: 'Connect with peers and learn together',
+      title: 'Study With Top Students',
+      subtitle: 'Connect with high achievers, share notes, and learn together online',
       gradient: 'from-orange-600 to-red-600',
       icon: Users,
-      action: 'Join Community'
+      action: 'Join Community',
+      link: '/community',
+      onClick: () => {
+        // Navigate to community page
+        window.open('/community', '_blank');
+      }
     }
   ];
 
@@ -135,7 +150,10 @@ const CompactTextBanner: React.FC = () => {
             </div>
             
             <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4 flex-shrink-0">
-              <button className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-3 sm:px-4 py-2 rounded-xl border border-white/30 hover:border-white/50 transition-all duration-300 text-xs sm:text-sm flex items-center gap-2 group">
+              <button 
+                onClick={currentBannerData.onClick}
+                className="bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-3 sm:px-4 py-2 rounded-xl border border-white/30 hover:border-white/50 transition-all duration-300 text-xs sm:text-sm flex items-center gap-2 group hover:scale-105 transform"
+              >
                 {currentBannerData.action}
                 <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
               </button>
@@ -157,6 +175,9 @@ const CompactTextBanner: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Subtle pulsing indicator */}
+        <div className="absolute top-2 right-2 w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
       </div>
     </div>
   );
