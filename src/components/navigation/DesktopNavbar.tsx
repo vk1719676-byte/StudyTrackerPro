@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Bell } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Bell, HelpCircle, Star } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,8 +48,6 @@ export const DesktopNavbar: React.FC = () => {
   const [userAvatar, setUserAvatar] = React.useState<string | null>(null);
   const [userName, setUserName] = React.useState<string>('');
   const [showEditProfile, setShowEditProfile] = React.useState(false);
-  const [notifications, setNotifications] = React.useState<Array<{id: string, title: string, message: string, time: Date, read: boolean}>>([]);
-  const [notificationPermission, setNotificationPermission] = React.useState<NotificationPermission>('default');
   const dropdownRef = React.useRef<HTMLDivElement>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -73,27 +71,8 @@ export const DesktopNavbar: React.FC = () => {
   React.useEffect(() => {
     const savedAvatar = localStorage.getItem('userAvatar');
     const savedName = localStorage.getItem('userName');
-    const savedNotifications = localStorage.getItem('userNotifications');
     if (savedAvatar) setUserAvatar(savedAvatar);
     if (savedName) setUserName(savedName);
-    if (savedNotifications) {
-      try {
-        const parsed = JSON.parse(savedNotifications);
-        setNotifications(parsed.map((n: any) => ({...n, time: new Date(n.time)})));
-      } catch (e) {
-        console.error('Failed to parse notifications:', e);
-      }
-    }
-    
-    // Request notification permission
-    if ('Notification' in window) {
-      setNotificationPermission(Notification.permission);
-      if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-          setNotificationPermission(permission);
-        });
-      }
-    }
   }, []);
 
   // Handle avatar upload
@@ -116,60 +95,6 @@ export const DesktopNavbar: React.FC = () => {
     localStorage.setItem('userName', newName);
     setShowEditProfile(false);
   };
-
-  // Add notification
-  const addNotification = (title: string, message: string) => {
-    const newNotification = {
-      id: Date.now().toString(),
-      title,
-      message,
-      time: new Date(),
-      read: false
-    };
-    
-    const updatedNotifications = [newNotification, ...notifications].slice(0, 10); // Keep only last 10
-    setNotifications(updatedNotifications);
-    localStorage.setItem('userNotifications', JSON.stringify(updatedNotifications));
-    
-    // Show browser notification if permission granted
-    if (notificationPermission === 'granted') {
-      new Notification(title, {
-        body: message,
-        icon: '/vite.svg', // You can replace with your app icon
-        badge: '/vite.svg'
-      });
-    }
-  };
-
-  // Mark notification as read
-  const markNotificationRead = (id: string) => {
-    const updatedNotifications = notifications.map(n => 
-      n.id === id ? {...n, read: true} : n
-    );
-    setNotifications(updatedNotifications);
-    localStorage.setItem('userNotifications', JSON.stringify(updatedNotifications));
-  };
-
-  // Clear all notifications
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    localStorage.removeItem('userNotifications');
-  };
-
-  // Demo function to add sample notifications (you can remove this in production)
-  const addSampleNotification = () => {
-    const sampleNotifications = [
-      { title: 'Study Session Reminder', message: 'Time for your Math study session!' },
-      { title: 'Goal Achievement', message: 'Congratulations! You completed your daily study goal.' },
-      { title: 'Exam Alert', message: 'Physics exam is tomorrow. Good luck!' },
-      { title: 'New Material Added', message: 'New study materials have been uploaded to Chemistry.' }
-    ];
-    const random = sampleNotifications[Math.floor(Math.random() * sampleNotifications.length)];
-    addNotification(random.title, random.message);
-  };
-
-  // Get unread notification count
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   // Remove avatar
   const handleRemoveAvatar = () => {
@@ -282,23 +207,6 @@ export const DesktopNavbar: React.FC = () => {
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 />
                 
-                {/* Notification Bell */}
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    icon={Bell}
-                    onClick={addSampleNotification}
-                    className="p-2 hover:bg-gradient-to-r hover:from-blue-50 hover:to-blue-100 dark:hover:from-blue-900/20 dark:hover:to-blue-800/20 hover:text-blue-600 dark:hover:text-blue-400 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
-                    title="Add test notification"
-                  />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium animate-pulse">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </div>
-                
                 {/* Enhanced Profile Button with Avatar and Dropdown */}
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -348,6 +256,9 @@ export const DesktopNavbar: React.FC = () => {
                         {getDisplayName()}
                       </span>
                       <div className="flex items-center gap-1">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900">
+                          PRO
+                        </span>
                         <div className="w-1 h-1 bg-green-400 rounded-full"></div>
                         <span className="text-xs text-green-600 dark:text-green-400 font-medium">Online</span>
                       </div>
@@ -401,6 +312,9 @@ export const DesktopNavbar: React.FC = () => {
                               {user?.email}
                             </p>
                             <div className="flex items-center gap-1 mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900">
+                                PRO
+                              </span>
                               <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                               <span className="text-xs text-green-600 dark:text-green-400 font-medium">Online</span>
                             </div>
@@ -466,74 +380,31 @@ export const DesktopNavbar: React.FC = () => {
                             Account Settings
                           </Link>
                           
-                          {/* Notifications Section */}
-                          <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                            <div className="flex items-center justify-between px-3 py-2">
-                              <div className="flex items-center gap-2">
-                                <Bell className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notifications</span>
-                                {unreadCount > 0 && (
-                                  <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-medium">
-                                    {unreadCount}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex gap-1">
-                                <button
-                                  onClick={addSampleNotification}
-                                  className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
-                                  title="Add sample notification"
-                                >
-                                  Test
-                                </button>
-                                {notifications.length > 0 && (
-                                  <button
-                                    onClick={clearAllNotifications}
-                                    className="text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-medium"
-                                    title="Clear all notifications"
-                                  >
-                                    Clear
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Notifications List */}
-                            <div className="max-h-48 overflow-y-auto">
-                              {notifications.length === 0 ? (
-                                <div className="px-3 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
-                                  No notifications yet
-                                </div>
-                              ) : (
-                                notifications.map((notification) => (
-                                  <div
-                                    key={notification.id}
-                                    onClick={() => markNotificationRead(notification.id)}
-                                    className={`px-3 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${
-                                      !notification.read ? 'bg-blue-50 dark:bg-blue-900/10 border-l-2 border-blue-500' : ''
-                                    }`}
-                                  >
-                                    <div className="flex items-start gap-2">
-                                      <div className={`w-2 h-2 rounded-full mt-2 ${
-                                        !notification.read ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
-                                      }`}></div>
-                                      <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                          {notification.title}
-                                        </p>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
-                                          {notification.message}
-                                        </p>
-                                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                                          {notification.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Bell className="w-4 h-4 text-gray-500" />
+                            Notifications
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">3</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Star className="w-4 h-4 text-gray-500" />
+                            Upgrade Plan
+                            <span className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 text-xs rounded-full px-2 py-0.5 font-semibold">PRO</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <HelpCircle className="w-4 h-4 text-gray-500" />
+                            Help & Support
+                          </button>
                         </div>
                         
                         {/* Divider */}
