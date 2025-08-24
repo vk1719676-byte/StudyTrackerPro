@@ -67,25 +67,34 @@ const ModernCard: React.FC<{
   </div>
 );
 
-// Compact Image Banners Section
+// Image Banners Section
 const ImageBannersSection: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
     {
       id: 1,
-      imageUrl: 'https://image2url.com/images/1756015942810-2c13a33c-fb22-4ad9-ad5a-8ce8dcf7eda2.jpg',
-      link: 'https://youtu.be/ne9YlsIMSrI?si=B9v5gcY23sQEK35L'
+      title: 'Master Your Studies',
+      subtitle: 'Unlock your potential with smart learning techniques',
+      imageUrl: 'https://images.pexels.com/photos/5212345/pexels-photo-5212345.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-blue-600/80 to-purple-600/80',
+      link: '#' // To be added later
     },
     {
       id: 2,
-      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=1920',
-      link: '#'
+      title: 'Premium Features',
+      subtitle: 'Get personalized AI insights and advanced analytics',
+      imageUrl: 'https://images.pexels.com/photos/5212703/pexels-photo-5212703.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-emerald-600/80 to-teal-600/80',
+      link: '#' // To be added later
     },
     {
       id: 3,
-      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=1920',
-      link: '#'
+      title: 'Study Groups',
+      subtitle: 'Connect with peers and learn together',
+      imageUrl: 'https://images.pexels.com/photos/5212664/pexels-photo-5212664.jpeg?auto=compress&cs=tinysrgb&w=800', // Placeholder - will add proper link later
+      gradient: 'from-orange-600/80 to-red-600/80',
+      link: '#' // To be added later
     }
   ];
 
@@ -98,66 +107,60 @@ const ImageBannersSection: React.FC = () => {
 
   const currentBannerData = banners[currentBanner];
 
-  const handleBannerClick = () => {
-    if (currentBannerData.link && currentBannerData.link !== '#') {
-      window.open(currentBannerData.link, '_blank');
-    }
-  };
-
   return (
-    <div className="mb-6">
-      <div 
-        className="relative overflow-hidden rounded-2xl shadow-lg cursor-pointer group transition-all duration-300 hover:shadow-xl hover:scale-[1.01]"
-        onClick={handleBannerClick}
-      >
-        {/* Compact Banner - Responsive height that fits screen better */}
-        <div className="relative w-full aspect-[6/5]">
-          <img
-            src={currentBannerData.imageUrl}
-            alt="Banner"
-            className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-700 group-hover:scale-105"
-            loading="lazy"
-            style={{
-              imageRendering: 'crisp-edges',
-              imageRendering: '-webkit-optimize-contrast'
-            }}
-          />
-          
-          {/* Elegant overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-black/10 group-hover:from-black/10 group-hover:to-black/5 transition-all duration-500" />
-          
-          {/* Interactive hover indicator */}
-          <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-sm rounded-full p-2 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-90 group-hover:scale-100">
-            <ArrowRight className="w-4 h-4 text-white drop-shadow-sm" />
-          </div>
-
-          {/* Optional content overlay for interactive banners */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/40 via-black/20 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
-            <div className="text-white text-sm font-medium drop-shadow-sm">
-              Click to explore
+    <div className="mb-8">
+      <div className="relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-r from-gray-900 to-gray-800">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center transition-all duration-1000"
+          style={{
+            backgroundImage: `url(${currentBannerData.imageUrl})`,
+          }}
+        />
+        
+        {/* Gradient Overlay */}
+        <div className={`absolute inset-0 bg-gradient-to-r ${currentBannerData.gradient} transition-all duration-1000`} />
+        
+        {/* Content */}
+        <div className="relative z-10 p-8 md:p-12">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="text-white space-y-4">
+                <h2 className="text-3xl md:text-4xl font-black leading-tight">
+                  {currentBannerData.title}
+                </h2>
+                <p className="text-lg md:text-xl text-white/90 font-medium max-w-2xl">
+                  {currentBannerData.subtitle}
+                </p>
+                <button 
+                  onClick={() => window.open(currentBannerData.link, '_blank')}
+                  className="inline-flex items-center gap-3 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-8 py-4 rounded-2xl border border-white/30 hover:border-white/50 transition-all duration-300 group"
+                >
+                  Learn More
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                </button>
+              </div>
+              
+              {/* Banner Navigation Dots */}
+              <div className="flex gap-3">
+                {banners.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentBanner(index)}
+                    className={`w-4 h-4 rounded-full transition-all duration-300 ${
+                      index === currentBanner 
+                        ? 'bg-white shadow-lg scale-110' 
+                        : 'bg-white/40 hover:bg-white/60'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Minimalist navigation dots */}
-        <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2">
-          <div className="flex gap-1.5">
-            {banners.map((_, index) => (
-              <button
-                key={index}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setCurrentBanner(index);
-                }}
-                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                  index === currentBanner 
-                    ? 'bg-white shadow-sm scale-125' 
-                    : 'bg-white/60 hover:bg-white/80 hover:scale-110'
-                }`}
-              />
-            ))}
-          </div>
-        </div>
+        {/* Animated Accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse" />
       </div>
     </div>
   );
@@ -430,12 +433,12 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Compact Image Banners Section */}
+        {/* Image Banners Section */}
         <ImageBannersSection />
         
-        {/* Modern Hero Section - Reduced padding for better spacing */}
-        <div className="mb-8">
-          <div className={`relative overflow-hidden bg-gradient-to-br ${currentThemeData.gradient} rounded-3xl p-6 md:p-8 text-white shadow-2xl`}>
+        {/* Modern Hero Section */}
+        <div className="mb-10">
+          <div className={`relative overflow-hidden bg-gradient-to-br ${currentThemeData.gradient} rounded-3xl p-8 md:p-12 text-white shadow-2xl`}>
             {/* Animated background elements */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-white rounded-full blur-3xl animate-pulse"></div>
@@ -446,10 +449,10 @@ export const Dashboard: React.FC = () => {
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-4">
                   <div>
-                    <h1 className="text-2xl md:text-3xl font-black mb-2">
+                    <h1 className="text-3xl md:text-4xl font-black mb-2">
                       {getTimeGreeting()}, {displayName}!
                     </h1>
-                    <p className="text-lg text-white/90 font-medium">
+                    <p className="text-xl text-white/90 font-medium">
                       {currentThemeData.greeting}
                     </p>
                   </div>
@@ -479,8 +482,8 @@ export const Dashboard: React.FC = () => {
               </div>
               
               <div className="flex-shrink-0">
-                <div className={`p-5 bg-gradient-to-br ${currentThemeData.accent} rounded-3xl shadow-2xl backdrop-blur-sm`}>
-                  <ThemeIcon className="w-10 h-10 text-white drop-shadow-lg" />
+                <div className={`p-6 bg-gradient-to-br ${currentThemeData.accent} rounded-3xl shadow-2xl backdrop-blur-sm`}>
+                  <ThemeIcon className="w-12 h-12 text-white drop-shadow-lg" />
                 </div>
               </div>
             </div>
@@ -489,15 +492,15 @@ export const Dashboard: React.FC = () => {
 
         {/* Premium AI Section */}
         {isPremium && (
-          <div className="mb-8">
-            <ModernCard className="p-6 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-2 border-indigo-200/60 dark:border-indigo-700/60">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+          <div className="mb-10">
+            <ModernCard className="p-8 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-2 border-indigo-200/60 dark:border-indigo-700/60">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
-                    <Brain className="w-6 h-6 text-white" />
+                  <div className="p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
+                    <Brain className="w-7 h-7 text-white" />
                   </div>
                   <div>
-                    <h2 className="text-xl font-black text-gray-900 dark:text-gray-100">AI Study Assistant</h2>
+                    <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100">AI Study Assistant</h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">Personalized insights powered by machine learning</p>
                   </div>
                 </div>
@@ -510,33 +513,33 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-5 shadow-lg border border-white/60 dark:border-gray-700/60">
-                  <div className="flex items-center gap-3 mb-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60">
+                  <div className="flex items-center gap-3 mb-4">
                     <div className="text-2xl">🎯</div>
                     <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Today's Focus</h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                     Mathematics shows the highest retention rate in your morning sessions. Optimal focus window: 9-11 AM.
                   </p>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-5 shadow-lg border border-white/60 dark:border-gray-700/60">
-                  <div className="flex items-center gap-3 mb-3">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60">
+                  <div className="flex items-center gap-3 mb-4">
                     <div className="text-2xl">📊</div>
                     <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Performance Trend</h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                     Your efficiency has improved 23% this week. Consistent 25-minute sessions are working perfectly.
                   </p>
                 </div>
                 
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-5 shadow-lg border border-white/60 dark:border-gray-700/60 md:col-span-2 lg:col-span-1">
-                  <div className="flex items-center gap-3 mb-3">
+                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60 md:col-span-2 lg:col-span-1">
+                  <div className="flex items-center gap-3 mb-4">
                     <div className="text-2xl">💡</div>
                     <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Smart Recommendation</h3>
                   </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                     Review Physics concepts tonight. Your brain consolidates information best 4-6 hours after learning.
                   </p>
                 </div>
@@ -546,7 +549,7 @@ export const Dashboard: React.FC = () => {
         )}
 
         {/* Modern Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
           <StatCard
             icon={Clock}
             label="Today's Study"
@@ -581,33 +584,33 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Analytics and Deadlines */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           
           {/* Performance Analytics */}
           <div className="lg:col-span-2">
-            <ModernCard className="p-6 h-full">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <ModernCard className="p-8 h-full">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
                 <div className="flex items-center gap-3">
                   <div className="p-3 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-lg">
-                    <BarChart3 className="w-5 h-5 text-white" />
+                    <BarChart3 className="w-6 h-6 text-white" />
                   </div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Performance Analytics</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Performance Analytics</h2>
                 </div>
-                <div className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-1.5 rounded-full text-sm font-bold">
+                <div className="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-2 rounded-full text-sm font-bold">
                   Real-time Data
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-5 border border-blue-200/50 dark:border-blue-700/50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Activity className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Activity className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     <span className="font-bold text-gray-700 dark:text-gray-300">Weekly Progress</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600 dark:text-gray-400">Study Time</span>
-                      <span className="text-sm font-bold text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30 px-2 py-1 rounded-full">
+                      <span className="text-sm font-bold text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
                         +{performanceMetrics.timeChange}%
                       </span>
                     </div>
@@ -620,12 +623,12 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-3xl p-5 border border-purple-200/50 dark:border-purple-700/50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Timer className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-3xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Timer className="w-5 h-5 text-purple-600 dark:text-purple-400" />
                     <span className="font-bold text-gray-700 dark:text-gray-300">Session Insights</span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600 dark:text-gray-400">Avg. Duration</span>
                       <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
@@ -643,24 +646,24 @@ export const Dashboard: React.FC = () => {
               </div>
               
               {/* Study Streak Visualization */}
-              <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-3xl p-5 border border-orange-200/50 dark:border-orange-700/50">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-3xl p-6 border border-orange-200/50 dark:border-orange-700/50">
+                <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <Flame className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                    <Flame className="w-5 h-5 text-orange-600 dark:text-orange-400" />
                     <span className="font-bold text-gray-700 dark:text-gray-300">Study Streak</span>
                   </div>
-                  <span className="text-xl font-black text-orange-600 dark:text-orange-400">
+                  <span className="text-2xl font-black text-orange-600 dark:text-orange-400">
                     {studyStreak} days
                   </span>
                 </div>
-                <div className="flex gap-1 mb-2">
+                <div className="flex gap-2 mb-3">
                   {[...Array(14)].map((_, i) => {
                     const dayIndex = 13 - i;
                     const hasStudied = dayIndex < studyStreak;
                     return (
                       <div
                         key={i}
-                        className={`h-3 flex-1 rounded-lg transition-all duration-300 ${
+                        className={`h-4 flex-1 rounded-lg transition-all duration-300 ${
                           hasStudied 
                             ? 'bg-gradient-to-r from-orange-400 to-red-500' 
                             : 'bg-gray-200 dark:bg-gray-700'
@@ -678,16 +681,16 @@ export const Dashboard: React.FC = () => {
 
           {/* Upcoming Deadlines */}
           <div>
-            <ModernCard className="p-6 h-full">
-              <div className="flex items-center gap-3 mb-6">
+            <ModernCard className="p-8 h-full">
+              <div className="flex items-center gap-3 mb-8">
                 <div className="p-3 bg-gradient-to-br from-red-600 to-pink-600 rounded-2xl shadow-lg">
-                  <AlertCircle className="w-5 h-5 text-white" />
+                  <AlertCircle className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">Deadlines</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Deadlines</h2>
               </div>
               
               {upcomingDeadlines.length > 0 ? (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {upcomingDeadlines.slice(0, 4).map((exam) => {
                     const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                     const isUrgent = daysUntil <= 3;
@@ -695,22 +698,22 @@ export const Dashboard: React.FC = () => {
                     const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
                     
                     return (
-                      <div key={exam.id} className={`p-4 rounded-2xl border-l-4 transition-all duration-300 hover:shadow-lg ${
+                      <div key={exam.id} className={`p-5 rounded-2xl border-l-4 transition-all duration-300 hover:shadow-lg ${
                         isUrgent 
                           ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-500' 
                           : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-500'
                       }`}>
-                        <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start justify-between mb-4">
                           <div className="min-w-0 flex-1">
-                            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base mb-1 truncate">
+                            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1 truncate">
                               {exam.name}
                             </h3>
                             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
                               {exam.subject}
                             </p>
                           </div>
-                          <div className="text-right flex-shrink-0 ml-3">
-                            <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <span className={`text-sm font-bold px-3 py-2 rounded-xl ${
                               isUrgent ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40' : 'text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/40'
                             }`}>
                               {daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}
@@ -722,7 +725,7 @@ export const Dashboard: React.FC = () => {
                           <span className="text-gray-600 dark:text-gray-400">
                             {formatMinutes(totalStudyTime)} studied
                           </span>
-                          <span className={`font-bold px-2 py-1 rounded-full text-xs ${
+                          <span className={`font-bold px-3 py-1 rounded-full text-xs ${
                             totalStudyTime >= 300 ? 'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40' : 
                             totalStudyTime >= 120 ? 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40' : 
                             'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
@@ -736,14 +739,14 @@ export const Dashboard: React.FC = () => {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-6">
-                  <div className="p-4 bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 rounded-3xl mb-3 inline-block">
-                    <CheckCircle2 className="w-10 h-10 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                <div className="text-center py-8">
+                  <div className="p-6 bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 rounded-3xl mb-4 inline-block">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
                   </div>
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-base mb-2">
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">
                     No Upcoming Deadlines
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  <p className="text-gray-600 dark:text-gray-400">
                     Great! You're all caught up 🎉
                   </p>
                 </div>
@@ -753,77 +756,77 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Premium Advanced Analytics */}
-        <div className="mb-8">
+        <div className="mb-10">
           <PremiumFeatureGate
             featureName="Advanced Analytics Dashboard"
             description="Unlock detailed insights, AI predictions, and personalized recommendations"
-            className="min-h-[280px]"
+            className="min-h-[300px]"
           >
-            <ModernCard className="p-6 border-2 border-indigo-200/60 dark:border-indigo-700/60">
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-3 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
-                  <BarChart3 className="w-6 h-6 text-white" />
+            <ModernCard className="p-8 border-2 border-indigo-200/60 dark:border-indigo-700/60">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
+                  <BarChart3 className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Advanced Analytics</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Advanced Analytics</h2>
                   <p className="text-gray-600 dark:text-gray-400">Deep insights into your learning patterns</p>
                 </div>
-                <div className="ml-auto bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-3 py-1.5 rounded-full text-sm font-bold">
+                <div className="ml-auto bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-2 rounded-full text-sm font-bold">
                   Premium Feature
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-5 border border-blue-200/50 dark:border-blue-700/50">
-                  <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-4 text-lg flex items-center gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/50">
+                  <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-6 text-xl flex items-center gap-2">
                     <TrendingUp className="w-5 h-5" />
                     Learning Curves
                   </h3>
-                  <div className="h-20 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 rounded-2xl flex items-end justify-around p-3">
+                  <div className="h-24 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 rounded-2xl flex items-end justify-around p-4">
                     {[6, 8, 12, 9, 14, 11, 16].map((height, i) => (
                       <div
                         key={i}
                         className="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg shadow-lg"
-                        style={{ width: '8px', height: `${height * 2}px` }}
+                        style={{ width: '10px', height: `${height * 3}px` }}
                       />
                     ))}
                   </div>
-                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-3 font-medium">
+                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-4 font-medium">
                     Your learning velocity is increasing consistently
                   </p>
                 </div>
                 
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-3xl p-5 border border-emerald-200/50 dark:border-emerald-700/50">
-                  <h3 className="font-bold text-emerald-900 dark:text-emerald-400 mb-4 text-lg flex items-center gap-2">
+                <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-3xl p-6 border border-emerald-200/50 dark:border-emerald-700/50">
+                  <h3 className="font-bold text-emerald-900 dark:text-emerald-400 mb-6 text-xl flex items-center gap-2">
                     <Target className="w-5 h-5" />
                     AI Predictions
                   </h3>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
-                      <span className="font-medium text-sm">Math Exam</span>
-                      <span className="font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full text-xs">
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
+                      <span className="font-medium">Math Exam</span>
+                      <span className="font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
                         92% Success
                       </span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
-                      <span className="font-medium text-sm">Physics Quiz</span>
-                      <span className="font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-2 py-1 rounded-full text-xs">
+                    <div className="flex justify-between items-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
+                      <span className="font-medium">Physics Quiz</span>
+                      <span className="font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
                         78% Success
                       </span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-3xl p-5 border border-purple-200/50 dark:border-purple-700/50">
-                  <h3 className="font-bold text-purple-900 dark:text-purple-400 mb-4 text-lg flex items-center gap-2">
+                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-3xl p-6 border border-purple-200/50 dark:border-purple-700/50">
+                  <h3 className="font-bold text-purple-900 dark:text-purple-400 mb-6 text-xl flex items-center gap-2">
                     <Brain className="w-5 h-5" />
                     Smart Tips
                   </h3>
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {['Study Math at 9 AM for peak focus', 'Take 5-min breaks every 25 minutes', 'Review notes within 24 hours'].map((tip, i) => (
-                      <div key={i} className="flex items-center gap-2 p-2 bg-white/60 dark:bg-gray-800/60 rounded-xl">
-                        <div className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0"></div>
-                        <p className="text-xs font-medium text-purple-700 dark:text-purple-300">{tip}</p>
+                      <div key={i} className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                        <p className="text-sm font-medium text-purple-700 dark:text-purple-300">{tip}</p>
                       </div>
                     ))}
                   </div>
@@ -834,7 +837,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Main Action Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           <div>
             <ExamCountdown exams={exams} />
           </div>
@@ -845,20 +848,20 @@ export const Dashboard: React.FC = () => {
 
         {/* Recent Sessions */}
         {sessions.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-lg">
-                  <BookOpen className="w-6 h-6 text-white" />
+                  <BookOpen className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Recent Sessions</h2>
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Recent Sessions</h2>
                   <p className="text-gray-600 dark:text-gray-400">Your latest study activities</p>
                 </div>
               </div>
-              <button className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-5 py-2.5 rounded-2xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300 group">
+              <button className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-6 py-3 rounded-2xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300 group">
                 View All Sessions
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
               </button>
             </div>
             
@@ -878,7 +881,7 @@ export const Dashboard: React.FC = () => {
             
             {sessions.length > 6 && (
               <div className="text-center">
-                <button className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                <button className="inline-flex items-center gap-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
                   <Plus className="w-5 h-5" />
                   Load More Sessions
                   <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
