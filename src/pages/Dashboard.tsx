@@ -72,31 +72,34 @@ const CompactTextBanner: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
 
   const banners = [
-    {
-      id: 1,
-      title: 'Master Your Studies',
-      subtitle: 'Unlock your potential with smart learning techniques',
-      gradient: 'from-blue-600 to-indigo-600',
-      icon: Brain,
-      action: 'Start Learning'
-    },
-    {
-      id: 2,
-      title: 'Premium Features',
-      subtitle: 'Get personalized AI insights and advanced analytics',
-      gradient: 'from-emerald-600 to-teal-600',
-      icon: Sparkles,
-      action: 'Upgrade Now'
-    },
-    {
-      id: 3,
-      title: 'Study Groups',
-      subtitle: 'Connect with peers and learn together',
-      gradient: 'from-orange-600 to-red-600',
-      icon: Users,
-      action: 'Join Community'
-    }
-  ];
+  {
+    id: 1,
+    title: 'Learn How To Use Study Tracker Pro',
+    subtitle: 'Unlock your potential with smart learning Tracker.',
+    gradient: 'from-blue-600 to-indigo-600',
+    icon: Brain,
+    action: 'Watch Now ',
+    link: 'https://youtu.be/ne9YlsIMSrI' // example link
+  },
+  {
+    id: 2,
+    title: 'Premium Features',
+    subtitle: 'Get personalized AI insights and advanced analytics',
+    gradient: 'from-emerald-600 to-teal-600',
+    icon: Sparkles,
+    action: 'Upgrade Now',
+    link: 'https://studytrackerpro.netlify.app/premium' // example link
+  },
+  {
+    id: 3,
+    title: 'Study Groups',
+    subtitle: 'Connect with peers and learn together',
+    gradient: 'from-orange-600 to-red-600',
+    icon: Users,
+    action: 'Join Community',
+    link: 'https://t.me/studytrackerpro' // example link
+  }
+];
 
   useEffect(() => {
     const interval = setInterval(() => {
