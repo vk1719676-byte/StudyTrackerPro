@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3 } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Bell, HelpCircle, Star } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -150,7 +150,7 @@ export const DesktopNavbar: React.FC = () => {
                 className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group mr-8 lg:mr-12"
               >
                 <Logo size="md" showText={false} />
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1"> {/* Reduced gap from gap-2 to gap-1 */}
                   <div className="flex flex-col">
                     <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
                       Study Tracker
@@ -158,7 +158,7 @@ export const DesktopNavbar: React.FC = () => {
                     <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
                     </p>
                   </div>
-                  <div className="flex flex-col items-center gap-1 ml-1">
+                  <div className="flex flex-col items-center gap-1 ml-1"> {/* Added ml-1 for slight spacing */}
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
                       PRO
                     </span>
@@ -206,9 +206,6 @@ export const DesktopNavbar: React.FC = () => {
                   className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 />
-
-                {/* Notification Center */}
-                <NotificationCenter />
                 
                 {/* Enhanced Profile Button with Avatar and Dropdown */}
                 <div className="relative" ref={dropdownRef}>
@@ -271,9 +268,9 @@ export const DesktopNavbar: React.FC = () => {
                     <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showProfileDropdown ? 'rotate-180' : ''}`} />
                   </button>
                   
-                  {/* Simplified Profile Dropdown */}
+                  {/* Enhanced Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-3 w-72 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
+                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
                       {/* User Info Header */}
                       <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-3">
@@ -344,7 +341,7 @@ export const DesktopNavbar: React.FC = () => {
                         )}
                       </div>
                       
-                      {/* Menu Items - Cleaned up */}
+                      {/* Menu Items */}
                       <div className="p-2">
                         {/* Avatar Management */}
                         <div className="mb-2">
@@ -372,7 +369,7 @@ export const DesktopNavbar: React.FC = () => {
                         {/* Divider */}
                         <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
                         
-                        {/* Essential Actions Only */}
+                        {/* Quick Actions */}
                         <div className="space-y-1">
                           <Link
                             to="/settings"
@@ -382,11 +379,38 @@ export const DesktopNavbar: React.FC = () => {
                             <Settings className="w-4 h-4 text-gray-500" />
                             Account Settings
                           </Link>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Bell className="w-4 h-4 text-gray-500" />
+                            Notifications
+                            <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">3</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <Star className="w-4 h-4 text-gray-500" />
+                            Upgrade Plan
+                            <span className="ml-auto bg-gradient-to-r from-amber-400 to-yellow-500 text-amber-900 text-xs rounded-full px-2 py-0.5 font-semibold">PRO</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => setShowProfileDropdown(false)}
+                            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-all duration-200 font-medium"
+                          >
+                            <HelpCircle className="w-4 h-4 text-gray-500" />
+                            Help & Support
+                          </button>
                         </div>
                         
                         {/* Divider */}
                         <div className="my-2 border-t border-gray-200 dark:border-gray-700"></div>
                         
+                        {/* Settings Link */}
                         {/* Logout Button */}
                         <button
                           onClick={() => {
