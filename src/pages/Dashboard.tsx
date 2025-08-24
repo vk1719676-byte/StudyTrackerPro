@@ -87,28 +87,28 @@ const CompactTextBanner: React.FC = () => {
     },
     {
       id: 2,
-      title: 'Unlock AI Study Assistant',
-      subtitle: 'Get personalized study plans, smart reminders & performance analytics',
+      title: 'Join Study Tracker Pro Telegram Channel',
+      subtitle: 'Join Study Tracker Pro Telegram Channel For Latest Updates Regarding App',
       gradient: 'from-emerald-600 to-teal-600',
       icon: Sparkles,
-      action: 'Try Premium Free',
-      link: '/premium',
+      action: 'Join Now',
+      link: 'https://t.me/studytrackerpro',
       onClick: () => {
         // Navigate to premium upgrade page
-        window.open('/premium', '_blank');
+        window.open('https://t.me/studytrackerpro', '_blank');
       }
     },
     {
       id: 3,
-      title: 'Study With Top Students',
-      subtitle: 'Connect with high achievers, share notes, and learn together online',
+      title: 'Join ITs TRMS Telegram Channel',
+      subtitle: 'Join ITs TRMS Telegram Channel For NEET JEE & UPSC Lecture & Notes.',
       gradient: 'from-orange-600 to-red-600',
       icon: Users,
-      action: 'Join Community',
-      link: '/community',
+      action: 'Join Now',
+      link: 'https://t.me/+_fkSUEqyukFiMjI1',
       onClick: () => {
         // Navigate to community page
-        window.open('/community', '_blank');
+        window.open('https://t.me/+_fkSUEqyukFiMjI1', '_blank');
       }
     }
   ];
