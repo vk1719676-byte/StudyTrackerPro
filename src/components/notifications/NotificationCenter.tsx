@@ -252,13 +252,3 @@ const NotificationCenter: React.FC<NotificationCenterProps> = ({ className = '' 
 };
 
 export default NotificationCenter;
-</thinking>
-
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default NotificationCenter;
