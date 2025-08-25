@@ -566,6 +566,199 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             ))}
           </div>
 
+          {/* Divider */}
+          <div className="flex items-center gap-4 mb-6">
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">OR</span>
+            <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+
+          {/* Compact Review Form */}
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-xl p-5 mb-6 border border-amber-200 dark:border-amber-700">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Quick Review</h3>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Help us improve Study Tracker Pro</p>
+              </div>
+            </div>
+
+            {reviewSubmitted ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
+                  <ThumbsUp className="w-8 h-8 text-white" />
+                </div>
+                <h4 className="text-lg font-bold text-green-700 dark:text-green-300 mb-1">Thank You! 🎉</h4>
+                <p className="text-sm text-green-600 dark:text-green-400 mb-1">Your feedback has been submitted.</p>
+                <p className="text-xs text-gray-600 dark:text-gray-400">Closing automatically...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Compact Personal Info */}
+                <div className="grid grid-cols-2 gap-3">
+                  <input
+                    type="text"
+                    value={reviewerName}
+                    onChange={(e) => {
+                      setReviewerName(e.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="Your name"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+                             placeholder-gray-500 dark:placeholder-gray-400"
+                    disabled={isSubmittingReview}
+                  />
+                  <input
+                    type="email"
+                    value={reviewerEmail}
+                    onChange={(e) => {
+                      setReviewerEmail(e.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="your@email.com"
+                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+                             placeholder-gray-500 dark:placeholder-gray-400"
+                    disabled={isSubmittingReview}
+                  />
+                </div>
+
+                {/* Star Rating */}
+                <div className="text-center">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Rate Study Tracker Pro
+                  </label>
+                  <StarRating />
+                  {reviewRating > 0 && (
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
+                      {reviewRating <= 2 && "We'll work harder! 😔"}
+                      {reviewRating === 3 && "Thanks for the feedback! 🙂"}
+                      {reviewRating >= 4 && "Awesome! Thanks! 😊"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Compact Category & Recommendation */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Review focus
+                    </label>
+                    <select
+                      value={reviewCategory}
+                      onChange={(e) => setReviewCategory(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm
+                               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                               focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                      disabled={isSubmittingReview}
+                    >
+                      {reviewCategories.map((cat) => (
+                        <option key={cat.value} value={cat.value}>{cat.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                      Recommend?
+                    </label>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWouldRecommend(true)
+                          setSubmitError('')
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
+                          wouldRecommend === true
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-green-300'
+                        }`}
+                        disabled={isSubmittingReview}
+                      >
+                        👍 Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setWouldRecommend(false)
+                          setSubmitError('')
+                        }}
+                        className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium border transition-all ${
+                          wouldRecommend === false
+                            ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                            : 'border-gray-300 dark:border-gray-600 hover:border-red-300'
+                        }`}
+                        disabled={isSubmittingReview}
+                      >
+                        👎 No
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Comment */}
+                <div>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => {
+                      setReviewComment(e.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="Share your experience... What do you like? Any suggestions?"
+                    className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg text-sm
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+                             placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                    rows={3}
+                    maxLength={500}
+                    disabled={isSubmittingReview}
+                  />
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-500">{reviewComment.length}/500</span>
+                    {reviewComment.length >= 10 && (
+                      <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                        <CheckCircle className="w-3 h-3" />
+                        Great!
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Error */}
+                {submitError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <Button
+                  onClick={handleReviewSubmit}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-2.5 shadow-lg hover:shadow-xl transition-all"
+                  disabled={isSubmittingReview || reviewRating === 0}
+                  icon={isSubmittingReview ? undefined : Send}
+                >
+                  {isSubmittingReview ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Submitting...
+                    </div>
+                  ) : (
+                    'Submit Review'
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+
           {/* Benefits */}
           <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 mb-4 border border-green-200 dark:border-green-700">
             <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
