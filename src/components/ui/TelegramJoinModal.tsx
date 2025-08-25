@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Send, Users, Star, X, ExternalLink, CheckCircle, Play, Clock } from "lucide-react"
+import { Send, Users, Star, X, ExternalLink, CheckCircle, MessageSquare, Clock, ThumbsUp, AlertCircle } from "lucide-react"
 import { Card } from "./Card"
 import { Button } from "./Button"
 import { useAuth } from "../../contexts/AuthContext"
@@ -13,12 +13,29 @@ interface TelegramJoinModalProps {
   onChannelsJoined?: () => void
 }
 
+interface ReviewData {
+  name: string
+  email: string
+  rating: number
+  comment: string
+  timestamp: string
+  userId: string
+}
+
 export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, onClose, onChannelsJoined }) => {
   const [joinedChannels, setJoinedChannels] = useState<string[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [showCloseButton, setShowCloseButton] = useState(false)
   const [timeLeft, setTimeLeft] = useState(120) // 2 minutes
   const { user } = useAuth()
+
+  // Review form state
+  const [reviewRating, setReviewRating] = useState<number>(0)
+  const [reviewComment, setReviewComment] = useState<string>('')
+  const [hoveredStar, setHoveredStar] = useState<number>(0)
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false)
+  const [reviewSubmitted, setReviewSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string>('')
 
   // Get saved display name or fallback to email username
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null
@@ -70,6 +87,10 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
       setShowCloseButton(false)
       setJoinedChannels([])
       setShowSuccess(false)
+      setReviewRating(0)
+      setReviewComment('')
+      setReviewSubmitted(false)
+      setSubmitError('')
     }
   }, [isOpen])
 
@@ -92,14 +113,97 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
     }
   }
 
-  const handleTutorial = () => {
-    window.open("https://youtu.be/ne9YlsIMSrI", "_blank")
+  const submitReviewToGoogleSheets = async (reviewData: ReviewData) => {
+    try {
+      // Replace this URL with your Google Apps Script Web App URL
+      const GOOGLE_SHEET_URL = 'https://script.google.com/macros/s/AKfycbze5FxAwtudMk6l9hkZuxtrSpHzzmYwe5qswo9IyUIP31m0xfbM7cTy_u2JBahETpAE/exec'
+      
+      const response = await fetch(GOOGLE_SHEET_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(reviewData),
+        mode: 'no-cors' // Required for Google Apps Script
+      })
+
+      return { success: true }
+    } catch (error) {
+      console.error('Error submitting review:', error)
+      return { success: false, error: 'Failed to submit review. Please try again.' }
+    }
+  }
+
+  const handleReviewSubmit = async () => {
+    if (reviewRating === 0) {
+      setSubmitError('Please select a rating')
+      return
+    }
+
+    if (reviewComment.trim().length < 10) {
+      setSubmitError('Please provide at least 10 characters of feedback')
+      return
+    }
+
+    setIsSubmittingReview(true)
+    setSubmitError('')
+
+    const reviewData: ReviewData = {
+      name: displayName,
+      email: user?.email || 'anonymous',
+      rating: reviewRating,
+      comment: reviewComment.trim(),
+      timestamp: new Date().toISOString(),
+      userId: user?.uid || 'anonymous'
+    }
+
+    const result = await submitReviewToGoogleSheets(reviewData)
+
+    setIsSubmittingReview(false)
+
+    if (result.success) {
+      setReviewSubmitted(true)
+      setTimeout(() => {
+        setReviewSubmitted(false)
+      }, 3000)
+    } else {
+      setSubmitError(result.error || 'Failed to submit review')
+    }
   }
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
+
+  const StarRating = () => {
+    return (
+      <div className="flex items-center gap-1 justify-center">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => {
+              setReviewRating(star)
+              setSubmitError('')
+            }}
+            onMouseEnter={() => setHoveredStar(star)}
+            onMouseLeave={() => setHoveredStar(0)}
+            className="transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-yellow-400 rounded"
+            disabled={isSubmittingReview}
+          >
+            <Star
+              className={`w-8 h-8 transition-colors ${
+                star <= (hoveredStar || reviewRating)
+                  ? 'text-yellow-400 fill-yellow-400'
+                  : 'text-gray-300 dark:text-gray-600'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    )
   }
 
   if (!isOpen) return null
@@ -158,44 +262,108 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             )}
           </div>
 
-          {/* Tutorial Section */}
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg p-4 mb-6 border border-orange-200 dark:border-orange-700">
+          {/* Review Form Section */}
+          <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg p-5 mb-6 border border-amber-200 dark:border-amber-700">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-lg">
-                <Play className="w-5 h-5 text-white" />
+              <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
+                <MessageSquare className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h3 className="font-semibold text-gray-900 dark:text-gray-100">YouTube Video Tutorial</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Learn how to use Study Tracker</p>
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Rate Our App</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Help us improve with your feedback</p>
               </div>
             </div>
-            
-            {/* Embedded YouTube Video */}
-            <div className="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden bg-gray-900">
-              <iframe
-                className="absolute top-0 left-0 w-full h-full"
-                src="https://www.youtube.com/embed/ne9YlsIMSrI"
-                title="Study Tracker Tutorial"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                allowFullScreen
-              ></iframe>
-            </div>
-            
-            <div className="mt-3 flex items-center justify-between">
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                📺 Watch to get started quickly
-              </p>
-              <Button
-                onClick={handleTutorial}
-                size="sm"
-                variant="outline"
-                className="text-orange-600 border-orange-300 hover:bg-orange-50"
-                icon={ExternalLink}
-              >
-                Open in YouTube
-              </Button>
-            </div>
+
+            {reviewSubmitted ? (
+              <div className="text-center py-6">
+                <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <ThumbsUp className="w-8 h-8 text-green-600 dark:text-green-400" />
+                </div>
+                <h4 className="font-semibold text-green-700 dark:text-green-300 mb-2">Thank You!</h4>
+                <p className="text-sm text-green-600 dark:text-green-400">Your feedback has been submitted successfully.</p>
+              </div>
+            ) : (
+              <>
+                {/* Star Rating */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 text-center">
+                    How would you rate Study Tracker Pro?
+                  </label>
+                  <StarRating />
+                  {reviewRating > 0 && (
+                    <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-2">
+                      {reviewRating === 1 && "We'll work harder to improve! 😔"}
+                      {reviewRating === 2 && "Thanks for the feedback! 🤔"}
+                      {reviewRating === 3 && "Good to know, we'll keep improving! 🙂"}
+                      {reviewRating === 4 && "Great! We're glad you like it! 😊"}
+                      {reviewRating === 5 && "Awesome! Thanks for the love! 🎉"}
+                    </p>
+                  )}
+                </div>
+
+                {/* Comment Section */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Share your thoughts (optional)
+                  </label>
+                  <textarea
+                    value={reviewComment}
+                    onChange={(e) => {
+                      setReviewComment(e.target.value)
+                      setSubmitError('')
+                    }}
+                    placeholder="What do you like most? Any suggestions for improvement?"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
+                             bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                             focus:ring-2 focus:ring-amber-500 focus:border-amber-500
+                             placeholder-gray-500 dark:placeholder-gray-400
+                             resize-none transition-colors"
+                    rows={3}
+                    maxLength={500}
+                    disabled={isSubmittingReview}
+                  />
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-500">
+                      {reviewComment.length}/500 characters
+                    </span>
+                    {reviewComment.length >= 10 && (
+                      <span className="text-xs text-green-600 dark:text-green-400">✓ Good feedback</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {submitError && (
+                  <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                      <p className="text-sm text-red-700 dark:text-red-300">{submitError}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit Button */}
+                <Button
+                  onClick={handleReviewSubmit}
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium"
+                  disabled={isSubmittingReview || reviewRating === 0}
+                  icon={isSubmittingReview ? undefined : Send}
+                >
+                  {isSubmittingReview ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Submitting...
+                    </div>
+                  ) : (
+                    'Submit Review'
+                  )}
+                </Button>
+
+                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-2">
+                  Your feedback helps us build better study tools for everyone! 📚
+                </p>
+              </>
+            )}
           </div>
 
           {/* Channels Section */}
