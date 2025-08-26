@@ -1,6 +1,6 @@
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Send, Users, Star, X, ExternalLink, CheckCircle, Play, Clock, Gift, Sparkles } from "lucide-react"
+import { Send, Users, Star, X, ExternalLink, CheckCircle, Play, Clock, Gift, Sparkles, AlertCircle } from "lucide-react"
 import { Card } from "./Card"
 import { Button } from "./Button"
 import { useAuth } from "../../contexts/AuthContext"
@@ -155,6 +155,64 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
                 <span>{formatTime(timeLeft)}</span>
               </div>
             )}
+          </div>
+
+          {/* Progress Indicator */}
+          <div className="mb-6">
+            <div className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 dark:from-blue-900/20 dark:via-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+              <div className="flex items-center justify-center mb-3">
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  canClose 
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 border border-green-300 dark:border-green-600' 
+                    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-600'
+                }`}>
+                  {canClose ? (
+                    <>
+                      <CheckCircle className="w-4 h-4" />
+                      <span>Ready to continue to dashboard! 🎉</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Join both channels to continue</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              {!canClose && (
+                <div className="text-center">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <strong>To access your dashboard:</strong>
+                  </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                    Please join <span className="font-semibold text-blue-600 dark:text-blue-400">both Telegram channels</span> below to unlock full access to Study Tracker Pro
+                  </p>
+                  <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="flex items-center gap-1">
+                      <div className={`w-3 h-3 rounded-full ${joinedChannels.includes('main') ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                      <span>Study Tracker Pro</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <div className={`w-3 h-3 rounded-full ${joinedChannels.includes('premium') ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600'}`}></div>
+                      <span>TRMS Premium</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {canClose && (
+                <div className="text-center">
+                  <p className="text-sm text-green-700 dark:text-green-300 mb-2">
+                    🎊 <strong>Welcome to the community!</strong>
+                  </p>
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    You can now close this modal and access your full dashboard
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Tutorial Video Section */}
