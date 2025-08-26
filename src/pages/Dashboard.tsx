@@ -6,8 +6,6 @@ import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { ReviewModal } from '../components/review/ReviewModal';
-import { useReviewModal } from '../hooks/useReviewModal';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
