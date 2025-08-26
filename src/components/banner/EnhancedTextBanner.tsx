@@ -11,10 +11,11 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  Zap
+  Zap,
+  TrendingUp
 } from 'lucide-react';
 
-export const CompactBanner: React.FC = () => {
+export const EnhancedTextBanner: React.FC = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -28,6 +29,8 @@ export const CompactBanner: React.FC = () => {
       action: 'Watch Now',
       metric: '12K+ Views',
       metricIcon: Play,
+      badge: 'TRENDING',
+      badgeColor: 'bg-red-500',
       link: 'https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX',
       onClick: () => window.open('https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX', '_blank')
     },
@@ -40,6 +43,8 @@ export const CompactBanner: React.FC = () => {
       action: 'Join Now',
       metric: '5K+ Members',
       metricIcon: Users,
+      badge: 'ACTIVE',
+      badgeColor: 'bg-green-500',
       link: 'https://t.me/studytrackerpro',
       onClick: () => window.open('https://t.me/studytrackerpro', '_blank')
     },
@@ -52,6 +57,8 @@ export const CompactBanner: React.FC = () => {
       action: 'Access Now',
       metric: '1000+ Resources',
       metricIcon: Star,
+      badge: 'PREMIUM',
+      badgeColor: 'bg-yellow-500',
       link: 'https://t.me/+_fkSUEqyukFiMjI1',
       onClick: () => window.open('https://t.me/+_fkSUEqyukFiMjI1', '_blank')
     },
@@ -63,7 +70,9 @@ export const CompactBanner: React.FC = () => {
       icon: Target,
       action: 'Explore',
       metric: '95% Success',
-      metricIcon: Zap,
+      metricIcon: TrendingUp,
+      badge: 'NEW',
+      badgeColor: 'bg-blue-500',
       link: '#techniques',
       onClick: () => console.log('Navigate to techniques')
     }
@@ -74,7 +83,7 @@ export const CompactBanner: React.FC = () => {
     
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 6000);
+    }, 5000);
     
     return () => clearInterval(interval);
   }, [banners.length, isHovered]);
@@ -87,45 +96,51 @@ export const CompactBanner: React.FC = () => {
   const prevBanner = () => setCurrentBanner((prev) => (prev - 1 + banners.length) % banners.length);
 
   return (
-    <div className="mb-6">
+    <div className="mb-4">
       <div 
         className="relative group cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${currentBannerData.gradient} transition-all duration-700 shadow-xl hover:shadow-2xl hover:scale-[1.02] transform`}>
+        <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${currentBannerData.gradient} transition-all duration-700 shadow-xl hover:shadow-2xl hover:scale-[1.01] transform`}>
           
           {/* Animated background effects */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/30 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/30 rounded-full blur-2xl animate-pulse"></div>
+            <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/20 rounded-full blur-xl animate-pulse" style={{animationDelay: '1s'}}></div>
           </div>
           
-          {/* Pulse ring effect */}
-          <div className="absolute inset-0 rounded-2xl border-2 border-white/30 animate-pulse"></div>
+          {/* Glowing border effect */}
+          <div className="absolute inset-0 rounded-2xl border border-white/40 group-hover:border-white/60 transition-all duration-500"></div>
           
-          <div className="relative z-10 p-4 sm:p-6">
-            <div className="flex items-center justify-between gap-4">
+          {/* Trending badge */}
+          <div className={`absolute top-3 left-3 ${currentBannerData.badgeColor} text-white text-xs font-black px-2 py-1 rounded-full animate-pulse shadow-lg`}>
+            {currentBannerData.badge}
+          </div>
+          
+          <div className="relative z-10 p-4">
+            <div className="flex items-center justify-between gap-3">
               
               {/* Content section */}
-              <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
                 
-                {/* Icon */}
-                <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 flex-shrink-0">
-                  <Icon className="w-6 h-6 text-white drop-shadow-lg" />
+                {/* Icon with glow effect */}
+                <div className="relative p-2.5 bg-white/25 backdrop-blur-sm rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500 flex-shrink-0">
+                  <div className="absolute inset-0 bg-white/20 rounded-xl blur-sm group-hover:blur-md transition-all duration-500"></div>
+                  <Icon className="relative w-5 h-5 text-white drop-shadow-lg" />
                 </div>
                 
                 {/* Text content */}
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg sm:text-xl font-black text-white mb-1 truncate leading-tight">
+                  <h2 className="text-base sm:text-lg font-black text-white mb-0.5 truncate leading-tight">
                     {currentBannerData.title}
                   </h2>
-                  <p className="text-sm text-white/90 font-semibold mb-2 truncate">
+                  <p className="text-xs sm:text-sm text-white/90 font-semibold mb-1.5 truncate">
                     {currentBannerData.subtitle}
                   </p>
                   
-                  {/* Metric badge */}
-                  <div className="inline-flex items-center gap-1.5 bg-white/15 backdrop-blur-sm px-3 py-1 rounded-full text-white/90 text-xs font-bold">
+                  {/* Compact metric badge */}
+                  <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2 py-0.5 rounded-full text-white/95 text-xs font-bold">
                     <MetricIcon className="w-3 h-3" />
                     <span>{currentBannerData.metric}</span>
                   </div>
@@ -135,33 +150,38 @@ export const CompactBanner: React.FC = () => {
               {/* Action section */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 
-                {/* Main CTA button */}
+                {/* Main CTA button with pulse effect */}
                 <button 
                   onClick={currentBannerData.onClick}
-                  className="group/btn relative overflow-hidden bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white font-bold px-4 py-3 rounded-xl border border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105 transform shadow-lg"
+                  className="group/btn relative overflow-hidden bg-white/25 backdrop-blur-sm hover:bg-white/35 text-white font-bold px-3 py-2.5 rounded-xl border border-white/40 hover:border-white/60 transition-all duration-300 hover:scale-105 transform shadow-lg"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
-                  <div className="relative flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4 group-hover/btn:rotate-12 transition-transform duration-300" />
-                    <span className="text-sm">{currentBannerData.action}</span>
-                    <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                  {/* Shimmer effect */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700"></div>
+                  
+                  <div className="relative flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5 group-hover/btn:rotate-12 transition-transform duration-300" />
+                    <span className="text-xs font-black">{currentBannerData.action}</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-0.5 transition-transform duration-300" />
                   </div>
+                  
+                  {/* Pulsing glow */}
+                  <div className="absolute inset-0 rounded-xl bg-white/10 animate-ping opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                 </button>
 
-                {/* Navigation controls */}
-                <div className="hidden sm:flex items-center gap-1">
+                {/* Compact navigation */}
+                <div className="flex items-center gap-0.5">
                   <button 
                     onClick={prevBanner}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 group/nav"
+                    className="p-1.5 bg-white/15 hover:bg-white/25 rounded-lg transition-all duration-300 group/nav"
                   >
-                    <ChevronLeft className="w-4 h-4 text-white group-hover/nav:-translate-x-0.5 transition-transform duration-300" />
+                    <ChevronLeft className="w-3.5 h-3.5 text-white group-hover/nav:-translate-x-0.5 transition-transform duration-300" />
                   </button>
                   
                   <button 
                     onClick={nextBanner}
-                    className="p-2 bg-white/10 hover:bg-white/20 rounded-lg transition-all duration-300 group/nav"
+                    className="p-1.5 bg-white/15 hover:bg-white/25 rounded-lg transition-all duration-300 group/nav"
                   >
-                    <ChevronRight className="w-4 h-4 text-white group-hover/nav:translate-x-0.5 transition-transform duration-300" />
+                    <ChevronRight className="w-3.5 h-3.5 text-white group-hover/nav:translate-x-0.5 transition-transform duration-300" />
                   </button>
                 </div>
               </div>
@@ -169,35 +189,42 @@ export const CompactBanner: React.FC = () => {
           </div>
 
           {/* Progress indicator */}
-          <div className="absolute bottom-0 left-0 h-0.5 bg-white/20 w-full overflow-hidden">
+          <div className="absolute bottom-0 left-0 h-0.5 bg-white/30 w-full overflow-hidden">
             {!isHovered && (
               <div 
-                className="h-full bg-white/80 animate-progress"
+                className="h-full bg-gradient-to-r from-white/90 via-white to-white/90 animate-progress shadow-sm"
                 style={{
-                  animation: 'progress 6s linear infinite'
+                  animation: 'progress 5s linear infinite'
                 }}
               ></div>
             )}
           </div>
         </div>
 
-        {/* Navigation dots */}
-        <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 flex gap-1.5">
+        {/* Compact navigation dots */}
+        <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2 flex gap-1">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => setCurrentBanner(index)}
               className={`transition-all duration-500 rounded-full ${
                 index === currentBanner 
-                  ? 'w-6 h-2 bg-gray-800 dark:bg-white shadow-md' 
-                  : 'w-2 h-2 bg-gray-400 hover:bg-gray-600 hover:scale-125'
+                  ? 'w-5 h-1.5 bg-gray-800 dark:bg-white shadow-md' 
+                  : 'w-1.5 h-1.5 bg-gray-400 hover:bg-gray-600 hover:scale-125'
               }`}
             >
               {index === currentBanner && (
-                <div className="w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full animate-pulse"></div>
+                <div className="w-full h-full bg-gradient-to-r from-transparent via-white/40 to-transparent rounded-full animate-pulse"></div>
               )}
             </button>
           ))}
+        </div>
+
+        {/* Hover effect - Quick action hints */}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 opacity-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
+          <div className="bg-black/80 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full whitespace-nowrap">
+            Click to {currentBannerData.action.toLowerCase()} • {currentBannerData.metric}
+          </div>
         </div>
       </div>
 
@@ -208,7 +235,7 @@ export const CompactBanner: React.FC = () => {
         }
         
         .animate-progress {
-          animation: progress 6s linear infinite;
+          animation: progress 5s linear infinite;
         }
       `}</style>
     </div>
