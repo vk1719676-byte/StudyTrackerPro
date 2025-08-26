@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, Send, MessageCircle, Heart, ThumbsUp, Gift } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -275,6 +275,368 @@ const SessionCard: React.FC<{
     </div>
   </ModernCard>
 );
+
+// Enhanced Review Section Component
+const ReviewSection: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(true);
+  const [formData, setFormData] = useState({
+    rating: 0,
+    name: '',
+    email: '',
+    comment: '',
+    experience: 'excellent'
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [showMandatoryMessage, setShowMandatoryMessage] = useState(false);
+
+  // Check if user has already submitted (persistence)
+  useEffect(() => {
+    const hasSubmittedReview = localStorage.getItem('hasSubmittedReview');
+    if (hasSubmittedReview === 'true') {
+      setIsSubmitted(true);
+    }
+  }, []);
+
+  // Auto-show mandatory message after some time
+  useEffect(() => {
+    if (!isSubmitted && isVisible) {
+      const timer = setTimeout(() => {
+        setShowMandatoryMessage(true);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSubmitted, isVisible]);
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setSubmitError('');
+  };
+
+  const validateForm = () => {
+    if (formData.rating === 0) return "Please select a rating";
+    if (!formData.name.trim()) return "Please enter your name";
+    if (!formData.email.trim()) return "Please enter your email";
+    if (!formData.email.includes('@')) return "Please enter a valid email";
+    if (!formData.comment.trim()) return "Please write your review";
+    if (formData.comment.trim().length < 10) return "Review must be at least 10 characters";
+    return null;
+  };
+
+  const submitReview = async () => {
+    const error = validateForm();
+    if (error) {
+      setSubmitError(error);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      const response = await fetch('https://script.google.com/macros/s/AKfycbze5FxAwtudMk6l9hkZuxtrSpHzzmYwe5qswo9IyUIP31m0xfbM7cTy_u2JBahETpAE/exec', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          rating: formData.rating,
+          name: formData.name,
+          email: formData.email,
+          comment: formData.comment,
+          experience: formData.experience,
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          url: window.location.href
+        })
+      });
+
+      if (response.ok) {
+        setIsSubmitted(true);
+        localStorage.setItem('hasSubmittedReview', 'true');
+        
+        // Confetti effect
+        const confetti = document.createElement('div');
+        confetti.innerHTML = '🎉✨🎊';
+        confetti.style.cssText = `
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          font-size: 3rem;
+          z-index: 1000;
+          animation: confetti 2s ease-out;
+          pointer-events: none;
+        `;
+        document.body.appendChild(confetti);
+        setTimeout(() => confetti.remove(), 2000);
+      } else {
+        throw new Error('Submission failed');
+      }
+    } catch (error) {
+      setSubmitError('Failed to submit review. Please try again.');
+      console.error('Review submission error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setIsVisible(false);
+    // Store that user dismissed it for this session
+    sessionStorage.setItem('reviewSectionDismissed', 'true');
+  };
+
+  // Don't show if dismissed this session
+  useEffect(() => {
+    const dismissed = sessionStorage.getItem('reviewSectionDismissed');
+    if (dismissed === 'true') {
+      setIsVisible(false);
+    }
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <div className="relative">
+      {/* Backdrop overlay for emphasis */}
+      <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40" />
+      
+      <div className="relative z-50 mb-12">
+        <ModernCard className="p-8 border-4 border-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 shadow-2xl bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-800 dark:via-purple-900/20 dark:to-pink-900/20">
+          
+          {/* Close button - only show if submitted */}
+          {isSubmitted && (
+            <button 
+              onClick={handleClose}
+              className="absolute top-4 right-4 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
+
+          {!isSubmitted ? (
+            <>
+              {/* Header with pulsing effect */}
+              <div className="text-center mb-8">
+                <div className="relative inline-block">
+                  <div className="absolute -inset-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-3xl opacity-20 blur-lg animate-pulse"></div>
+                  <div className="relative p-6 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 rounded-3xl">
+                    <Heart className="w-12 h-12 text-white mx-auto mb-3 animate-bounce" />
+                  </div>
+                </div>
+                
+                <h2 className="text-4xl font-black text-gray-900 dark:text-gray-100 mt-6 mb-3">
+                  We Value Your Feedback! 💝
+                </h2>
+                <p className="text-lg text-gray-700 dark:text-gray-300 font-medium max-w-2xl mx-auto leading-relaxed">
+                  Help us improve Study Tracker Pro by sharing your experience. Your review means everything to us!
+                </p>
+                
+                {showMandatoryMessage && (
+                  <div className="mt-4 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-2 border-amber-300 dark:border-amber-700 rounded-2xl">
+                    <p className="text-amber-800 dark:text-amber-300 font-bold flex items-center gap-2 justify-center">
+                      <Gift className="w-5 h-5" />
+                      📢 This review helps us keep the app free and improve features for everyone!
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {submitError && (
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-200 dark:border-red-700 rounded-2xl">
+                  <p className="text-red-700 dark:text-red-300 font-bold text-center flex items-center gap-2 justify-center">
+                    <AlertCircle className="w-5 h-5" />
+                    {submitError}
+                  </p>
+                </div>
+              )}
+
+              <div className="space-y-8">
+                {/* Rating Section */}
+                <div className="text-center">
+                  <label className="block text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                    Rate Your Experience ⭐
+                  </label>
+                  <div className="flex justify-center gap-3 mb-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        onMouseEnter={() => setHoveredRating(star)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        onClick={() => handleInputChange('rating', star)}
+                        className="transition-all duration-200 transform hover:scale-125 active:scale-110"
+                      >
+                        <Star 
+                          className={`w-12 h-12 transition-all duration-200 ${
+                            star <= (hoveredRating || formData.rating)
+                              ? 'text-yellow-400 fill-yellow-400 drop-shadow-lg' 
+                              : 'text-gray-300 dark:text-gray-600 hover:text-yellow-200'
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {formData.rating === 0 ? 'Please select rating' : 
+                     formData.rating <= 2 ? 'We can do better 😔' :
+                     formData.rating === 3 ? 'Good experience 😊' :
+                     formData.rating === 4 ? 'Great experience! 🎉' :
+                     'Amazing experience! 🚀'}
+                  </p>
+                </div>
+
+                {/* Experience Type */}
+                <div>
+                  <label className="block text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                    How would you describe your experience? 🎯
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { value: 'excellent', label: 'Excellent', emoji: '🌟', bg: 'from-emerald-500 to-green-500' },
+                      { value: 'good', label: 'Good', emoji: '👍', bg: 'from-blue-500 to-indigo-500' },
+                      { value: 'average', label: 'Average', emoji: '👌', bg: 'from-amber-500 to-orange-500' }
+                    ].map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => handleInputChange('experience', option.value)}
+                        className={`p-4 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
+                          formData.experience === option.value
+                            ? `bg-gradient-to-r ${option.bg} text-white border-transparent shadow-xl` 
+                            : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
+                        }`}
+                      >
+                        <div className="text-2xl mb-2">{option.emoji}</div>
+                        <span className="font-bold">{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Name Input */}
+                  <div>
+                    <label className="block text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                      Your Name *
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      placeholder="Enter your full name"
+                      className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-2xl focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-lg"
+                    />
+                  </div>
+
+                  {/* Email Input */}
+                  <div>
+                    <label className="block text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                      Your Email *
+                    </label>
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="Enter your email address"
+                      className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-2xl focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-lg"
+                    />
+                  </div>
+                </div>
+
+                {/* Comment Section */}
+                <div>
+                  <label className="block text-lg font-bold text-gray-900 dark:text-gray-100 mb-3">
+                    Your Review * 
+                    <span className="text-sm font-normal text-gray-600 dark:text-gray-400 ml-2">
+                      (minimum 10 characters)
+                    </span>
+                  </label>
+                  <textarea
+                    value={formData.comment}
+                    onChange={(e) => handleInputChange('comment', e.target.value)}
+                    placeholder="Share your thoughts about Study Tracker Pro... What features do you love? How has it helped your studies?"
+                    rows={5}
+                    className="w-full p-4 border-2 border-gray-300 dark:border-gray-600 rounded-2xl focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none transition-all duration-300 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 text-lg resize-none"
+                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    {formData.comment.length}/10 characters minimum
+                  </p>
+                </div>
+
+                {/* Submit Button */}
+                <div className="text-center pt-6">
+                  <button
+                    onClick={submitReview}
+                    disabled={isSubmitting}
+                    className={`inline-flex items-center gap-4 px-12 py-5 rounded-3xl font-black text-xl transition-all duration-500 transform hover:scale-105 active:scale-95 shadow-2xl ${
+                      isSubmitting 
+                        ? 'bg-gray-400 cursor-not-allowed text-white' 
+                        : 'bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:from-pink-700 hover:via-purple-700 hover:to-indigo-700 text-white hover:shadow-purple-500/25'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Submitting Review...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-6 h-6" />
+                        Submit My Review
+                        <ThumbsUp className="w-6 h-6" />
+                      </>
+                    )}
+                  </button>
+                  
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-4">
+                    * All fields are required • Your review helps other students discover Study Tracker Pro
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Success State */
+            <div className="text-center py-12">
+              <div className="relative inline-block mb-8">
+                <div className="absolute -inset-4 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
+                <div className="relative p-8 bg-gradient-to-r from-emerald-600 to-green-600 rounded-full">
+                  <CheckCircle2 className="w-16 h-16 text-white mx-auto" />
+                </div>
+              </div>
+              
+              <h2 className="text-4xl font-black text-gray-900 dark:text-gray-100 mb-4">
+                Thank You! 🎉
+              </h2>
+              <p className="text-xl text-gray-700 dark:text-gray-300 font-medium mb-8 max-w-2xl mx-auto">
+                Your review has been submitted successfully! We truly appreciate your feedback and will use it to make Study Tracker Pro even better.
+              </p>
+              
+              <div className="bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-3xl p-8 border-2 border-emerald-200 dark:border-emerald-700">
+                <div className="flex items-center justify-center gap-4 text-emerald-700 dark:text-emerald-300 text-lg font-bold mb-4">
+                  <Gift className="w-6 h-6" />
+                  <span>You're awesome for supporting our app! ✨</span>
+                </div>
+                <p className="text-emerald-600 dark:text-emerald-400">
+                  Reviews like yours help us keep Study Tracker Pro free and continuously improve the learning experience for students worldwide.
+                </p>
+              </div>
+
+              <button
+                onClick={handleClose}
+                className="mt-8 inline-flex items-center gap-3 px-8 py-4 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105"
+              >
+                Continue Using App
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+        </ModernCard>
+      </div>
+    </div>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -865,7 +1227,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Recent Sessions */}
         {sessions.length > 0 && (
-          <div className="space-y-8">
+          <div className="space-y-8 mb-10">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-lg">
@@ -907,7 +1269,20 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Enhanced Review Section */}
+        <ReviewSection />
+        
       </div>
+
+      {/* Add confetti animation CSS */}
+      <style jsx>{`
+        @keyframes confetti {
+          0% { transform: translate(-50%, -50%) scale(0) rotate(0deg); opacity: 1; }
+          50% { transform: translate(-50%, -50%) scale(1.2) rotate(180deg); opacity: 1; }
+          100% { transform: translate(-50%, -50%) scale(0) rotate(360deg); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 };
