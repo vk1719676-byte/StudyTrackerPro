@@ -1,92 +1,68 @@
-// Google Sheets integration service
-export interface ReviewData {
-  name: string;
-  email: string;
+// Google Sheets Service for sending review data
+export interface ReviewSubmission {
   rating: number;
-  feedback: string;
+  experience: string;
+  recommendation: string;
+  improvements: string;
+  features: string[];
+  email?: string;
+  name?: string;
   timestamp: string;
-  userAgent: string;
-  platform: string;
+  userAgent?: string;
+  url?: string;
 }
 
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcgEHkA7c9MGQ40ycsv8a-aJTBjb5fAXyFP1TBBAR3bqSNrFRunIjO5YN2_ZkW4RRm/exec';
+// Replace with your actual Google Apps Script Web App URL
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzy3AJVCpn6pbxx2TNhS-FP9JMHkXSpZYags84wf_PEzIMkFtm3JXLEz4KpfOTILEw/exec';
 
-export const submitReviewToGoogleSheets = async (reviewData: ReviewData): Promise<boolean> => {
+export const submitReviewToGoogleSheets = async (data: ReviewSubmission): Promise<void> => {
   try {
-    const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+    // Prepare the data for Google Sheets
+    const payload = {
+      ...data,
+      features: data.features.join(', '), // Convert array to comma-separated string
+      timestamp: new Date().toISOString(),
+      userAgent: navigator.userAgent,
+      url: window.location.href
+    };
+
+    // Send to Google Apps Script
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
       method: 'POST',
-      mode: 'cors',
+      mode: 'no-cors', // Required for Google Apps Script
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        action: 'submitReview',
-        data: reviewData
-      })
+      body: JSON.stringify(payload)
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const result = await response.json();
-    return result.success === true;
+    console.log('Review data sent to Google Sheets');
   } catch (error) {
-    console.error('Error submitting review to Google Sheets:', error);
-    // Fallback: store locally if Google Sheets fails
-    localStorage.setItem(`review_backup_${Date.now()}`, JSON.stringify(reviewData));
-    return false;
+    console.error('Error sending data to Google Sheets:', error);
+    throw error;
   }
 };
 
-export const generateGoogleAppsScript = (): string => {
-  return `
-function doPost(e) {
+// Alternative method using fetch with credentials (if needed)
+export const submitReviewWithAuth = async (data: ReviewSubmission): Promise<void> => {
   try {
-    const data = JSON.parse(e.postData.contents);
-    
-    if (data.action === 'submitReview') {
-      const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Reviews') || 
-                   SpreadsheetApp.getActiveSpreadsheet().insertSheet('Reviews');
-      
-      // Add headers if sheet is empty
-      if (sheet.getLastRow() === 0) {
-        sheet.appendRow([
-          'Timestamp',
-          'Name', 
-          'Email',
-          'Rating',
-          'Feedback',
-          'User Agent',
-          'Platform'
-        ]);
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => {
+      if (Array.isArray(value)) {
+        formData.append(key, value.join(', '));
+      } else {
+        formData.append(key, String(value));
       }
-      
-      // Add the review data
-      sheet.appendRow([
-        data.data.timestamp,
-        data.data.name,
-        data.data.email,
-        data.data.rating,
-        data.data.feedback,
-        data.data.userAgent,
-        data.data.platform
-      ]);
-      
-      return ContentService
-        .createTextOutput(JSON.stringify({success: true}))
-        .setMimeType(ContentService.MimeType.JSON);
-    }
-    
-    return ContentService
-      .createTextOutput(JSON.stringify({success: false, error: 'Invalid action'}))
-      .setMimeType(ContentService.MimeType.JSON);
-      
+    });
+
+    await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: formData
+    });
+
+    console.log('Review submitted with form data');
   } catch (error) {
-    return ContentService
-      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
-      .setMimeType(ContentService.MimeType.JSON);
+    console.error('Error submitting review with auth:', error);
+    throw error;
   }
-}
-`;
 };
