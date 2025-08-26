@@ -7,7 +7,7 @@ import { ReviewData } from '../components/ui/ReviewModal';
 // 3. Paste the code and save
 // 4. Deploy as web app with access set to "Anyone"
 // 5. Copy the deployment URL and replace the URL below
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9KbLRyxxJ_ocqZdCYXWqa5GUebOwYKw4j-IuQJWl4oJ9PyQOcpjcGYs4NFa47Dx6J/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcgEHkA7c9MGQ40ycsv8a-aJTBjb5fAXyFP1TBBAR3bqSNrFRunIjO5YN2_ZkW4RRm/exec';
 
 export interface SubmitReviewResponse {
   success: boolean;
