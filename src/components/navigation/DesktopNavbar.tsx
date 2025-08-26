@@ -1,13 +1,11 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Brain, Zap, Users, BookOpen, Trophy, Timer, Bell } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Brain, Zap, Users, BookOpen, Trophy, Timer } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FocusMode } from '../focus/FocusMode';
-import { StudyAlarm } from '../alarm/StudyAlarm';
-import { useAlarm } from '../../contexts/AlarmContext';
 
 interface LogoutConfirmationProps {
   isOpen: boolean;
@@ -44,10 +42,8 @@ export const DesktopNavbar: React.FC = () => {
   const location = useLocation();
   const { logout, user } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { alarms, currentAlarm } = useAlarm();
   const [showLogoutConfirm, setShowLogoutConfirm] = React.useState(false);
   const [showFocusMode, setShowFocusMode] = React.useState(false);
-  const [showAlarm, setShowAlarm] = React.useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = React.useState(false);
   const [userAvatar, setUserAvatar] = React.useState<string | null>(null);
   const [userName, setUserName] = React.useState<string>('');
@@ -134,21 +130,12 @@ export const DesktopNavbar: React.FC = () => {
     };
   }, []);
 
-  // Count active alarms
-  const activeAlarmCount = alarms.filter(alarm => alarm.isActive).length;
-
   return (
     <>
       {/* Focus Mode Modal */}
       <FocusMode
         isOpen={showFocusMode}
         onClose={() => setShowFocusMode(false)}
-      />
-
-      {/* Study Alarm Modal */}
-      <StudyAlarm
-        isOpen={showAlarm}
-        onClose={() => setShowAlarm(false)}
       />
 
       {/* Main Navigation Bar */}
@@ -210,26 +197,6 @@ export const DesktopNavbar: React.FC = () => {
 
               {/* Right Side Actions */}
               <div className="flex items-center gap-2 lg:gap-3">
-                {/* Alarm Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setShowAlarm(true)}
-                  className={`
-                    relative p-2 hover:bg-gradient-to-r hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 
-                    hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md
-                    ${currentAlarm ? 'text-red-500 animate-bounce' : 'text-gray-600 dark:text-gray-400'}
-                  `}
-                  title="Study Alarms"
-                >
-                  <Bell className={`w-5 h-5 ${currentAlarm ? 'animate-pulse' : ''}`} />
-                  {activeAlarmCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold shadow-lg">
-                      {activeAlarmCount}
-                    </span>
-                  )}
-                </Button>
-
                 {/* Theme Toggle */}
                 <Button
                   variant="ghost"
