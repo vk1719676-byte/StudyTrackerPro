@@ -30,7 +30,7 @@ export const EnhancedTextBanner: React.FC = () => {
       color: 'bg-blue-50 border-blue-200 text-blue-800',
       actionColor: 'bg-blue-600 hover:bg-blue-700',
       iconColor: 'text-blue-600',
-      metric: '12K+ views',
+      metric: '150+ views',
       onClick: () => window.open('https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX', '_blank')
     },
     {
@@ -44,7 +44,7 @@ export const EnhancedTextBanner: React.FC = () => {
       color: 'bg-green-50 border-green-200 text-green-800',
       actionColor: 'bg-green-600 hover:bg-green-700',
       iconColor: 'text-green-600',
-      metric: '5K+ members',
+      metric: '300+ members',
       onClick: () => window.open('https://t.me/studytrackerpro', '_blank')
     },
     {
@@ -58,7 +58,7 @@ export const EnhancedTextBanner: React.FC = () => {
       color: 'bg-amber-50 border-amber-200 text-amber-800',
       actionColor: 'bg-amber-600 hover:bg-amber-700',
       iconColor: 'text-amber-600',
-      metric: '1000+ resources',
+      metric: '25K+ Members',
       onClick: () => window.open('https://t.me/+_fkSUEqyukFiMjI1', '_blank')
     }
   ];
