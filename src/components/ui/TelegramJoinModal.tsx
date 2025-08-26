@@ -1,9 +1,49 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Send, Users, Star, X, ExternalLink, CheckCircle, MessageSquare, Clock, ThumbsUp, AlertCircle, Heart, Zap, Trophy, Gift, Sparkles } from "lucide-react"
-import { Card } from "./Card"
-import { Button } from "./Button"
-import { useAuth } from "../../contexts/AuthContext"
+
+// Simple Card Component
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div className={`bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 ${className}`}>
+    {children}
+  </div>
+)
+
+// Simple Button Component
+const Button: React.FC<{
+  children: React.ReactNode;
+  onClick?: () => void;
+  className?: string;
+  disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  icon?: React.ComponentType<any>;
+}> = ({ children, onClick, className = '', disabled, size = 'md', icon: Icon }) => {
+  const sizeClasses = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    lg: 'px-6 py-3 text-base'
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${sizeClasses[size]} ${className}`}
+    >
+      {Icon && <Icon className="w-4 h-4" />}
+      {children}
+    </button>
+  )
+}
+
+// Mock Auth Hook
+const useAuth = () => ({
+  user: {
+    uid: 'user123',
+    email: 'student@example.com',
+    displayName: 'Student'
+  }
+})
 
 interface TelegramJoinModalProps {
   isOpen: boolean
@@ -26,7 +66,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
   const [joinedChannels, setJoinedChannels] = useState<string[]>([])
   const [showSuccess, setShowSuccess] = useState(false)
   const [showCloseButton, setShowCloseButton] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(180)
+  const [timeLeft, setTimeLeft] = useState(120)
   const [canClose, setCanClose] = useState(false)
   const { user } = useAuth()
 
@@ -57,7 +97,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
       color: "from-blue-500 to-cyan-500",
     },
     {
-      id: "premium",
+      id: "premium", 
       name: "TRMS Premium",
       url: "https://t.me/+_fkSUEqyukFiMjI1",
       description: "Premium features and advanced study tools",
@@ -95,7 +135,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTimeLeft(180)
+      setTimeLeft(120)
       setShowCloseButton(false)
       setJoinedChannels([])
       setShowSuccess(false)
@@ -149,12 +189,12 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
   }
 
   const handleReviewSubmit = async () => {
-    // Validation
-    if (reviewRating === 0) return setSubmitError('Please rate our app')
-    if (reviewComment.trim().length < 10) return setSubmitError('Please share at least 10 characters of feedback')
-    if (!reviewerName.trim()) return setSubmitError('Name is required')
-    if (!reviewerEmail.trim() || !reviewerEmail.includes('@')) return setSubmitError('Valid email is required')
-    if (wouldRecommend === null) return setSubmitError('Would you recommend us?')
+    // Compact validation
+    if (reviewRating === 0) return setSubmitError('⭐ Rate us first!')
+    if (reviewComment.trim().length < 5) return setSubmitError('✏️ Add a short comment (5+ chars)')
+    if (!reviewerName.trim()) return setSubmitError('👤 Name required')
+    if (!reviewerEmail.trim() || !reviewerEmail.includes('@')) return setSubmitError('📧 Valid email needed')
+    if (wouldRecommend === null) return setSubmitError('👍 Would you recommend us?')
 
     setIsSubmittingReview(true)
     setSubmitError('')
@@ -203,7 +243,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
           disabled={isSubmittingReview}
         >
           <Star
-            className={`w-6 h-6 transition-all duration-200 ${
+            className={`w-5 h-5 transition-all duration-200 ${
               star <= (hoveredStar || reviewRating)
                 ? 'text-yellow-400 fill-yellow-400 drop-shadow-sm'
                 : 'text-gray-300 dark:text-gray-600'
@@ -221,7 +261,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <Card className="max-w-md w-full mx-4 p-6 text-center">
-          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <div className="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
             <CheckCircle className="w-8 h-8 text-white" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Welcome to the Community! 🎉</h3>
@@ -242,83 +282,81 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-      <Card className="max-w-lg w-full mx-4 max-h-[95vh] overflow-y-auto shadow-2xl">
-        <div className="relative p-5">
-          {/* Header */}
-          <div className="flex justify-between items-center mb-5">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
-                <Send className="w-5 h-5 text-white" />
+      <Card className="max-w-md w-full mx-4 max-h-[95vh] overflow-y-auto shadow-2xl">
+        <div className="relative p-4">
+          {/* Compact Header */}
+          <div className="flex justify-between items-center mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500 rounded-lg flex items-center justify-center shadow-lg">
+                <Send className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Join Our Community</h2>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  Hey <span className="font-semibold text-purple-600 dark:text-purple-400">{displayName}</span>! 👋
-                </p>
+                <h2 className="text-base font-bold text-gray-900 dark:text-gray-100">Join Our Community</h2>
+                <p className="text-gray-600 dark:text-gray-400 text-xs">Hey {displayName}! 👋</p>
               </div>
             </div>
 
             {(showCloseButton || canClose) ? (
               <button
                 onClick={onClose}
-                className="p-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-all duration-200 hover:scale-105"
+                className="p-1.5 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 hover:scale-105"
               >
                 <X className="w-4 h-4 text-gray-600 dark:text-gray-400" />
               </button>
             ) : (
-              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-full">
+              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-lg">
                 <Clock className="w-3 h-3" />
                 <span>{formatTime(timeLeft)}</span>
               </div>
             )}
           </div>
 
-          {/* Progress Indicator */}
-          <div className="mb-5">
+          {/* Compact Progress Indicator */}
+          <div className="mb-4">
             <div className="flex items-center justify-center">
-              <div className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm transition-all ${
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs transition-all ${
                 canClose ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
               }`}>
                 {canClose ? (
                   <>
-                    <CheckCircle className="w-4 h-4" />
+                    <CheckCircle className="w-3 h-3" />
                     <span>Ready to close!</span>
                   </>
                 ) : (
                   <>
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Join channels OR submit review to close</span>
+                    <AlertCircle className="w-3 h-3" />
+                    <span>Join channels OR review to close</span>
                   </>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Review Form */}
-          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-xl p-4 mb-4 border border-amber-200 dark:border-amber-700">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg">
-                <MessageSquare className="w-4 h-4 text-white" />
+          {/* Compact Review Form */}
+          <div className="bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 dark:from-amber-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-lg p-3 mb-3 border border-amber-200 dark:border-amber-700">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-md">
+                <MessageSquare className="w-3 h-3 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-gray-900 dark:text-gray-100">Quick Review</h3>
+                <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100">Quick Review</h3>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Help us improve Study Tracker Pro</p>
               </div>
             </div>
 
             {reviewSubmitted ? (
-              <div className="text-center py-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
-                  <ThumbsUp className="w-6 h-6 text-white" />
+              <div className="text-center py-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full flex items-center justify-center mx-auto mb-2 animate-pulse">
+                  <ThumbsUp className="w-5 h-5 text-white" />
                 </div>
-                <h4 className="font-bold text-green-700 dark:text-green-300 mb-1">Thank You! 🎉</h4>
-                <p className="text-sm text-green-600 dark:text-green-400 mb-1">Your feedback has been submitted.</p>
+                <h4 className="font-bold text-green-700 dark:text-green-300 text-sm mb-1">Thank You! 🎉</h4>
+                <p className="text-xs text-green-600 dark:text-green-400 mb-1">Feedback submitted successfully</p>
                 <p className="text-xs text-gray-600 dark:text-gray-400">Closing automatically...</p>
               </div>
             ) : (
-              <div className="space-y-3">
-                {/* Personal Info */}
-                <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-2">
+                {/* Compact Personal Info */}
+                <div className="grid grid-cols-2 gap-1.5">
                   <input
                     type="text"
                     value={reviewerName}
@@ -327,7 +365,7 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
                       setSubmitError('')
                     }}
                     placeholder="Your name"
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400"
+                    className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400"
                     disabled={isSubmittingReview}
                   />
                   <input
@@ -337,124 +375,107 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
                       setReviewerEmail(e.target.value)
                       setSubmitError('')
                     }}
-                    placeholder="your@email.com"
-                    className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400"
+                    placeholder="email@domain.com"
+                    className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400"
                     disabled={isSubmittingReview}
                   />
                 </div>
 
-                {/* Star Rating */}
+                {/* Compact Star Rating */}
                 <div className="text-center">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Rate Study Tracker Pro
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Rate our app
                   </label>
                   <StarRating />
                   {reviewRating > 0 && (
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                      {reviewRating <= 2 && "We'll work harder! 😔"}
-                      {reviewRating === 3 && "Thanks for the feedback! 🙂"}
-                      {reviewRating >= 4 && "Awesome! Thanks! 😊"}
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                      {reviewRating <= 2 && "We'll improve! 😔"}
+                      {reviewRating === 3 && "Thanks! 🙂"}  
+                      {reviewRating >= 4 && "Awesome! 😊"}
                     </p>
                   )}
                 </div>
 
-                {/* Category & Recommendation */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Review focus</label>
-                    <select
-                      value={reviewCategory}
-                      onChange={(e) => setReviewCategory(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                {/* Compact Category & Recommendation Row */}
+                <div className="grid grid-cols-2 gap-1.5">
+                  <select
+                    value={reviewCategory}
+                    onChange={(e) => setReviewCategory(e.target.value)}
+                    className="px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500 focus:border-amber-500"
+                    disabled={isSubmittingReview}
+                  >
+                    {reviewCategories.map((cat) => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
+                  <div className="flex gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWouldRecommend(true)
+                        setSubmitError('')
+                      }}
+                      className={`flex-1 py-1.5 px-1 rounded-md text-xs font-medium border transition-all ${
+                        wouldRecommend === true
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-green-300'
+                      }`}
                       disabled={isSubmittingReview}
                     >
-                      {reviewCategories.map((cat) => (
-                        <option key={cat.value} value={cat.value}>{cat.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Recommend?</label>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setWouldRecommend(true)
-                          setSubmitError('')
-                        }}
-                        className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium border transition-all ${
-                          wouldRecommend === true
-                            ? 'border-green-500 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-green-300'
-                        }`}
-                        disabled={isSubmittingReview}
-                      >
-                        👍 Yes
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setWouldRecommend(false)
-                          setSubmitError('')
-                        }}
-                        className={`flex-1 py-2 px-2 rounded-lg text-sm font-medium border transition-all ${
-                          wouldRecommend === false
-                            ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                            : 'border-gray-300 dark:border-gray-600 hover:border-red-300'
-                        }`}
-                        disabled={isSubmittingReview}
-                      >
-                        👎 No
-                      </button>
-                    </div>
+                      👍
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setWouldRecommend(false)
+                        setSubmitError('')
+                      }}
+                      className={`flex-1 py-1.5 px-1 rounded-md text-xs font-medium border transition-all ${
+                        wouldRecommend === false
+                          ? 'border-red-500 bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-red-300'
+                      }`}
+                      disabled={isSubmittingReview}
+                    >
+                      👎
+                    </button>
                   </div>
                 </div>
 
-                {/* Comment */}
-                <div>
-                  <textarea
-                    value={reviewComment}
-                    onChange={(e) => {
-                      setReviewComment(e.target.value)
-                      setSubmitError('')
-                    }}
-                    placeholder="Share your experience... What do you like? Any suggestions?"
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400 resize-none"
-                    rows={3}
-                    maxLength={500}
-                    disabled={isSubmittingReview}
-                  />
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-xs text-gray-500">{reviewComment.length}/500</span>
-                    {reviewComment.length >= 10 && (
-                      <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3" />
-                        Great!
-                      </span>
-                    )}
-                  </div>
-                </div>
+                {/* Compact Comment */}
+                <textarea
+                  value={reviewComment}
+                  onChange={(e) => {
+                    setReviewComment(e.target.value)
+                    setSubmitError('')
+                  }}
+                  placeholder="Share your thoughts... (optional but helpful!)"
+                  className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-1 focus:ring-amber-500 focus:border-amber-500 placeholder-gray-500 dark:placeholder-gray-400 resize-none"
+                  rows={2}
+                  maxLength={300}
+                  disabled={isSubmittingReview}
+                />
 
-                {/* Error */}
+                {/* Compact Error */}
                 {submitError && (
-                  <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
-                    <div className="flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
-                      <p className="text-xs text-red-700 dark:text-red-300">{submitError}</p>
-                    </div>
+                  <div className="p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-md">
+                    <p className="text-xs text-red-700 dark:text-red-300 flex items-center gap-1">
+                      <AlertCircle className="w-3 h-3" />
+                      {submitError}
+                    </p>
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Compact Submit Button */}
                 <Button
                   onClick={handleReviewSubmit}
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-2 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-medium py-1.5 shadow-lg hover:shadow-xl transition-all text-xs"
                   disabled={isSubmittingReview || reviewRating === 0}
                   icon={isSubmittingReview ? undefined : Send}
                 >
                   {isSubmittingReview ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Submitting...
                     </div>
                   ) : (
@@ -465,16 +486,16 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             )}
           </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-4">
+          {/* Compact Divider */}
+          <div className="flex items-center gap-2 mb-3">
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
-            <span className="text-sm text-gray-500 dark:text-gray-400 font-medium">OR</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">OR</span>
             <div className="flex-1 h-px bg-gray-200 dark:bg-gray-700"></div>
           </div>
 
-          {/* Channels Section */}
-          <div className="space-y-3 mb-4">
-            <h3 className="font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+          {/* Compact Channels Section */}
+          <div className="space-y-2 mb-3">
+            <h3 className="font-bold text-sm text-gray-900 dark:text-gray-100 flex items-center gap-2">
               <Send className="w-4 h-4" />
               Join Telegram Channels
             </h3>
@@ -482,30 +503,30 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             {channels.map((channel) => (
               <div
                 key={channel.id}
-                className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-3 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
+                className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-2.5 border border-gray-200 dark:border-gray-700 hover:shadow-md transition-all"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 bg-gradient-to-r ${channel.color} rounded-lg text-white text-lg shadow-md`}>
+                <div className="flex items-center gap-2">
+                  <div className={`p-1.5 bg-gradient-to-r ${channel.color} rounded-md text-white text-sm shadow-md`}>
                     {channel.icon}
                   </div>
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-sm">{channel.name}</h4>
+                      <h4 className="font-bold text-gray-900 dark:text-gray-100 text-xs">{channel.name}</h4>
                       <Button
                         onClick={() => handleJoinChannel(channel.id, channel.url)}
                         size="sm"
-                        className={`bg-gradient-to-r ${channel.color} hover:shadow-md transition-all font-medium text-xs px-3 py-1`}
+                        className={`bg-gradient-to-r ${channel.color} hover:shadow-md transition-all font-medium text-xs px-2 py-1`}
                         icon={joinedChannels.includes(channel.id) ? CheckCircle : ExternalLink}
                         disabled={joinedChannels.includes(channel.id)}
                       >
-                        {joinedChannels.includes(channel.id) ? "Joined" : "Join"}
+                        {joinedChannels.includes(channel.id) ? "✓" : "Join"}
                       </Button>
                     </div>
 
-                    <p className="text-gray-600 dark:text-gray-400 text-xs mb-2">{channel.description}</p>
+                    <p className="text-gray-600 dark:text-gray-400 text-xs mb-1">{channel.description}</p>
 
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-1 text-xs text-gray-500">
                       <Users className="w-3 h-3" />
                       <span>{channel.members}</span>
                     </div>
@@ -515,32 +536,32 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
             ))}
           </div>
 
-          {/* Benefits */}
-          <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-xl p-3 mb-4 border border-green-200 dark:border-green-700">
-            <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-              <Gift className="w-4 h-4 text-yellow-500" />
+          {/* Compact Benefits */}
+          <div className="bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 dark:from-green-900/20 dark:via-blue-900/20 dark:to-purple-900/20 rounded-lg p-2.5 mb-3 border border-green-200 dark:border-green-700">
+            <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 text-sm">
+              <Gift className="w-3 h-3 text-yellow-500" />
               What You'll Get
             </h4>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-2 gap-1 text-xs">
               {[
                 { label: "Daily motivation", icon: "💪" },
                 { label: "App updates", icon: "🚀" },
                 { label: "Study tips", icon: "💡" },
-                { label: "Study community", icon: "👥" },
+                { label: "Community", icon: "👥" },
               ].map((benefit, index) => (
-                <div key={index} className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-2 rounded-lg hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
-                  <span>{benefit.icon}</span>
-                  <span className="font-medium">{benefit.label}</span>
+                <div key={index} className="flex items-center gap-1 text-gray-700 dark:text-gray-300 p-1.5 rounded-md hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors">
+                  <span className="text-xs">{benefit.icon}</span>
+                  <span className="font-medium text-xs">{benefit.label}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Footer */}
+          {/* Compact Footer */}
           <div className="text-center">
             <p className="text-xs text-gray-500 dark:text-gray-500 flex items-center justify-center gap-1">
               <Sparkles className="w-3 h-3" />
-              Find these channels later in Settings → Contact Us
+              Find these channels later in Settings
             </p>
           </div>
         </div>
@@ -548,3 +569,88 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
     </div>
   )
 }
+
+function App() {
+  const [showTelegramModal, setShowTelegramModal] = useState(false)
+  const [hasShownModal, setHasShownModal] = useState(false)
+
+  // Show telegram modal after 90 seconds
+  useEffect(() => {
+    // Check if modal was already shown in this session
+    const modalShown = sessionStorage.getItem('telegram-modal-shown')
+    
+    if (!modalShown && !hasShownModal) {
+      const timer = setTimeout(() => {
+        setShowTelegramModal(true)
+        setHasShownModal(true)
+        sessionStorage.setItem('telegram-modal-shown', 'true')
+      }, 90000) // 90 seconds
+
+      return () => clearTimeout(timer)
+    }
+  }, [hasShownModal])
+
+  const handleModalClose = () => {
+    setShowTelegramModal(false)
+  }
+
+  const handleChannelsJoined = () => {
+    console.log('User joined channels!')
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Card className="max-w-2xl w-full p-8 text-center">
+          <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+            <MessageSquare className="w-10 h-10 text-white" />
+          </div>
+          
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+            Study Tracker Pro
+          </h1>
+          
+          <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
+            Your academic success companion. The Telegram join popup will appear automatically after 90 seconds, or you can trigger it manually.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={() => setShowTelegramModal(true)}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 shadow-lg hover:shadow-xl transition-all"
+              icon={Send}
+            >
+              Join Community Now
+            </Button>
+            
+            <Button
+              onClick={() => {
+                sessionStorage.removeItem('telegram-modal-shown')
+                setHasShownModal(false)
+              }}
+              className="bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 border border-gray-300 dark:border-gray-600"
+              icon={Clock}
+            >
+              Reset Auto-popup Timer
+            </Button>
+          </div>
+          
+          <div className="mt-8 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+            <p className="text-sm text-amber-800 dark:text-amber-200 flex items-center justify-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              The popup will show automatically in 90 seconds after page load
+            </p>
+          </div>
+        </Card>
+      </div>
+
+      <TelegramJoinModal
+        isOpen={showTelegramModal}
+        onClose={handleModalClose}
+        onChannelsJoined={handleChannelsJoined}
+      />
+    </div>
+  )
+}
+
+export default App
