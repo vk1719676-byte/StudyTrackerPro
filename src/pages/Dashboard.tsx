@@ -278,80 +278,29 @@ const SessionCard: React.FC<{
   </ModernCard>
 );
 
-// Floating Review Button Component
-const FloatingReviewButton: React.FC<{
-  onClick: () => void;
-  timeSpent: number;
-  visible: boolean;
-}> = ({ onClick, timeSpent, visible }) => {
-  const formatTime = (minutes: number) => {
-    return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
-  };
-
-  if (!visible) return null;
-
-  return (
-    <div className="fixed bottom-6 right-6 z-40 animate-bounce">
-      <div className="relative group">
-        {/* Pulsing background effect */}
-        <div className="absolute -inset-2 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl blur opacity-75 group-hover:opacity-100 animate-pulse"></div>
-        
-        {/* Main button */}
-        <button
-          onClick={onClick}
-          className="relative bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold px-6 py-4 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 flex items-center gap-3 group border border-white/20"
-        >
-          <div className="relative">
-            <MessageSquare className="w-6 h-6" />
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping"></div>
-            <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></div>
-          </div>
-          
-          <div className="text-left">
-            <div className="text-sm font-bold">Share Feedback!</div>
-            <div className="text-xs text-white/80">
-              Explored for {formatTime(timeSpent)}
-            </div>
-          </div>
-          
-          <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
-        </button>
-
-        {/* Tooltip */}
-        <div className="absolute bottom-full right-0 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-          <div className="bg-gray-900 dark:bg-gray-800 text-white text-sm px-4 py-2 rounded-xl whitespace-nowrap border border-gray-700">
-            Help us improve Study Tracker Pro! 
-            <div className="absolute top-full right-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 export const Dashboard: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
   const [timeSpent, setTimeSpent] = useState(0);
-  const [showReviewButton, setShowReviewButton] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const { user, isPremium } = useAuth();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
   const displayName = savedDisplayName || user?.displayName || user?.email?.split('@')[0];
 
-  // Time tracking for review trigger
+  // Time tracking for auto-opening review modal
   useEffect(() => {
     const interval = setInterval(() => {
       setTimeSpent(prev => {
         const newTime = prev + 1;
         
-        // Show review button after 1 minute (60 seconds)
-        if (newTime === 60) {
-          setShowReviewButton(true);
+        // Auto-open review modal after 1 minute (60 seconds) if not already submitted
+        if (newTime === 60 && !reviewSubmitted && !isReviewModalOpen) {
+          setIsReviewModalOpen(true);
         }
 
         return newTime;
@@ -359,7 +308,7 @@ export const Dashboard: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [reviewSubmitted, isReviewModalOpen]);
 
   useEffect(() => {
     if (!user) return;
@@ -395,7 +344,7 @@ export const Dashboard: React.FC = () => {
     try {
       await submitReviewToGoogleSheets(reviewData);
       setIsReviewModalOpen(false);
-      setShowReviewButton(false);
+      setReviewSubmitted(true);
       
       // Show success toast (you can implement a toast system)
       console.log('Review submitted successfully!');
@@ -405,10 +354,6 @@ export const Dashboard: React.FC = () => {
       // The modal will handle retry logic
       throw error; // Re-throw to let modal handle the error
     }
-  };
-
-  const handleReviewButtonClick = () => {
-    setIsReviewModalOpen(true);
   };
 
   // Analytics calculations
@@ -1003,19 +948,18 @@ export const Dashboard: React.FC = () => {
         )}
       </div>
 
-      {/* Floating Review Button */}
-      <FloatingReviewButton
-        onClick={handleReviewButtonClick}
-        timeSpent={Math.floor(timeSpent / 60)} // Convert seconds to minutes
-        visible={showReviewButton}
-      />
-
-      {/* Review Modal */}
+      {/* Auto-Opening Review Modal */}
       <ReviewModal
         isOpen={isReviewModalOpen}
-        onClose={() => setIsReviewModalOpen(false)}
+        onClose={() => {
+          // Only allow closing if review has been submitted
+          if (reviewSubmitted) {
+            setIsReviewModalOpen(false);
+          }
+        }}
         onSubmit={handleReviewSubmit}
         timeSpent={Math.floor(timeSpent / 60)} // Convert seconds to minutes
+        forceSubmit={!reviewSubmitted} // Force submit until review is completed
       />
     </div>
   );
