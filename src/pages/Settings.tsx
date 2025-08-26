@@ -9,36 +9,28 @@ import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumModal } from '../components/premium/PremiumModal';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
-import { exportStudyDataToPDF } from '../utils/pdfExport';
 
 export const Settings: React.FC = () => {
   const { user, logout, setShowTelegramModal, isPremium } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [isEditingName, setIsEditingName] = React.useState(false);
   const [showPremiumModal, setShowPremiumModal] = React.useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
-  const [showSignOutConfirm, setShowSignOutConfirm] = React.useState(false);
   const [displayName, setDisplayName] = React.useState(() => {
     return localStorage.getItem(`displayName-${user?.uid}`) || user?.displayName || '';
   });
+  const [showGoalSettings, setShowGoalSettings] = React.useState(false);
+  const [dailyGoal, setDailyGoal] = React.useState('2');
+  const [weeklyGoal, setWeeklyGoal] = React.useState('14');
+  
+  // Study preferences state
+  const [notifications, setNotifications] = React.useState(true);
+  const [studyReminders, setStudyReminders] = React.useState(true);
+  const [defaultSessionLength, setDefaultSessionLength] = React.useState('25');
 
   const handleDeleteAccount = () => {
-    setShowDeleteConfirm(true);
-  };
-
-  const confirmDeleteAccount = () => {
-    // In a real app, this would delete the account from Firebase
-    alert('Account deletion functionality would be implemented here with proper Firebase auth deletion');
-    setShowDeleteConfirm(false);
-  };
-
-  const handleSignOut = () => {
-    setShowSignOutConfirm(true);
-  };
-
-  const confirmSignOut = () => {
-    logout();
-    setShowSignOutConfirm(false);
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+      alert('Account deletion feature would be implemented here');
+    }
   };
 
   const handleSaveName = () => {
@@ -48,20 +40,22 @@ export const Settings: React.FC = () => {
     setIsEditingName(false);
   };
 
+  const handleSaveGoals = () => {
+    console.log('Saving goals:', { dailyGoal, weeklyGoal });
+    setShowGoalSettings(false);
+  };
+
   const handleShowTelegramChannels = () => {
     setShowTelegramModal(true);
   };
 
   const handleExportData = () => {
-    try {
-      exportStudyDataToPDF({
-        user,
-        displayName,
-        isPremium
-      });
-    } catch (error) {
-      alert((error as Error).message);
-    }
+    // In a real app, this would export user data
+    alert('Data export feature would be implemented here');
+  };
+
+  const toggleSetting = (setter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    return () => setter(prev => !prev);
   };
 
   return (
@@ -80,113 +74,113 @@ export const Settings: React.FC = () => {
           </p>
         </div>
 
-        <div className="space-y-8 sm:space-y-10">
-          {/* Premium Status Section */}
-          <Card className={`p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg ${
-            isPremium 
-              ? 'bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 dark:from-yellow-900/20 dark:via-orange-900/20 dark:to-red-900/20 border-2 border-yellow-300 dark:border-yellow-700' 
-              : 'bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20'
-          }`}>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl shadow-lg">
-                <Crown className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
-                    Premium Status
-                  </h2>
-                  {isPremium && <PremiumBadge size="sm" />}
-                </div>
-                <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
-                  {isPremium 
-                    ? 'You have access to all premium features and advanced analytics'
-                    : 'Upgrade to unlock advanced features, AI insights, and priority support'
-                  }
-                </p>
-              </div>
+        {/* Premium Status Section */}
+        <Card className={`p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg ${
+          isPremium 
+            ? 'bg-gradient-to-r from-yellow-50 via-orange-50 to-red-50 dark:from-yellow-900/20 dark:via-orange-900/20 dark:to-red-900/20 border-2 border-yellow-300 dark:border-yellow-700' 
+            : 'bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20'
+        }`}>
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
+            <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-purple-500 to-blue-600 rounded-xl">
+              <Crown className="w-6 h-6 text-white" />
             </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-3 mb-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  Premium Status
+                </h2>
+                {isPremium && <PremiumBadge size="sm" />}
+              </div>
+              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                {isPremium 
+                  ? 'You have access to all premium features and advanced analytics'
+                  : 'Upgrade to unlock advanced features, AI insights, and priority support'
+                }
+              </p>
+            </div>
+          </div>
 
-            {isPremium ? (
-              <div className="space-y-4">
-                <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4 shadow-sm">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
-                    <div className="p-3 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                        {user?.premiumPlan === 'monthly' ? '1' : user?.premiumPlan === 'halfyearly' ? '6' : '12'}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
-                        Month{user?.premiumPlan !== 'monthly' ? 's' : ''} Plan
-                      </div>
+          {isPremium ? (
+            <div className="space-y-4">
+              <div className="bg-white/70 dark:bg-gray-800/70 rounded-lg p-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                  <div>
+                    <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
+                      {user?.premiumPlan === 'monthly' ? '1' : user?.premiumPlan === 'halfyearly' ? '6' : '12'}
                     </div>
-                    <div className="p-3 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        Active
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Status</div>
-                    </div>
-                    <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {user?.premiumExpiresAt ? new Date(user.premiumExpiresAt).toLocaleDateString() : 'N/A'}
-                      </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Expires</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      Month{user?.premiumPlan !== 'monthly' ? 's' : ''} Plan
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <Button
-                    variant="secondary"
-                    className="flex-1 shadow-sm hover:shadow-md transition-shadow"
-                    onClick={() => setShowPremiumModal(true)}
-                  >
-                    Manage Subscription
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="flex-1 hover:bg-white/50 dark:hover:bg-gray-800/50"
-                    onClick={() => alert('Contact support for subscription help')}
-                  >
-                    Contact Support
-                  </Button>
+                  <div>
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      Active
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Status</div>
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {user?.premiumExpiresAt ? new Date(user.premiumExpiresAt).toLocaleDateString() : 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">Expires</div>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                    <span>AI-Powered Study Insights</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    <span>Advanced Analytics Dashboard</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span>Unlimited Study Materials</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300 p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg">
-                    <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                    <span>Priority Customer Support</span>
-                  </div>
-                </div>
-                
+              
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Button
+                  variant="secondary"
+                  className="flex-1"
                   onClick={() => setShowPremiumModal(true)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-300"
-                  icon={Crown}
                 >
-                  Upgrade to Premium - Starting ₹20/month
+                  Manage Subscription
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="flex-1"
+                  onClick={() => alert('Contact support for subscription help')}
+                >
+                  Contact Support
                 </Button>
               </div>
-            )}
-          </Card>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  <span>AI-Powered Study Insights</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  <span>Advanced Analytics Dashboard</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span>Unlimited Study Materials</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700 dark:text-gray-300">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                  <span>Priority Customer Support</span>
+                </div>
+              </div>
+              
+              <Button
+                onClick={() => setShowPremiumModal(true)}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700"
+                icon={Crown}
+              >
+                Upgrade to Premium - Starting ₹20/month
+              </Button>
+            </div>
+          )}
+        </Card>
 
+        <div className="space-y-4 sm:space-y-6">
           {/* Profile Section */}
           <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl shadow-sm">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-xl">
                 <User className="w-6 h-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="min-w-0 flex-1">
@@ -256,10 +250,183 @@ export const Settings: React.FC = () => {
             </div>
           </Card>
 
+          {/* Study Goals */}
+          <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-green-100 to-teal-100 dark:from-green-900/30 dark:to-teal-900/30 rounded-xl">
+                <Target className="w-6 h-6 text-green-600 dark:text-green-400" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  Study Goals
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                  Set your default study time goals
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between py-3 sm:py-4 border-b border-gray-100 dark:border-gray-700 gap-4">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded-lg mt-0.5 sm:mt-0">
+                    <Target className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium block">Default Goals</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      Applied to new exams automatically
+                    </span>
+                  </div>
+                </div>
+                {showGoalSettings ? (
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full lg:w-auto pl-9 sm:pl-0">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={dailyGoal}
+                        onChange={setDailyGoal}
+                        placeholder="Daily hours"
+                        className="w-20 h-10"
+                        type="number"
+                        step="0.5"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">h/day</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        value={weeklyGoal}
+                        onChange={setWeeklyGoal}
+                        placeholder="Weekly hours"
+                        className="w-20 h-10"
+                        type="number"
+                        step="0.5"
+                      />
+                      <span className="text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">h/week</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveGoals} className="flex-1 sm:flex-none">
+                        Save
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setShowGoalSettings(false)} className="flex-1 sm:flex-none">
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 pl-9 sm:pl-0">
+                    <span className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                      {dailyGoal}h daily • {weeklyGoal}h weekly
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      icon={Edit3}
+                      onClick={() => setShowGoalSettings(true)}
+                      className="self-start sm:self-auto"
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Study Preferences */}
+          <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-xl">
+                <Zap className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-gray-100">
+                  Study Preferences
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+                  Customize your study sessions and notifications
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 sm:space-y-4">
+              {/* Default Session Length */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 sm:py-4 border-b border-gray-100 dark:border-gray-700 gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg mt-0.5 sm:mt-0">
+                    <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium block">Default Session Length</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      Default duration for new study sessions
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 pl-9 sm:pl-0">
+                  <Input
+                    value={defaultSessionLength}
+                    onChange={setDefaultSessionLength}
+                    className="w-16 h-10"
+                    type="number"
+                    min="5"
+                    max="180"
+                  />
+                  <span className="text-sm text-gray-600 dark:text-gray-400">min</span>
+                </div>
+              </div>
+
+              {/* Notifications Toggle */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 sm:py-4 border-b border-gray-100 dark:border-gray-700 gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded-lg mt-0.5 sm:mt-0">
+                    <Bell className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium block">Push Notifications</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      Receive notifications for study reminders
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  onClick={toggleSetting(setNotifications)}
+                  variant={notifications ? "secondary" : "ghost"}
+                  size="sm"
+                  className="self-start sm:self-auto ml-9 sm:ml-0"
+                >
+                  {notifications ? 'Enabled' : 'Disabled'}
+                </Button>
+              </div>
+
+              {/* Study Reminders */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between py-3 sm:py-4 gap-3">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded-lg mt-0.5 sm:mt-0">
+                    <Calendar className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <div>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium block">Study Reminders</span>
+                    <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                      Daily reminders to maintain study streak
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  onClick={toggleSetting(setStudyReminders)}
+                  variant={studyReminders ? "secondary" : "ghost"}
+                  size="sm"
+                  className="self-start sm:self-auto ml-9 sm:ml-0"
+                >
+                  {studyReminders ? 'Enabled' : 'Disabled'}
+                </Button>
+              </div>
+            </div>
+          </Card>
+
           {/* Community Section */}
           <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl shadow-sm">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 rounded-xl">
                 <MessageCircle className="w-6 h-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
@@ -303,7 +470,7 @@ export const Settings: React.FC = () => {
                   <div>
                     <span className="text-gray-900 dark:text-gray-100 font-medium block">Export Data</span>
                     <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                      Download your study data and statistics as PDF
+                      Download your study data and statistics
                     </span>
                   </div>
                 </div>
@@ -314,7 +481,7 @@ export const Settings: React.FC = () => {
                   icon={Download}
                   className="self-start sm:self-auto ml-9 sm:ml-0"
                 >
-                  Export PDF
+                  Export
                 </Button>
               </div>
             </div>
@@ -323,7 +490,7 @@ export const Settings: React.FC = () => {
           {/* App Preferences */}
           <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl shadow-sm">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl">
                 {theme === 'dark' ? (
                   <Moon className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                 ) : (
@@ -361,7 +528,7 @@ export const Settings: React.FC = () => {
                   onClick={toggleTheme}
                   variant="secondary"
                   icon={theme === 'dark' ? Sun : Moon}
-                  className="self-start sm:self-auto ml-9 sm:ml-0 shadow-sm hover:shadow-md transition-shadow"
+                  className="self-start sm:self-auto ml-9 sm:ml-0"
                 >
                   <span className="hidden sm:inline">Switch to </span>
                   {theme === 'dark' ? 'Light' : 'Dark'}
@@ -387,7 +554,7 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-100 dark:border-purple-800/30 shadow-sm">
+              <div className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 via-blue-50 to-indigo-50 dark:from-purple-900/20 dark:via-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-purple-100 dark:border-purple-800/30">
                 <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-base sm:text-lg">
                   Study Smarter, Not Harder! 🚀
                 </h3>
@@ -406,7 +573,7 @@ export const Settings: React.FC = () => {
           {/* Account Actions */}
           <Card className="p-4 sm:p-6 lg:p-8 hover:shadow-xl transition-all duration-300 border-0 shadow-lg border-red-100 dark:border-red-900/30">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-6">
-              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl shadow-sm">
+              <div className="self-start sm:self-auto p-3 bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 rounded-xl">
                 <LogOut className="w-6 h-6 text-red-600 dark:text-red-400" />
               </div>
               <div>
@@ -433,7 +600,7 @@ export const Settings: React.FC = () => {
                   </div>
                 </div>
                 <Button
-                  onClick={handleSignOut}
+                  onClick={logout}
                   variant="secondary"
                   icon={LogOut}
                   className="self-start sm:self-auto ml-9 sm:ml-0"
@@ -477,108 +644,6 @@ export const Settings: React.FC = () => {
           window.location.reload();
         }}
       />
-
-      {/* Sign Out Confirmation Modal */}
-      {showSignOutConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
-                <LogOut className="w-6 h-6 text-orange-600 dark:text-orange-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  Confirm Sign Out
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Are you sure you want to sign out?
-                </p>
-              </div>
-            </div>
-            <p className="text-gray-600 dark:text-gray-400 mb-6 text-sm">
-              You'll need to sign in again to access your study data and continue tracking your progress.
-            </p>
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowSignOutConfirm(false)}
-                variant="ghost"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={confirmSignOut}
-                variant="secondary"
-                className="flex-1"
-                icon={LogOut}
-              >
-                Sign Out
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Account Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl max-w-md w-full p-6 border border-red-200 dark:border-red-800">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">
-                  Delete Account
-                </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  This action cannot be undone
-                </p>
-              </div>
-            </div>
-            <div className="mb-6">
-              <p className="text-gray-600 dark:text-gray-400 mb-3 text-sm">
-                Deleting your account will permanently remove:
-              </p>
-              <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1">
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  All your study data and progress
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Your premium subscription (if any)
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Account settings and preferences
-                </li>
-                <li className="flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div>
-                  Access to all Study Tracker Pro features
-                </li>
-              </ul>
-            </div>
-            <div className="flex gap-3">
-              <Button
-                onClick={() => setShowDeleteConfirm(false)}
-                variant="ghost"
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={confirmDeleteAccount}
-                variant="danger"
-                className="flex-1"
-                icon={Trash2}
-              >
-                Delete Account
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
