@@ -82,8 +82,8 @@ export const TelegramJoinModal: React.FC<TelegramJoinModalProps> = ({ isOpen, on
     const timer = setInterval(() => {
       setBackgroundTimer((prev) => {
         const newTime = prev + 1
-        // Show review form after 3-4 minutes (180-240 seconds)
-        if (newTime >= 200 && !showReviewForm && !reviewSubmitted) { // 3 minutes 20 seconds
+        // Show review form after 1 minute (60 seconds)
+        if (newTime >= 60 && !showReviewForm && !reviewSubmitted) { // 1 minute
           setShowReviewForm(true)
         }
         return newTime
