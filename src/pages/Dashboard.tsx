@@ -6,11 +6,8 @@ import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { ReviewModal } from '../components/review/ReviewModal';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
-import { submitReview } from '../services/reviewService';
-import { useReviewModal } from '../hooks/useReviewModal';
 import { Exam, StudySession } from '../types';
 
 // Modern hero themes
@@ -170,7 +167,6 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
   const { user, isPremium } = useAuth();
-  const { showReviewModal, handleCloseReview, handleSubmitReview } = useReviewModal();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
@@ -204,16 +200,6 @@ export const Dashboard: React.FC = () => {
 
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
-  };
-
-  const handleReviewSubmit = async (reviewData: any) => {
-    try {
-      await submitReview(reviewData);
-      handleSubmitReview();
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      throw error;
-    }
   };
 
   // Analytics calculations
@@ -806,15 +792,6 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         )}
-
-        {/* Review Modal */}
-        <ReviewModal
-          isOpen={showReviewModal}
-          onClose={handleCloseReview}
-          onSubmit={handleReviewSubmit}
-          userEmail={user?.email || ''}
-          userName={displayName || ''}
-        />
       </div>
     </div>
   );
