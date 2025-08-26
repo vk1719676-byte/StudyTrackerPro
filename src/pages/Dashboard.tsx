@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, MessageSquare } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
-import { ReviewModal, ReviewData } from '../components/ui/ReviewModal';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
-import { submitReviewToGoogleSheets } from '../services/reviewService';
 import { Exam, StudySession } from '../types';
 
 // Modern hero themes
@@ -283,32 +281,11 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
-  const [timeSpent, setTimeSpent] = useState(0);
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const { user, isPremium } = useAuth();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
   const displayName = savedDisplayName || user?.displayName || user?.email?.split('@')[0];
-
-  // Time tracking for auto-opening review modal
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeSpent(prev => {
-        const newTime = prev + 1;
-        
-        // Auto-open review modal after 1 minute (60 seconds) if not already submitted
-        if (newTime === 60 && !reviewSubmitted && !isReviewModalOpen) {
-          setIsReviewModalOpen(true);
-        }
-
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [reviewSubmitted, isReviewModalOpen]);
 
   useEffect(() => {
     if (!user) return;
@@ -338,22 +315,6 @@ export const Dashboard: React.FC = () => {
 
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
-  };
-
-  const handleReviewSubmit = async (reviewData: ReviewData) => {
-    try {
-      await submitReviewToGoogleSheets(reviewData);
-      setIsReviewModalOpen(false);
-      setReviewSubmitted(true);
-      
-      // Show success toast (you can implement a toast system)
-      console.log('Review submitted successfully!');
-      
-    } catch (error) {
-      console.error('Failed to submit review:', error);
-      // The modal will handle retry logic
-      throw error; // Re-throw to let modal handle the error
-    }
   };
 
   // Analytics calculations
@@ -947,20 +908,6 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Auto-Opening Review Modal */}
-      <ReviewModal
-        isOpen={isReviewModalOpen}
-        onClose={() => {
-          // Only allow closing if review has been submitted
-          if (reviewSubmitted) {
-            setIsReviewModalOpen(false);
-          }
-        }}
-        onSubmit={handleReviewSubmit}
-        timeSpent={Math.floor(timeSpent / 60)} // Convert seconds to minutes
-        forceSubmit={!reviewSubmitted} // Force submit until review is completed
-      />
     </div>
   );
 };
