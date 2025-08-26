@@ -22,9 +22,9 @@ export const EnhancedTextBanner: React.FC = () => {
     {
       id: 1,
       type: 'tutorial',
-      title: 'New Tutorial Available',
-      message: 'Master Study Tracker Pro - Complete Hindi Tutorial (15 min)',
-      action: 'Watch Now',
+      title: 'Learn How To Use Study Tracker Pro',
+      message: 'Master Study Tracker Pro - Complete Hindi Tutorial (8 min)',
+      action: 'Watch Now On YouTube',
       link: 'https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX',
       icon: Play,
       color: 'bg-blue-50 border-blue-200 text-blue-800',
@@ -36,8 +36,8 @@ export const EnhancedTextBanner: React.FC = () => {
     {
       id: 2,
       type: 'community',
-      title: 'Join Our Community',
-      message: 'Connect with 5K+ students on our official Telegram channel',
+      title: 'Join Study Tracker Pro Telegram Channel',
+      message: 'Connect with 250+ students on our official Telegram channel',
       action: 'Join Now',
       link: 'https://t.me/studytrackerpro',
       icon: Users,
@@ -50,7 +50,7 @@ export const EnhancedTextBanner: React.FC = () => {
     {
       id: 3,
       type: 'premium',
-      title: 'Premium Content',
+      title: 'Join ITs TRMS telegram Channel',
       message: 'Access NEET, JEE & UPSC study materials and resources',
       action: 'Access Now',
       link: 'https://t.me/+_fkSUEqyukFiMjI1',
@@ -60,20 +60,6 @@ export const EnhancedTextBanner: React.FC = () => {
       iconColor: 'text-amber-600',
       metric: '1000+ resources',
       onClick: () => window.open('https://t.me/+_fkSUEqyukFiMjI1', '_blank')
-    },
-    {
-      id: 4,
-      type: 'techniques',
-      title: 'Study Techniques',
-      message: 'Discover proven learning methods and productivity tips',
-      action: 'Learn More',
-      link: '#techniques',
-      icon: Brain,
-      color: 'bg-purple-50 border-purple-200 text-purple-800',
-      actionColor: 'bg-purple-600 hover:bg-purple-700',
-      iconColor: 'text-purple-600',
-      metric: '95% success rate',
-      onClick: () => console.log('Navigate to techniques')
     }
   ];
 
