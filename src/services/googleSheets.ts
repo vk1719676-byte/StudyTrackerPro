@@ -9,7 +9,7 @@ export interface ReviewData {
   platform: string;
 }
 
-const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx6cxSlNdGaZvpP5qSppw6jrpJC-D-lEWY3cRHULjDS4FWarx6q5gaLGMtHtO4OVQnL7g/exec';
+const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcgEHkA7c9MGQ40ycsv8a-aJTBjb5fAXyFP1TBBAR3bqSNrFRunIjO5YN2_ZkW4RRm/exec';
 
 export const submitReviewToGoogleSheets = async (reviewData: ReviewData): Promise<boolean> => {
   try {
