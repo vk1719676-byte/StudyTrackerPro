@@ -105,13 +105,6 @@ export const Footer: React.FC = () => {
     }
   ];
 
-  const quickLinks = [
-    { name: 'Privacy Policy', href: '/privacy-policy', icon: Shield },
-    { name: 'Terms of Service', href: '/terms-of-service', icon: FileText },
-    { name: 'Help Center', href: '/help-center', icon: HelpCircle },
-    { name: 'Contact Us', href: '/contact-us', icon: MessageCircle },
-  ];
-
   const studyTools = [
     {
       icon: Calculator,
@@ -140,32 +133,6 @@ export const Footer: React.FC = () => {
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
       category: "Math Tools"
-    }
-  ];
-
-  // Team Members Data
-  const teamMembers = [
-    {
-      name: "Vinay Kumar",
-      role: "Co-Owner & Developer Of Study Tracker Pro",
-      description: "Lead developer and visionary behind Study Tracker Pro, dedicated to creating innovative educational solutions.",
-      icon: Code,
-      gradient: "from-purple-500 to-indigo-600",
-      social: {
-        linkedin: "https://www.linkedin.com/in/vinay-kumar-964209342/?originalSubdomain=in",
-        github: "https://github.com/Vinayk2007"
-      }
-    },
-    {
-      name: "Ayush Mishra",
-      role: "Co-Owner of Study Tracker Pro & Owner Of TRMs",
-      description: "Strategic co-owner focused on business development and owner of TRMs, driving educational technology forward.",
-      icon: Award,
-      gradient: "from-emerald-500 to-teal-600",
-      social: {
-        linkedin: "#",
-        github: "#"
-      }
     }
   ];
 
@@ -1405,78 +1372,6 @@ export const Footer: React.FC = () => {
           </div>
         </section>
 
-        {/* Team Members Section - More Compact */}
-        <section className="bg-gradient-to-br from-indigo-50 via-white to-cyan-50 dark:from-indigo-900/20 dark:via-gray-800 dark:to-cyan-900/20 py-6 sm:py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-6">
-              <div className="flex items-center justify-center gap-2 mb-3">
-                <UserCheck className="w-6 h-6 text-indigo-600" />
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
-                  Meet Our Team
-                </h2>
-              </div>
-            </div>
-
-            {/* Compact Team Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-              {teamMembers.map((member, index) => (
-                <div
-                  key={index}
-                  className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow duration-300"
-                >
-                  <div className={`h-1 bg-gradient-to-r ${member.gradient}`}></div>
-                  
-                  <div className="p-4 sm:p-5">
-                    <div className="flex items-start gap-4">
-                      <div className={`w-12 h-12 bg-gradient-to-br ${member.gradient} rounded-xl flex items-center justify-center flex-shrink-0`}>
-                        <member.icon className="w-6 h-6 text-white" />
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                          {member.name}
-                        </h3>
-                        
-                        <p className="text-sm font-medium bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent mb-2">
-                          {member.role}
-                        </p>
-                        
-                        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed mb-3">
-                          {member.description}
-                        </p>
-
-                        {/* Social Links */}
-                        <div className="flex gap-2">
-                          {member.social.linkedin !== "#" && (
-                            <a
-                              href={member.social.linkedin}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700 hover:scale-110 transition-all duration-300 touch-manipulation"
-                            >
-                              <Linkedin className="w-3 h-3 text-blue-600 dark:text-blue-400" />
-                            </a>
-                          )}
-                          {member.social.github !== "#" && (
-                            <a
-                              href={member.social.github}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded-lg border border-gray-200 dark:border-gray-700 hover:scale-110 transition-all duration-300 touch-manipulation"
-                            >
-                              <Github className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Main Footer Content - Compact */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
           {/* Brand Section */}
@@ -1498,52 +1393,22 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Compact Footer Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {/* Quick Links */}
-            <div className="text-center md:text-left">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Quick Links</h4>
-              <div className="grid grid-cols-2 gap-1 text-xs">
-                {quickLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.href}
-                    className="text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200 hover:underline"
-                  >
-                    {link.name}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Social Links */}
-            <div className="text-center">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Connect With Us</h4>
-              <div className="flex justify-center gap-2">
-                {socialLinks.map((link) => (
-                  <a
-                    key={link.name}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group touch-manipulation"
-                    title={link.name}
-                  >
-                    <link.icon className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" />
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Features */}
-            <div className="text-center md:text-right">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Features</h4>
-              <div className="flex flex-wrap justify-center md:justify-end gap-1 text-xs">
-                <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full">Calculator</span>
-                <span className="px-2 py-1 bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300 rounded-full">Chemistry</span>
-                <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300 rounded-full">GPA</span>
-                <span className="px-2 py-1 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-300 rounded-full">Math Solver</span>
-              </div>
+          {/* Social Links Only */}
+          <div className="text-center mb-6">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Connect With Us</h4>
+            <div className="flex justify-center gap-2">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border border-purple-200 dark:border-purple-700 hover:scale-110 transition-all duration-300 group touch-manipulation"
+                  title={link.name}
+                >
+                  <link.icon className="w-4 h-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300" />
+                </a>
+              ))}
             </div>
           </div>
 
