@@ -6,9 +6,27 @@ import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
+import { ReviewForm } from '../components/ReviewForm';
+import { submitReviewToSheets } from '../services/googleSheets';
+import { ReviewForm } from '../components/ReviewForm';
+import { submitReviewToSheets } from '../services/googleSheets';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
+
+interface ReviewData {
+  rating: number;
+  feedback: string;
+  recommend: boolean;
+  email: string;
+}
+
+interface ReviewData {
+  rating: number;
+  feedback: string;
+  recommend: boolean;
+  email: string;
+}
 
 // Modern hero themes
 const heroThemes = [
@@ -157,6 +175,14 @@ const SessionCard: React.FC<{
           </div>
         )}
       </div>
+
+      {/* Review Form Modal - Persistent until submitted */}
+      {showReviewForm && (
+        <ReviewForm 
+          onSubmit={handleReviewSubmit}
+          isSubmitting={isSubmittingReview}
+        />
+      )}
     </div>
   </ModernCard>
 );
@@ -166,11 +192,141 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
+  
+  // Review form state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewTimer, setReviewTimer] = useState<NodeJS.Timeout | null>(null);
+  
+  
+  // Review form state
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewTimer, setReviewTimer] = useState<NodeJS.Timeout | null>(null);
+  
   const { user, isPremium } = useAuth();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
   const displayName = savedDisplayName || user?.displayName || user?.email?.split('@')[0];
+
+  // Review form logic
+  useEffect(() => {
+    // Check if user has already submitted a review
+    const hasSubmittedReview = localStorage.getItem('reviewSubmitted');
+    
+    if (!hasSubmittedReview) {
+      // Set timer to show review form after 1 minute (60000 ms)
+      const timer = setTimeout(() => {
+        setShowReviewForm(true);
+      }, 60000); // 1 minute
+
+      setReviewTimer(timer);
+
+      // Cleanup timer on unmount
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
+  }, []);
+
+  const handleReviewSubmit = async (reviewData: ReviewData) => {
+    setIsSubmittingReview(true);
+    
+    try {
+      const success = await submitReviewToSheets(reviewData);
+      
+      if (success) {
+        // Mark review as submitted in localStorage
+        localStorage.setItem('reviewSubmitted', 'true');
+        localStorage.setItem('reviewSubmittedAt', new Date().toISOString());
+        localStorage.setItem('reviewRating', reviewData.rating.toString());
+        
+        // Hide the review form
+        setShowReviewForm(false);
+        
+        // Show success message (optional)
+        console.log('Review submitted successfully!');
+      } else {
+        // Handle submission error
+        console.error('Failed to submit review');
+        alert('Failed to submit review. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('An error occurred while submitting your review.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Cleanup timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (reviewTimer) {
+        clearTimeout(reviewTimer);
+      }
+    };
+  }, [reviewTimer]);
+
+  // Review form logic
+  useEffect(() => {
+    // Check if user has already submitted a review
+    const hasSubmittedReview = localStorage.getItem('reviewSubmitted');
+    
+    if (!hasSubmittedReview) {
+      // Set timer to show review form after 1 minute (60000 ms)
+      const timer = setTimeout(() => {
+        setShowReviewForm(true);
+      }, 60000); // 1 minute
+
+      setReviewTimer(timer);
+
+      // Cleanup timer on unmount
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
+  }, []);
+
+  const handleReviewSubmit = async (reviewData: ReviewData) => {
+    setIsSubmittingReview(true);
+    
+    try {
+      const success = await submitReviewToSheets(reviewData);
+      
+      if (success) {
+        // Mark review as submitted in localStorage
+        localStorage.setItem('reviewSubmitted', 'true');
+        localStorage.setItem('reviewSubmittedAt', new Date().toISOString());
+        localStorage.setItem('reviewRating', reviewData.rating.toString());
+        
+        // Hide the review form
+        setShowReviewForm(false);
+        
+        // Show success message (optional)
+        console.log('Review submitted successfully!');
+      } else {
+        // Handle submission error
+        console.error('Failed to submit review');
+        alert('Failed to submit review. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('An error occurred while submitting your review.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Cleanup timer when component unmounts
+  useEffect(() => {
+    return () => {
+      if (reviewTimer) {
+        clearTimeout(reviewTimer);
+      }
+    };
+  }, [reviewTimer]);
 
   useEffect(() => {
     if (!user) return;
@@ -793,6 +949,14 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Review Form Modal - Persistent until submitted */}
+      {showReviewForm && (
+        <ReviewForm 
+          onSubmit={handleReviewSubmit}
+          isSubmitting={isSubmittingReview}
+        />
+      )}
     </div>
   );
 };
