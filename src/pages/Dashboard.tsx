@@ -335,9 +335,6 @@ export const Dashboard: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
-        {/* Enhanced Text Banner */}
-        <EnhancedTextBanner />
-        
         {/* Modern Hero Section */}
         <div className="mb-10">
           <div className={`relative overflow-hidden bg-gradient-to-br ${currentThemeData.gradient} rounded-3xl p-8 md:p-12 text-white shadow-2xl`}>
@@ -391,6 +388,9 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* Enhanced Text Banner - Now positioned after hero section */}
+        <EnhancedTextBanner />
 
         {/* Premium AI Section */}
         {isPremium && (
