@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Radio, Shuffle, ExternalLink } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Radio, Shuffle } from 'lucide-react';
 
 interface LofiTrack {
   id: string;
@@ -7,8 +7,6 @@ interface LofiTrack {
   artist: string;
   url: string;
   duration: string;
-  youtubeId?: string;
-  originalLink?: string;
 }
 
 const LOFI_TRACKS: LofiTrack[] = [
@@ -17,65 +15,45 @@ const LOFI_TRACKS: LofiTrack[] = [
     title: 'Lofi Music',
     artist: 'Arjit Singh',
     url: 'https://rebecca47.oceansaver.in/pacific/?9By9vcVRRfGf8LF1N00OO4J',
-    duration: '3:24',
-    originalLink: 'https://rebecca47.oceansaver.in/pacific/?9By9vcVRRfGf8LF1N00OO4J'
+    duration: '1 Hour'
   },
   {
     id: '2',
     title: 'Lofi song',
     artist: 'Arjit Singh',
     url: 'https://audrey13.oceansaver.in/pacific/?0abFcus8VmO3pOW3BZ5aKqq',
-    duration: '4:15',
-    originalLink: 'https://audrey13.oceansaver.in/pacific/?0abFcus8VmO3pOW3BZ5aKqq'
+    duration: '4:15'
   },
   {
     id: '3',
-    title: 'Song 1',
-    artist: 'Unknown Artist',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder - replace with actual MP3 URL
-    duration: '3:24',
-    youtubeId: '-1CwZ-U7UEs',
-    originalLink: 'https://mp3juice.co/#-1CwZ-U7UEs'
-  },
-  {
-    id: '4',
-    title: 'Song 2', 
-    artist: 'Unknown Artist',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder - replace with actual MP3 URL
-    duration: '4:15',
-    youtubeId: 'pT1iNnDGJbM',
-    originalLink: 'https://mp3juice.co/#pT1iNnDGJbM'
-  },
-  {
-    id: '5',
     title: 'Chill Study Beats',
     artist: 'Lo-Fi Collective',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '3:24'
   },
   {
-    id: '6',
+    id: '4',
     title: 'Peaceful Focus',
     artist: 'Study Vibes',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '4:15'
   },
   {
-    id: '7',
+    id: '5',
     title: 'Deep Concentration',
     artist: 'Calm Waves',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '3:45'
   },
   {
-    id: '8',
+    id: '6',
     title: 'Midnight Study',
     artist: 'Night Owl Beats',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '5:20'
   },
   {
-    id: '9',
+    id: '7',
     title: 'Coffee Shop Ambience',
     artist: 'Ambient Sounds',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
@@ -101,7 +79,6 @@ export const MusicPlayer: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const ambientAudioRef = useRef<HTMLAudioElement>(null);
-  const [isBackgroundEnabled, setIsBackgroundEnabled] = useState(false);
 
   // Background audio support
   useEffect(() => {
@@ -111,8 +88,8 @@ export const MusicPlayer: React.FC = () => {
         artist: LOFI_TRACKS[currentTrack].artist,
         album: 'Study Focus Music',
         artwork: [
-          { src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', sizes: '96x96', type: 'image/png' },
-          { src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', sizes: '256x256', type: 'image/png' },
+          { src: '/music-icon-96.png', sizes: '96x96', type: 'image/png' },
+          { src: '/music-icon-256.png', sizes: '256x256', type: 'image/png' },
         ]
       });
 
@@ -120,93 +97,22 @@ export const MusicPlayer: React.FC = () => {
       navigator.mediaSession.setActionHandler('pause', () => toggleMusic());
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
       navigator.mediaSession.setActionHandler('previoustrack', () => previousTrack());
-      navigator.mediaSession.setActionHandler('seekbackward', () => {
-        if (audioRef.current) {
-          audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
-        }
-      });
-      navigator.mediaSession.setActionHandler('seekforward', () => {
-        if (audioRef.current) {
-          audioRef.current.currentTime = Math.min(audioRef.current.duration, audioRef.current.currentTime + 10);
-        }
-      });
     }
   }, [currentTrack]);
 
-  // Enable background audio playback
-  useEffect(() => {
-    const enableBackgroundAudio = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
-          // Register a simple service worker for background audio
-          const registration = await navigator.serviceWorker.register(
-            'data:application/javascript;base64,' + btoa(`
-              self.addEventListener('message', event => {
-                if (event.data && event.data.type === 'SKIP_WAITING') {
-                  self.skipWaiting();
-                }
-              });
-            `)
-          );
-          setIsBackgroundEnabled(true);
-        } catch (error) {
-          console.log('Background audio not supported:', error);
-        }
-      }
-    };
-
-    enableBackgroundAudio();
-  }, []);
   // Audio setup
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.loop = false;
+      audioRef.current.loop = true;
       audioRef.current.preload = 'metadata';
-      
-      // Add event listeners for better background support
-      const audio = audioRef.current;
-      
-      const handleEnded = () => {
-        nextTrack();
-      };
-      
-      const handleLoadStart = () => {
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = 'playing';
-        }
-      };
-      
-      const handlePause = () => {
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = 'paused';
-        }
-      };
-      
-      const handlePlay = () => {
-        if ('mediaSession' in navigator) {
-          navigator.mediaSession.playbackState = 'playing';
-        }
-      };
-      
-      audio.addEventListener('ended', handleEnded);
-      audio.addEventListener('loadstart', handleLoadStart);
-      audio.addEventListener('pause', handlePause);
-      audio.addEventListener('play', handlePlay);
-      
-      return () => {
-        audio.removeEventListener('ended', handleEnded);
-        audio.removeEventListener('loadstart', handleLoadStart);
-        audio.removeEventListener('pause', handlePause);
-        audio.removeEventListener('play', handlePlay);
-      };
     }
     
     if (ambientAudioRef.current) {
       ambientAudioRef.current.volume = isMuted ? 0 : ambientVolume;
       ambientAudioRef.current.loop = true;
     }
-  }, [volume, ambientVolume, isMuted, currentTrack]);
+  }, [volume, ambientVolume, isMuted]);
 
   const toggleMusic = async () => {
     if (audioRef.current) {
@@ -214,21 +120,11 @@ export const MusicPlayer: React.FC = () => {
         if (isPlaying) {
           audioRef.current.pause();
         } else {
-          // Request audio focus for background playback
-          if ('wakeLock' in navigator) {
-            try {
-              await navigator.wakeLock.request('screen');
-            } catch (err) {
-              console.log('Wake lock not supported');
-            }
-          }
           await audioRef.current.play();
         }
         setIsPlaying(!isPlaying);
       } catch (error) {
         console.error('Error playing audio:', error);
-        // Show user-friendly error message
-        alert('Unable to play audio. Please check your internet connection or try a different track.');
       }
     }
   };
@@ -286,14 +182,6 @@ export const MusicPlayer: React.FC = () => {
           console.error('Error playing ambient sound:', error);
         }
       }
-    }
-  };
-
-  const openOriginalLink = (track: LofiTrack) => {
-    if (track.originalLink) {
-      window.open(track.originalLink, '_blank');
-    } else if (track.youtubeId) {
-      window.open(`https://www.youtube.com/watch?v=${track.youtubeId}`, '_blank');
     }
   };
 
@@ -360,50 +248,13 @@ export const MusicPlayer: React.FC = () => {
         <div className="px-4 pb-4 space-y-4 border-t border-purple-200/50 dark:border-purple-800/50 pt-4">
           {/* Now Playing */}
           <div className="text-center">
-            <div className="flex items-center justify-center gap-2">
-              <div className="font-semibold text-purple-900 dark:text-purple-100">
-                {currentTrackData.title}
-              </div>
-              {(currentTrackData.originalLink || currentTrackData.youtubeId) && (
-                <button
-                  onClick={() => openOriginalLink(currentTrackData)}
-                  className="p-1 hover:bg-purple-200/50 dark:hover:bg-purple-800/50 rounded-lg transition-colors"
-                  title="Open original source"
-                >
-                  <ExternalLink className="w-4 h-4 text-purple-600" />
-                </button>
-              )}
+            <div className="font-semibold text-purple-900 dark:text-purple-100">
+              {currentTrackData.title}
             </div>
             <div className="text-sm text-purple-600 dark:text-purple-400">
               {currentTrackData.artist} • {currentTrackData.duration}
             </div>
-            {currentTrackData.youtubeId && (
-              <div className="text-xs text-purple-500 dark:text-purple-400 mt-1">
-                YouTube ID: {currentTrackData.youtubeId}
-              </div>
-            )}
-            {isBackgroundEnabled && (
-              <div className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                Background playback enabled
-              </div>
-            )}
           </div>
-
-          {/* Notice for placeholder tracks */}
-          {(currentTrackData.originalLink || currentTrackData.youtubeId) && (
-            <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-xl p-3">
-              <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                <strong>Note:</strong> This track uses a placeholder audio file. 
-                To play the actual song, you'll need to:
-              </div>
-              <ul className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 space-y-1">
-                <li>• Get the direct MP3 URL from a legal source</li>
-                <li>• Replace the placeholder URL in the code</li>
-                <li>• Or use a YouTube player component instead</li>
-              </ul>
-            </div>
-          )}
 
           {/* Playback Controls */}
           <div className="flex items-center justify-center gap-3">
@@ -541,22 +392,6 @@ export const MusicPlayer: React.FC = () => {
                     <span className="text-sm text-purple-700 dark:text-purple-300 truncate">
                       {track.title}
                     </span>
-                    {(track.originalLink || track.youtubeId) && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openOriginalLink(track);
-                        }}
-                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-purple-200/50 dark:hover:bg-purple-800/50 rounded transition-all"
-                      >
-                        <ExternalLink className="w-3 h-3 text-purple-500" />
-                      </button>
-              {isBackgroundEnabled && (
-                <span className="ml-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
-                  Background ✓
-                </span>
-              )}
-                    )}
                   </div>
                   <span className="text-xs text-purple-500">{track.duration}</span>
                 </div>
