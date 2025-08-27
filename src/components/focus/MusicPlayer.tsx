@@ -15,7 +15,7 @@ const LOFI_TRACKS: LofiTrack[] = [
     id: '1',
     title: 'Chill Study Beats',
     artist: 'Lo-Fi Collective',
-    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+    url: 'https://mp3juice.co/#-1CwZ-U7UEs',
     duration: '3:24'
   },
   {
