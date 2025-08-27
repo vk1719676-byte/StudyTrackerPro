@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, Bell } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { AlarmManager } from '../components/alarms/AlarmManager';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -167,7 +166,6 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
-  const [showAlarms, setShowAlarms] = useState(false);
   const { user, isPremium } = useAuth();
 
   // Get display name
@@ -382,13 +380,6 @@ export const Dashboard: React.FC = () => {
                     <Users className="w-4 h-4" />
                     <span>Level {Math.floor(sessions.length / 10) + 1}</span>
                   </div>
-                  <button
-                    onClick={() => setShowAlarms(!showAlarms)}
-                    className="flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-2xl px-4 py-2 transition-all duration-300"
-                  >
-                    <Bell className="w-4 h-4" />
-                    <span>Alarms</span>
-                  </button>
                 </div>
               </div>
               
@@ -400,13 +391,6 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Smart Alarms Section */}
-        {showAlarms && (
-          <div className="mb-10">
-            <AlarmManager exams={exams} sessions={sessions} />
-          </div>
-        )}
 
         {/* Premium AI Section */}
         {isPremium && (
