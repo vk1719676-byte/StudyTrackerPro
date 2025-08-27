@@ -11,7 +11,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export const MobileEnhancedTextBanner: React.FC = () => {
+export const EnhancedTextBanner: React.FC = () => {
   const [currentNotice, setCurrentNotice] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
