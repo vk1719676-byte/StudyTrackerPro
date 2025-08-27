@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, Heart, MessageSquare } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
+import { ReviewPopup } from '../components/review/ReviewPopup';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -164,6 +165,7 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
+  const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
   const { user } = useAuth();
 
   // Get display name
@@ -377,9 +379,20 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               
-              <div className="flex-shrink-0">
-                <div className={`p-6 bg-gradient-to-br ${currentThemeData.accent} rounded-3xl shadow-2xl backdrop-blur-sm`}>
-                  <ThemeIcon className="w-12 h-12 text-white drop-shadow-lg" />
+              <div className="flex items-center gap-4">
+                {/* Review Button */}
+                <button
+                  onClick={() => setIsReviewPopupOpen(true)}
+                  className="flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold px-6 py-3 rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+                >
+                  <Heart className="w-5 h-5" />
+                  <span className="hidden sm:inline">Share Review</span>
+                </button>
+                
+                <div className="flex-shrink-0">
+                  <div className={`p-6 bg-gradient-to-br ${currentThemeData.accent} rounded-3xl shadow-2xl backdrop-blur-sm`}>
+                    <ThemeIcon className="w-12 h-12 text-white drop-shadow-lg" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -650,6 +663,12 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Review Popup */}
+        <ReviewPopup 
+          isOpen={isReviewPopupOpen} 
+          onClose={() => setIsReviewPopupOpen(false)} 
+        />
       </div>
     </div>
   );
