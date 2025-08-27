@@ -6,7 +6,6 @@ import { Card } from '../components/ui/Card';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { AlarmSystem } from '../components/alarms/AlarmSystem';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -751,7 +750,7 @@ export const Dashboard: React.FC = () => {
 
         {/* Recent Sessions */}
         {sessions.length > 0 && (
-          <div className="space-y-8 mb-10">
+          <div className="space-y-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-2xl shadow-lg">
@@ -793,11 +792,6 @@ export const Dashboard: React.FC = () => {
             )}
           </div>
         )}
-
-        {/* Advanced Alarm System - At the end of content */}
-        <div className="mb-10">
-          <AlarmSystem />
-        </div>
       </div>
     </div>
   );
