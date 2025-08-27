@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -73,6 +73,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
   const [showCustomTimer, setShowCustomTimer] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [backgroundMode, setBackgroundMode] = useState(false);
+  const [isSoundEnabled, setIsSoundEnabled] = useState(true);
+  const [floatingPosition, setFloatingPosition] = useState({ x: 20, y: 20 });
+  const [isDragging, setIsDragging] = useState(false);
 
   // Services
   const notificationService = useRef(new NotificationService());
@@ -80,9 +83,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
   const storageService = useRef(new StorageService());
 
   const intervalRef = useRef<number>();
+  const backgroundIntervalRef = useRef<number>();
+  const dragRef = useRef<HTMLDivElement>(null);
   const targetTime = pomodoroSettings[mode];
 
-  // Initialize services
+  // Initialize services and persistent background timer
   useEffect(() => {
     const initServices = async () => {
       await notificationService.current.initialize();
@@ -107,13 +112,76 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
         setCurrentSubject(timerState.subject);
         setCurrentTask(timerState.task);
         setBackgroundMode(true);
+        startBackgroundTimer();
       }
     };
 
     initServices();
+
+    // Ensure timer continues even when window is closed/hidden
+    const handleBeforeUnload = () => {
+      if (isRunning) {
+        backgroundTimerService.current.saveTimerState({
+          isRunning: true,
+          time,
+          mode,
+          startTime: Date.now() - (time * 1000),
+          subject: currentSubject,
+          task: currentTask,
+          targetTime
+        });
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, []);
 
-  // Background timer management
+  // Enhanced background timer that persists across sessions
+  const startBackgroundTimer = () => {
+    if (backgroundIntervalRef.current) {
+      clearInterval(backgroundIntervalRef.current);
+    }
+
+    backgroundIntervalRef.current = window.setInterval(() => {
+      setTime(prev => {
+        const newTime = prev + 1;
+        
+        // Update document title with timer
+        document.title = `${formatTime(Math.max(0, targetTime * 60 - newTime))} - Focus Timer`;
+        
+        if (newTime >= targetTime * 60) {
+          handleSessionComplete();
+          return newTime;
+        }
+        
+        // Persistent background state update
+        backgroundTimerService.current.updateTimer({
+          isRunning: true,
+          time: newTime,
+          mode,
+          startTime: Date.now() - (newTime * 1000),
+          subject: currentSubject,
+          task: currentTask,
+          targetTime
+        });
+
+        // Periodic progress notifications
+        if (newTime % 300 === 0 && backgroundMode) { // Every 5 minutes
+          const remaining = Math.max(0, targetTime * 60 - newTime);
+          notificationService.current.sendNotification(
+            '⏱️ Progress Update',
+            `${formatTime(remaining)} remaining in your ${mode === 'focus' ? 'focus session' : 'break time'}`,
+            { requireInteraction: false }
+          );
+        }
+
+        return newTime;
+      });
+    }, 1000);
+  };
+
+  // Main timer effect with persistent background operation
   useEffect(() => {
     if (isRunning) {
       backgroundTimerService.current.startTimer({
@@ -126,44 +194,26 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
         targetTime
       });
 
-      intervalRef.current = window.setInterval(() => {
-        setTime(prev => {
-          const newTime = prev + 1;
-          
-          if (newTime >= targetTime * 60) {
-            handleSessionComplete();
-            return newTime;
-          }
-          
-          // Update background state
-          backgroundTimerService.current.updateTimer({
-            isRunning: true,
-            time: newTime,
-            mode,
-            startTime: Date.now() - (newTime * 1000),
-            subject: currentSubject,
-            task: currentTask,
-            targetTime
-          });
+      startBackgroundTimer();
 
-          return newTime;
-        });
-      }, 1000);
+      // Update document title
+      document.title = `${formatTime(Math.max(0, targetTime * 60 - time))} - Focus Timer`;
     } else {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
       }
       backgroundTimerService.current.stopTimer();
+      document.title = 'StudySync - Your Learning Companion';
     }
 
     return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+      if (backgroundIntervalRef.current) {
+        clearInterval(backgroundIntervalRef.current);
       }
     };
   }, [isRunning, targetTime, mode, currentSubject, currentTask]);
 
-  // Page visibility handling
+  // Enhanced page visibility handling
   useEffect(() => {
     const handleVisibilityChange = () => {
       const isVisible = document.visibilityState === 'visible';
@@ -171,9 +221,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
 
       if (!isVisible && isRunning) {
         setBackgroundMode(true);
+        // Enhanced background notification
         notificationService.current.sendNotification(
-          '🕐 Timer Running in Background',
-          `${mode === 'focus' ? 'Focus session' : 'Break time'} continues in background.`,
+          '🌐 Background Mode Activated',
+          `${mode === 'focus' ? 'Focus session' : 'Break time'} continues running. Timer will persist even if you close the tab.`,
           { requireInteraction: false }
         );
       } else if (isVisible && backgroundMode) {
@@ -186,16 +237,31 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
       }
     };
 
+    const handleFocus = () => {
+      // Re-sync timer when window regains focus
+      if (isRunning && backgroundMode) {
+        const timerState = backgroundTimerService.current.loadTimerState();
+        if (timerState) {
+          setTime(timerState.time);
+        }
+      }
+    };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, [isRunning, backgroundMode, mode]);
 
   // Notification updates
   useEffect(() => {
     if (onNotificationUpdate) {
-      onNotificationUpdate(backgroundMode && isRunning ? 1 : 0);
+      onNotificationUpdate((backgroundMode || isMinimized) && isRunning ? 1 : 0);
     }
-  }, [backgroundMode, isRunning, onNotificationUpdate]);
+  }, [backgroundMode, isRunning, isMinimized, onNotificationUpdate]);
 
   const handleSessionComplete = async () => {
     const newSession: StudySession = {
@@ -271,7 +337,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
     
     await notificationService.current.sendNotification(
       '🚀 Timer Started!',
-      `${mode === 'focus' ? 'Focus session' : mode === 'custom' ? 'Custom timer' : 'Break time'} has begun.`,
+      `${mode === 'focus' ? 'Focus session' : mode === 'custom' ? 'Custom timer' : 'Break time'} has begun. Timer will continue in background.`,
       { requireInteraction: false }
     );
   };
@@ -279,6 +345,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
   const pauseFocus = () => {
     setIsRunning(false);
     backgroundTimerService.current.stopTimer();
+    if (backgroundIntervalRef.current) {
+      clearInterval(backgroundIntervalRef.current);
+    }
   };
 
   const stopFocus = () => {
@@ -286,6 +355,10 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
     setTime(0);
     setBackgroundMode(false);
     backgroundTimerService.current.clearTimerState();
+    if (backgroundIntervalRef.current) {
+      clearInterval(backgroundIntervalRef.current);
+    }
+    document.title = 'StudySync - Your Learning Companion';
   };
 
   const switchMode = (newMode: TimerMode) => {
@@ -305,6 +378,32 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
         ...prev,
         custom: minutes
       }));
+    }
+  };
+
+  // Dragging functionality for floating timer
+  const handleMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    const rect = dragRef.current?.getBoundingClientRect();
+    if (rect) {
+      const offsetX = e.clientX - rect.left;
+      const offsetY = e.clientY - rect.top;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        setFloatingPosition({
+          x: Math.max(0, Math.min(window.innerWidth - 320, e.clientX - offsetX)),
+          y: Math.max(0, Math.min(window.innerHeight - 200, e.clientY - offsetY))
+        });
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     }
   };
 
@@ -340,135 +439,192 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
     }
   ];
 
-  // Background Status Indicator
+  // Enhanced Background Status Indicator - Always Visible When Active
   const BackgroundStatusIndicator = () => {
-    if (!backgroundMode && !isRunning) return null;
+    if (!isRunning && !backgroundMode) return null;
 
     return (
-      <div className="fixed top-4 left-4 z-50 animate-slide-in">
-        <div className={`backdrop-blur-md bg-white/90 dark:bg-gray-800/90 rounded-xl shadow-2xl border border-white/20 p-4 min-w-[240px] ${
-          backgroundMode ? 'border-orange-400/50' : 'border-green-400/50'
-        }`}>
+      <div className="fixed top-4 left-4 z-[9999] animate-slide-in pointer-events-none">
+        <div className={`backdrop-blur-xl bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl border-2 p-4 min-w-[280px] ${
+          backgroundMode ? 'border-orange-400 shadow-orange-200/50' : 'border-green-400 shadow-green-200/50'
+        } transition-all duration-500`}>
           <div className="flex items-center gap-3 mb-3">
-            <div className={`w-3 h-3 rounded-full animate-pulse ${
-              backgroundMode ? 'bg-orange-400' : 'bg-green-400'
+            <div className={`w-4 h-4 rounded-full animate-pulse ${
+              backgroundMode ? 'bg-orange-400 shadow-lg shadow-orange-400/50' : 'bg-green-400 shadow-lg shadow-green-400/50'
             }`} />
-            <span className="text-sm font-semibold">
-              {backgroundMode ? '🌐 Background Mode' : '🎯 Timer Active'}
+            <span className="text-sm font-bold tracking-wide">
+              {backgroundMode ? '🌐 BACKGROUND MODE' : '🎯 TIMER ACTIVE'}
             </span>
           </div>
           
-          <div className="space-y-2 text-xs text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-current rounded-full" />
-              <span>Timer continues when app is closed</span>
+          <div className="space-y-2 text-xs text-gray-700 dark:text-gray-300">
+            <div className="flex items-center gap-2 font-medium">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+              <span>Timer persists when app is closed</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-current rounded-full" />
+            <div className="flex items-center gap-2 font-medium">
+              <div className="w-2 h-2 bg-blue-500 rounded-full" />
               <span>Smart notifications every 5 minutes</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-current rounded-full" />
+            <div className="flex items-center gap-2 font-medium">
+              <div className="w-2 h-2 bg-purple-500 rounded-full" />
               <span>Progress automatically saved</span>
+            </div>
+            <div className="flex items-center gap-2 font-medium">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full" />
+              <span>Tab title shows remaining time</span>
             </div>
           </div>
 
-          {backgroundMode && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-              <div className="text-center">
-                <div className="text-lg font-mono font-bold">
-                  {formatTime(Math.max(0, targetTime * 60 - time))}
-                </div>
-                <div className="text-xs text-gray-500">remaining</div>
+          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="text-center">
+              <div className="text-2xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
+                {formatTime(Math.max(0, targetTime * 60 - time))}
               </div>
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wider">remaining</div>
             </div>
-          )}
+          </div>
         </div>
       </div>
     );
   };
 
-  // Floating Timer Component
+  // Enhanced Floating Timer - Always On Top, Draggable
   const FloatingTimer = () => {
     if (!isMinimized || (!isRunning && time === 0)) return null;
 
     const currentMode = timerModes.find(m => m.key === mode);
 
     return (
-      <div className="fixed top-4 right-4 z-50 animate-slide-in">
-        <div className="backdrop-blur-md bg-white/95 dark:bg-gray-800/95 rounded-2xl shadow-2xl border border-white/20 p-4 min-w-[280px]">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className={`p-2 rounded-xl ${currentMode?.color} bg-opacity-10`}>
-                {currentMode && <currentMode.icon className="w-4 h-4 text-current" />}
-              </div>
-              <div>
-                <div className="font-semibold text-sm">
-                  {mode === 'focus' ? 'Focus Session' : 
-                   mode === 'custom' ? 'Custom Timer' : 
-                   mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+      <div 
+        ref={dragRef}
+        className="fixed z-[9999] animate-slide-in cursor-move select-none"
+        style={{ 
+          left: `${floatingPosition.x}px`, 
+          top: `${floatingPosition.y}px`,
+          transform: isDragging ? 'scale(1.05)' : 'scale(1)',
+          transition: isDragging ? 'none' : 'transform 0.2s ease'
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        {/* Glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-3xl blur-xl opacity-30 animate-pulse"></div>
+        
+        <div className="relative backdrop-blur-xl bg-gradient-to-br from-white/95 to-gray-50/95 dark:from-gray-800/95 dark:to-gray-900/95 rounded-3xl shadow-2xl border-2 border-white/50 dark:border-gray-700/50 p-5 min-w-[320px] overflow-hidden">
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/30 to-purple-50/30 dark:from-blue-900/10 dark:to-purple-900/10"></div>
+          
+          <div className="relative">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-3 rounded-2xl ${currentMode?.color} bg-opacity-15 shadow-lg`}>
+                  {currentMode && <currentMode.icon className="w-5 h-5 text-current" />}
                 </div>
-                {currentSubject && (
-                  <div className="text-xs text-gray-500 truncate max-w-[120px]">
-                    {currentSubject}
+                <div>
+                  <div className="font-bold text-sm text-gray-900 dark:text-gray-100">
+                    {mode === 'focus' ? 'FOCUS SESSION' : 
+                     mode === 'custom' ? 'CUSTOM TIMER' : 
+                     mode === 'shortBreak' ? 'SHORT BREAK' : 'LONG BREAK'}
                   </div>
-                )}
+                  {currentSubject && (
+                    <div className="text-xs text-gray-600 dark:text-gray-400 truncate max-w-[140px] font-medium">
+                      📚 {currentSubject}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all"
+                >
+                  {isSoundEnabled ? 
+                    <Volume2 className="w-4 h-4 text-green-500" /> : 
+                    <VolumeX className="w-4 h-4 text-gray-400" />
+                  }
+                </button>
+                <button
+                  onClick={() => setIsMinimized(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl transition-all"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => {
+                    stopFocus();
+                    setIsMinimized(false);
+                  }}
+                  className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-xl transition-all"
+                >
+                  <X className="w-4 h-4 text-red-500" />
+                </button>
               </div>
             </div>
-            
-            <div className="flex gap-1">
-              <button
-                onClick={() => setIsMinimized(false)}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
-              >
-                <Maximize2 className="w-3.5 h-3.5" />
-              </button>
-              <button
-                onClick={() => {
-                  stopFocus();
-                  setIsMinimized(false);
-                }}
-                className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-all"
-              >
-                <X className="w-3.5 h-3.5 text-red-500" />
-              </button>
-            </div>
-          </div>
 
-          <div className="text-center mb-4">
-            <div className="text-3xl font-mono font-bold mb-1">
-              {formatTime(time)}
-            </div>
-            <div className="text-sm text-gray-500">
-              {formatTime(Math.max(0, targetTime * 60 - time))} remaining
-            </div>
-          </div>
-
-          <div className="relative w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-4">
-            <div
-              className={`absolute top-0 left-0 h-2 rounded-full transition-all duration-1000 ${
-                currentMode?.color || 'bg-blue-600'
-              }`}
-              style={{ width: `${getProgress()}%` }}
-            />
-          </div>
-
-          <div className="flex items-center justify-between text-xs">
-            <div className={`flex items-center gap-1 font-medium ${
-              isRunning ? 'text-green-600' : 'text-gray-500'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
-              {isRunning ? 'Running' : 'Paused'}
-            </div>
-            <div className="flex items-center gap-4 text-gray-600">
-              <div className="flex items-center gap-1">
-                <Target className="w-3 h-3" />
-                <span>{pomodoroCount}</span>
+            {/* Timer Display */}
+            <div className="text-center mb-5">
+              <div className="text-4xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2">
+                {formatTime(time)}
               </div>
-              <div className="flex items-center gap-1">
-                <CheckCircle className="w-3 h-3" />
-                <span>{currentStreak}</span>
+              <div className="text-lg font-semibold text-gray-600 dark:text-gray-300">
+                {formatTime(Math.max(0, targetTime * 60 - time))}
               </div>
+              <div className="text-xs font-bold uppercase tracking-wider text-gray-400">remaining</div>
+            </div>
+
+            {/* Enhanced Progress Bar */}
+            <div className="relative w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full mb-4 overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-200 dark:from-gray-600 dark:to-gray-700 rounded-full"></div>
+              <div
+                className={`absolute top-0 left-0 h-3 rounded-full transition-all duration-1000 ${
+                  currentMode?.color || 'bg-blue-600'
+                } shadow-lg`}
+                style={{ width: `${getProgress()}%` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent rounded-full"></div>
+            </div>
+
+            {/* Status and Stats */}
+            <div className="flex items-center justify-between text-xs">
+              <div className={`flex items-center gap-2 font-bold ${
+                isRunning ? 'text-emerald-600' : 'text-gray-500'
+              }`}>
+                <div className={`w-2.5 h-2.5 rounded-full ${
+                  isRunning ? 'bg-emerald-500 animate-pulse shadow-lg shadow-emerald-500/50' : 'bg-gray-400'
+                }`} />
+                {isRunning ? 'RUNNING' : 'PAUSED'}
+              </div>
+              <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400 font-semibold">
+                <div className="flex items-center gap-1">
+                  <Target className="w-3 h-3" />
+                  <span>{pomodoroCount}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3" />
+                  <span>{currentStreak}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Controls */}
+            <div className="flex gap-2 mt-4">
+              {!isRunning ? (
+                <button
+                  onClick={startFocus}
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold py-2 px-4 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all shadow-lg"
+                >
+                  ▶ Resume
+                </button>
+              ) : (
+                <button
+                  onClick={pauseFocus}
+                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold py-2 px-4 rounded-xl hover:from-orange-600 hover:to-red-600 transition-all shadow-lg"
+                >
+                  ⏸ Pause
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -484,7 +640,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
       <FloatingTimer />
 
       {isOpen && !isMinimized && (
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <Card className="w-full max-w-2xl max-h-[95vh] overflow-y-auto">
             <div className="p-6 space-y-6">
               {/* Header */}
@@ -509,7 +665,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {(mode === 'focus' || mode === 'custom') 
-                        ? 'Deep work session - eliminate distractions' 
+                        ? 'Deep work session - continues in background' 
                         : 'Recharge your mind and body'}
                     </p>
                   </div>
@@ -532,31 +688,36 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
               </div>
 
               {/* Background Mode Alert */}
-              {backgroundMode && (
-                <div className="bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl p-4 border border-orange-200/50 dark:border-orange-800/50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse" />
-                    <span className="font-semibold text-orange-800 dark:text-orange-400">
-                      🌐 Background Mode Active
+              {(backgroundMode || !isPageVisible) && isRunning && (
+                <div className="bg-gradient-to-r from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/20 dark:via-amber-900/20 dark:to-yellow-900/20 rounded-2xl p-5 border-2 border-orange-200/50 dark:border-orange-800/50">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-4 h-4 bg-orange-500 rounded-full animate-pulse shadow-lg shadow-orange-500/50" />
+                    <span className="font-black text-orange-800 dark:text-orange-400 text-lg">
+                      🌐 PERSISTENT BACKGROUND MODE
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-orange-700 dark:text-orange-300">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-orange-700 dark:text-orange-300 font-semibold">
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" />
-                      <span>Continues when app is closed</span>
+                      <div className="w-2 h-2 bg-current rounded-full" />
+                      <span>Timer continues when app is closed</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" />
+                      <div className="w-2 h-2 bg-current rounded-full" />
+                      <span>Music player keeps running</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-current rounded-full" />
                       <span>Smart notification system</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" />
-                      <span>Progress auto-saved</span>
+                      <div className="w-2 h-2 bg-current rounded-full" />
+                      <span>Tab title shows remaining time</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-1.5 h-1.5 bg-current rounded-full" />
-                      <span>Tab title shows time</span>
-                    </div>
+                  </div>
+                  <div className="mt-3 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-xl">
+                    <p className="text-xs text-orange-800 dark:text-orange-300 font-bold">
+                      💡 Your timer will persist even if you close this tab or switch apps. Perfect for focused work sessions!
+                    </p>
                   </div>
                 </div>
               )}
@@ -708,7 +869,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
                       <div className={`text-xs font-medium mt-1 ${
                         isRunning ? 'text-green-600 animate-pulse' : 'text-gray-400'
                       }`}>
-                        {isRunning ? '● Running' : '⏸ Ready'}
+                        {isRunning ? '● Running in Background' : '⏸ Ready'}
                       </div>
                     </div>
                   </div>
@@ -790,14 +951,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
                   className="flex-1"
                   icon={Minimize2}
                 >
-                  Minimize
+                  Minimize (Stays on Top)
                 </Button>
                 <Button
                   onClick={onClose}
                   variant="ghost"
                   className="flex-1"
                 >
-                  Close
+                  Close to Background
                 </Button>
               </div>
             </div>
