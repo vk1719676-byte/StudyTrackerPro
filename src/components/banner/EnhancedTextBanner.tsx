@@ -38,7 +38,7 @@ export const EnhancedTextBanner: React.FC = () => {
     },
     {
       id: 2,
-      type: 'community',
+      type: 'telegram',
       title: 'Join Study Tracker Pro Telegram Channel',
       message: 'Connect with 250+ students on our official Telegram channel',
       action: 'Join Now',
