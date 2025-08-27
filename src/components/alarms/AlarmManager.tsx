@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, Plus, Bell, Volume2, VolumeX, Settings, Trash2, Edit3, Power, Snooze } from 'lucide-react';
+import { Clock, Plus, Bell, Volume2, VolumeX, Settings, Trash2, Edit3, Power, Timer } from 'lucide-react';
 import { AlarmCard } from './AlarmCard';
 import { AlarmCreator } from './AlarmCreator';
 import { AlarmSettings } from './AlarmSettings';
@@ -259,7 +259,7 @@ export const AlarmManager: React.FC<AlarmManagerProps> = ({ exams, sessions }) =
                   onClick={handleSnoozeAlarm}
                   className="flex-1 flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
                 >
-                  <Snooze className="w-5 h-5" />
+                  <Timer className="w-5 h-5" />
                   Snooze ({activeAlarm.snoozeInterval}m)
                 </button>
               )}
