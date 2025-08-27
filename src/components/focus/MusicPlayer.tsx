@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Radio, Shuffle } from 'lucide-react';
-import { Button } from '../ui/Button';
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX, Music, Radio, Shuffle, ExternalLink } from 'lucide-react';
 
 interface LofiTrack {
   id: string;
@@ -8,39 +7,75 @@ interface LofiTrack {
   artist: string;
   url: string;
   duration: string;
+  youtubeId?: string;
+  originalLink?: string;
 }
 
 const LOFI_TRACKS: LofiTrack[] = [
   {
     id: '1',
-    title: 'Chill Study Beats',
-    artist: 'Lo-Fi Collective',
-    url: 'https://mp3juice.co/#-1CwZ-U7UEs',
-    duration: '3:24'
+    title: 'Lofi Music',
+    artist: 'Arjit Singh',
+    url: 'https://rebecca47.oceansaver.in/pacific/?9By9vcVRRfGf8LF1N00OO4J',
+    duration: '3:24',
+    originalLink: 'https://rebecca47.oceansaver.in/pacific/?9By9vcVRRfGf8LF1N00OO4J'
   },
   {
     id: '2',
+    title: 'Lofi song',
+    artist: 'Arjit Singh',
+    url: 'https://audrey13.oceansaver.in/pacific/?0abFcus8VmO3pOW3BZ5aKqq',
+    duration: '4:15',
+    originalLink: 'https://audrey13.oceansaver.in/pacific/?0abFcus8VmO3pOW3BZ5aKqq'
+  },
+  {
+    id: '3',
+    title: 'Song 1',
+    artist: 'Unknown Artist',
+    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder - replace with actual MP3 URL
+    duration: '3:24',
+    youtubeId: '-1CwZ-U7UEs',
+    originalLink: 'https://mp3juice.co/#-1CwZ-U7UEs'
+  },
+  {
+    id: '4',
+    title: 'Song 2', 
+    artist: 'Unknown Artist',
+    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav', // Placeholder - replace with actual MP3 URL
+    duration: '4:15',
+    youtubeId: 'pT1iNnDGJbM',
+    originalLink: 'https://mp3juice.co/#pT1iNnDGJbM'
+  },
+  {
+    id: '5',
+    title: 'Chill Study Beats',
+    artist: 'Lo-Fi Collective',
+    url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
+    duration: '3:24'
+  },
+  {
+    id: '6',
     title: 'Peaceful Focus',
     artist: 'Study Vibes',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '4:15'
   },
   {
-    id: '3',
+    id: '7',
     title: 'Deep Concentration',
     artist: 'Calm Waves',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '3:45'
   },
   {
-    id: '4',
+    id: '8',
     title: 'Midnight Study',
     artist: 'Night Owl Beats',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
     duration: '5:20'
   },
   {
-    id: '5',
+    id: '9',
     title: 'Coffee Shop Ambience',
     artist: 'Ambient Sounds',
     url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
@@ -172,12 +207,21 @@ export const MusicPlayer: React.FC = () => {
     }
   };
 
+  const openOriginalLink = (track: LofiTrack) => {
+    if (track.originalLink) {
+      window.open(track.originalLink, '_blank');
+    } else if (track.youtubeId) {
+      window.open(`https://www.youtube.com/watch?v=${track.youtubeId}`, '_blank');
+    }
+  };
+
   const currentAmbientSound = AMBIENT_SOUNDS.find(s => s.id === currentAmbient);
+  const currentTrackData = LOFI_TRACKS[currentTrack];
 
   return (
     <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl border border-purple-200/50 dark:border-purple-800/50 overflow-hidden">
       {/* Hidden Audio Elements */}
-      <audio ref={audioRef} src={LOFI_TRACKS[currentTrack].url} />
+      <audio ref={audioRef} src={currentTrackData.url} />
       {currentAmbientSound && (
         <audio ref={ambientAudioRef} src={currentAmbientSound.url} />
       )}
@@ -198,7 +242,7 @@ export const MusicPlayer: React.FC = () => {
               </div>
               {isPlaying && (
                 <div className="text-xs text-purple-600 dark:text-purple-400 truncate max-w-[200px]">
-                  {LOFI_TRACKS[currentTrack].title}
+                  {currentTrackData.title}
                 </div>
               )}
             </div>
@@ -234,13 +278,44 @@ export const MusicPlayer: React.FC = () => {
         <div className="px-4 pb-4 space-y-4 border-t border-purple-200/50 dark:border-purple-800/50 pt-4">
           {/* Now Playing */}
           <div className="text-center">
-            <div className="font-semibold text-purple-900 dark:text-purple-100">
-              {LOFI_TRACKS[currentTrack].title}
+            <div className="flex items-center justify-center gap-2">
+              <div className="font-semibold text-purple-900 dark:text-purple-100">
+                {currentTrackData.title}
+              </div>
+              {(currentTrackData.originalLink || currentTrackData.youtubeId) && (
+                <button
+                  onClick={() => openOriginalLink(currentTrackData)}
+                  className="p-1 hover:bg-purple-200/50 dark:hover:bg-purple-800/50 rounded-lg transition-colors"
+                  title="Open original source"
+                >
+                  <ExternalLink className="w-4 h-4 text-purple-600" />
+                </button>
+              )}
             </div>
             <div className="text-sm text-purple-600 dark:text-purple-400">
-              {LOFI_TRACKS[currentTrack].artist} • {LOFI_TRACKS[currentTrack].duration}
+              {currentTrackData.artist} • {currentTrackData.duration}
             </div>
+            {currentTrackData.youtubeId && (
+              <div className="text-xs text-purple-500 dark:text-purple-400 mt-1">
+                YouTube ID: {currentTrackData.youtubeId}
+              </div>
+            )}
           </div>
+
+          {/* Notice for placeholder tracks */}
+          {(currentTrackData.originalLink || currentTrackData.youtubeId) && (
+            <div className="bg-yellow-100 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800/50 rounded-xl p-3">
+              <div className="text-sm text-yellow-800 dark:text-yellow-200">
+                <strong>Note:</strong> This track uses a placeholder audio file. 
+                To play the actual song, you'll need to:
+              </div>
+              <ul className="text-xs text-yellow-700 dark:text-yellow-300 mt-2 space-y-1">
+                <li>• Get the direct MP3 URL from a legal source</li>
+                <li>• Replace the placeholder URL in the code</li>
+                <li>• Or use a YouTube player component instead</li>
+              </ul>
+            </div>
+          )}
 
           {/* Playback Controls */}
           <div className="flex items-center justify-center gap-3">
@@ -366,11 +441,11 @@ export const MusicPlayer: React.FC = () => {
           {/* Track List Preview */}
           <div className="space-y-2">
             <div className="text-sm font-medium text-purple-700 dark:text-purple-300">Up Next</div>
-            <div className="space-y-1 max-h-24 overflow-y-auto">
+            <div className="space-y-1 max-h-32 overflow-y-auto">
               {LOFI_TRACKS.slice(currentTrack + 1, currentTrack + 4).map((track, index) => (
                 <div 
                   key={track.id}
-                  className="flex items-center justify-between p-2 hover:bg-purple-100/50 dark:hover:bg-purple-900/30 rounded-lg cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-2 hover:bg-purple-100/50 dark:hover:bg-purple-900/30 rounded-lg cursor-pointer transition-colors group"
                   onClick={() => setCurrentTrack(currentTrack + index + 1)}
                 >
                   <div className="flex items-center gap-2">
@@ -378,6 +453,17 @@ export const MusicPlayer: React.FC = () => {
                     <span className="text-sm text-purple-700 dark:text-purple-300 truncate">
                       {track.title}
                     </span>
+                    {(track.originalLink || track.youtubeId) && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openOriginalLink(track);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 hover:bg-purple-200/50 dark:hover:bg-purple-800/50 rounded transition-all"
+                      >
+                        <ExternalLink className="w-3 h-3 text-purple-500" />
+                      </button>
+                    )}
                   </div>
                   <span className="text-xs text-purple-500">{track.duration}</span>
                 </div>
