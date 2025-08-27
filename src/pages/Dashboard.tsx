@@ -4,7 +4,6 @@ import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { ReviewModal } from '../components/ReviewModal';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -165,7 +164,6 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
-  const [showReviewModal, setShowReviewModal] = useState(false);
   const { user } = useAuth();
 
   // Get display name
@@ -190,20 +188,6 @@ export const Dashboard: React.FC = () => {
     };
   }, [user]);
 
-  // Review modal timer - show after 30 seconds
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      // Check if user has already seen the review modal in this session
-      const hasSeenReview = sessionStorage.getItem('hasSeenReview');
-      if (!hasSeenReview) {
-        setShowReviewModal(true);
-        sessionStorage.setItem('hasSeenReview', 'true');
-      }
-    }, 30000); // 30 seconds
-
-    return () => clearTimeout(timer);
-  }, []);
-
   // Auto-rotate themes
   useEffect(() => {
     const interval = setInterval(() => {
@@ -214,10 +198,6 @@ export const Dashboard: React.FC = () => {
 
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
-  };
-
-  const handleCloseReviewModal = () => {
-    setShowReviewModal(false);
   };
 
   // Analytics calculations
@@ -671,12 +651,6 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
-
-      {/* Review Modal */}
-      <ReviewModal 
-        isOpen={showReviewModal} 
-        onClose={handleCloseReviewModal} 
-      />
     </div>
   );
 };
