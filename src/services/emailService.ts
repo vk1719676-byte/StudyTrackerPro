@@ -1,4 +1,4 @@
-import emailjs from 'emailjs-com';
+import emailjs from '@emailjs/browser';
 
 // EmailJS configuration
 const SERVICE_ID = 'service_da4r6nj'; // Replace with your EmailJS service ID
