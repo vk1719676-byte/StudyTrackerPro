@@ -188,7 +188,7 @@ const InsightCard: React.FC<{
 }> = ({ icon: Icon, title, description, value, gradient, iconColor }) => (
   <ModernCard hover className={`p-6 ${gradient} border-0 relative overflow-hidden`}>
     {/* Background pattern */}
-    <div className="absolute inset-0 bg-white/20 dark:bg-black/20 opacity-50 bg-[url('data:image/svg+xml,<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="2" fill="currentColor" opacity="0.1"/></svg>')]"></div>
+    <div className="absolute inset-0 bg-white/20 dark:bg-black/20 opacity-50 bg-[url('data:image/svg+xml,%3Csvg width=\"20\" height=\"20\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Ccircle cx=\"10\" cy=\"10\" r=\"2\" fill=\"currentColor\" opacity=\"0.1\"/%3E%3C/svg%3E')]"></div>
     
     <div className="relative z-10">
       <div className="flex items-center gap-3 mb-4">
