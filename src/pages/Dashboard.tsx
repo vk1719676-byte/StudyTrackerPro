@@ -166,6 +166,7 @@ export const Dashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
   const [isReviewPopupOpen, setIsReviewPopupOpen] = useState(false);
+  const [autoReviewShown, setAutoReviewShown] = useState(false);
   const { user } = useAuth();
 
   // Get display name
@@ -198,6 +199,17 @@ export const Dashboard: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Auto-open review popup after 30 seconds
+  useEffect(() => {
+    if (!autoReviewShown && !loading) {
+      const timer = setTimeout(() => {
+        setIsReviewPopupOpen(true);
+        setAutoReviewShown(true);
+      }, 30000); // 30 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [autoReviewShown, loading]);
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
   };
@@ -667,7 +679,8 @@ export const Dashboard: React.FC = () => {
         {/* Review Popup */}
         <ReviewPopup 
           isOpen={isReviewPopupOpen} 
-          onClose={() => setIsReviewPopupOpen(false)} 
+          onClose={autoReviewShown ? undefined : () => setIsReviewPopupOpen(false)}
+          showCloseButton={!autoReviewShown}
         />
       </div>
     </div>
