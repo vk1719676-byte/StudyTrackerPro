@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { Star, X, Send, Mail, User, MessageSquare, AlertCircle, CheckCircle2, Sparkles, Heart } from 'lucide-react';
+import { Star, Send, Mail, User, MessageSquare, AlertCircle, CheckCircle2, Sparkles, Heart } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
 interface ReviewPopupProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
+  showCloseButton?: boolean;
 }
 
-export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => {
+export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose, showCloseButton = true }) => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -96,7 +97,7 @@ export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => 
             message: ''
           });
           setErrors({});
-          onClose();
+          if (onClose) onClose();
         }, 2000);
       } else {
         throw new Error('Failed to send email');
@@ -133,7 +134,7 @@ export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => 
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300"
-        onClick={onClose}
+        onClick={showCloseButton ? onClose : undefined}
       />
       
       {/* Modal */}
@@ -154,12 +155,14 @@ export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => 
                 <p className="text-white/90">We'd love to hear your feedback!</p>
               </div>
             </div>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-full transition-colors duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
+            {showCloseButton && onClose && (
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors duration-200"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -308,7 +311,8 @@ export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => 
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-4 pt-6">
+          <div className={`flex gap-4 pt-6 ${showCloseButton ? '' : 'justify-center'}`}>
+            {showCloseButton && onClose && (
             <button
               type="button"
               onClick={onClose}
@@ -316,10 +320,11 @@ export const ReviewPopup: React.FC<ReviewPopupProps> = ({ isOpen, onClose }) => 
             >
               Cancel
             </button>
+            )}
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-2xl font-bold transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              className={`${showCloseButton ? 'flex-1' : 'w-full max-w-md'} flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-2xl font-bold transition-all duration-300 disabled:cursor-not-allowed shadow-lg hover:shadow-xl`}
             >
               {isSubmitting ? (
                 <>
