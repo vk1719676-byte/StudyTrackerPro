@@ -24,8 +24,8 @@ gradient: 'from-emerald-600 via-green-700 to-teal-800',
 accent: 'from-emerald-400 to-green-400',
 icon: Target,
 particles: '🎯',
-greeting: 'Let's grow your knowledge today!'
-},
+greeting: 'Let\'s grow your knowledge today!'
+
 {
 name: 'sunset',
 gradient: 'from-orange-600 via-red-600 to-pink-700',
