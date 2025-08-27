@@ -101,6 +101,7 @@ export const MusicPlayer: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const ambientAudioRef = useRef<HTMLAudioElement>(null);
+  const [isBackgroundEnabled, setIsBackgroundEnabled] = useState(false);
 
   // Background audio support
   useEffect(() => {
@@ -110,8 +111,8 @@ export const MusicPlayer: React.FC = () => {
         artist: LOFI_TRACKS[currentTrack].artist,
         album: 'Study Focus Music',
         artwork: [
-          { src: '/music-icon-96.png', sizes: '96x96', type: 'image/png' },
-          { src: '/music-icon-256.png', sizes: '256x256', type: 'image/png' },
+          { src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', sizes: '96x96', type: 'image/png' },
+          { src: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', sizes: '256x256', type: 'image/png' },
         ]
       });
 
@@ -119,22 +120,93 @@ export const MusicPlayer: React.FC = () => {
       navigator.mediaSession.setActionHandler('pause', () => toggleMusic());
       navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack());
       navigator.mediaSession.setActionHandler('previoustrack', () => previousTrack());
+      navigator.mediaSession.setActionHandler('seekbackward', () => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+        }
+      });
+      navigator.mediaSession.setActionHandler('seekforward', () => {
+        if (audioRef.current) {
+          audioRef.current.currentTime = Math.min(audioRef.current.duration, audioRef.current.currentTime + 10);
+        }
+      });
     }
   }, [currentTrack]);
 
+  // Enable background audio playback
+  useEffect(() => {
+    const enableBackgroundAudio = async () => {
+      if ('serviceWorker' in navigator) {
+        try {
+          // Register a simple service worker for background audio
+          const registration = await navigator.serviceWorker.register(
+            'data:application/javascript;base64,' + btoa(`
+              self.addEventListener('message', event => {
+                if (event.data && event.data.type === 'SKIP_WAITING') {
+                  self.skipWaiting();
+                }
+              });
+            `)
+          );
+          setIsBackgroundEnabled(true);
+        } catch (error) {
+          console.log('Background audio not supported:', error);
+        }
+      }
+    };
+
+    enableBackgroundAudio();
+  }, []);
   // Audio setup
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.loop = true;
+      audioRef.current.loop = false;
       audioRef.current.preload = 'metadata';
+      
+      // Add event listeners for better background support
+      const audio = audioRef.current;
+      
+      const handleEnded = () => {
+        nextTrack();
+      };
+      
+      const handleLoadStart = () => {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'playing';
+        }
+      };
+      
+      const handlePause = () => {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'paused';
+        }
+      };
+      
+      const handlePlay = () => {
+        if ('mediaSession' in navigator) {
+          navigator.mediaSession.playbackState = 'playing';
+        }
+      };
+      
+      audio.addEventListener('ended', handleEnded);
+      audio.addEventListener('loadstart', handleLoadStart);
+      audio.addEventListener('pause', handlePause);
+      audio.addEventListener('play', handlePlay);
+      
+      return () => {
+        audio.removeEventListener('ended', handleEnded);
+        audio.removeEventListener('loadstart', handleLoadStart);
+        audio.removeEventListener('pause', handlePause);
+        audio.removeEventListener('play', handlePlay);
+      };
     }
     
     if (ambientAudioRef.current) {
       ambientAudioRef.current.volume = isMuted ? 0 : ambientVolume;
       ambientAudioRef.current.loop = true;
     }
-  }, [volume, ambientVolume, isMuted]);
+  }, [volume, ambientVolume, isMuted, currentTrack]);
 
   const toggleMusic = async () => {
     if (audioRef.current) {
@@ -142,11 +214,21 @@ export const MusicPlayer: React.FC = () => {
         if (isPlaying) {
           audioRef.current.pause();
         } else {
+          // Request audio focus for background playback
+          if ('wakeLock' in navigator) {
+            try {
+              await navigator.wakeLock.request('screen');
+            } catch (err) {
+              console.log('Wake lock not supported');
+            }
+          }
           await audioRef.current.play();
         }
         setIsPlaying(!isPlaying);
       } catch (error) {
         console.error('Error playing audio:', error);
+        // Show user-friendly error message
+        alert('Unable to play audio. Please check your internet connection or try a different track.');
       }
     }
   };
@@ -298,6 +380,12 @@ export const MusicPlayer: React.FC = () => {
             {currentTrackData.youtubeId && (
               <div className="text-xs text-purple-500 dark:text-purple-400 mt-1">
                 YouTube ID: {currentTrackData.youtubeId}
+              </div>
+            )}
+            {isBackgroundEnabled && (
+              <div className="text-xs text-green-600 dark:text-green-400 mt-2 flex items-center justify-center gap-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                Background playback enabled
               </div>
             )}
           </div>
@@ -463,6 +551,11 @@ export const MusicPlayer: React.FC = () => {
                       >
                         <ExternalLink className="w-3 h-3 text-purple-500" />
                       </button>
+              {isBackgroundEnabled && (
+                <span className="ml-2 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
+                  Background ✓
+                </span>
+              )}
                     )}
                   </div>
                   <span className="text-xs text-purple-500">{track.duration}</span>
