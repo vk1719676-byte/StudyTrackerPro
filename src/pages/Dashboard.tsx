@@ -4,7 +4,6 @@ import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
-import { ReviewForm } from '../components/forms/ReviewForm';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -165,7 +164,6 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
-  const [showReviewForm, setShowReviewForm] = useState(false);
   const { user } = useAuth();
 
   // Get display name
@@ -190,21 +188,6 @@ export const Dashboard: React.FC = () => {
     };
   }, [user]);
 
-  // Review form timer - show after 30 seconds if not already submitted
-  useEffect(() => {
-    if (!user) return;
-
-    const reviewSubmitted = localStorage.getItem(`review-submitted-${user.uid}`);
-    
-    if (!reviewSubmitted) {
-      const timer = setTimeout(() => {
-        setShowReviewForm(true);
-      }, 30000); // 30 seconds
-
-      return () => clearTimeout(timer);
-    }
-  }, [user]);
-
   // Auto-rotate themes
   useEffect(() => {
     const interval = setInterval(() => {
@@ -215,18 +198,6 @@ export const Dashboard: React.FC = () => {
 
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
-  };
-
-  const handleReviewSubmit = (reviewData: any) => {
-    console.log('Review submitted:', reviewData);
-    
-    // Mark as submitted in localStorage to prevent showing again
-    if (user) {
-      localStorage.setItem(`review-submitted-${user.uid}`, 'true');
-      localStorage.setItem(`review-submitted-date-${user.uid}`, new Date().toISOString());
-    }
-    
-    setShowReviewForm(false);
   };
 
   // Analytics calculations
@@ -360,11 +331,6 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
-      {/* Review Form Modal */}
-      {showReviewForm && (
-        <ReviewForm onSubmit={handleReviewSubmit} />
-      )}
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 md:pt-8 pb-24 md:pb-12">
         
         {/* Modern Hero Section */}
