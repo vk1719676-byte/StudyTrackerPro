@@ -161,6 +161,23 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
             </div>
           </div>
 
+          {/* Notice for missing session details */}
+          {(!subject || !topic || !selectedExam) && (
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
+                  </div>
+                </div>
+                <div className="text-sm text-amber-800 dark:text-amber-200">
+                  <p className="font-medium">Add session details first to start timer or add manual entry</p>
+                  <p className="text-xs mt-1 opacity-90">Please fill in exam, subject, and topic fields below</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Control Buttons - Mobile Optimized */}
           <div className="flex justify-center items-center gap-2 sm:gap-3">
             {!isRunning ? (
@@ -320,6 +337,21 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
                   }`}
                 >
                   Save Session
+                </button>
+                <button
+                  onClick={() => setShowManualEntry(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold border-2 border-gray-300 dark:border-gray-600 transition-all duration-200 hover:scale-105"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};                Save Session
                 </button>
                 <button
                   onClick={() => setShowManualEntry(false)}
