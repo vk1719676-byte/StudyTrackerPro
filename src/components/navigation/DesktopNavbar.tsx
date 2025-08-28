@@ -52,13 +52,13 @@ export const DesktopNavbar: React.FC = () => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: Home, shortLabel: 'Home' },
-    { path: '/exams', label: 'Exams', icon: Calendar, shortLabel: 'Exams' },
-    { path: '/goals', label: 'Goals', icon: Target, shortLabel: 'Goals' },
-    { path: '/sessions', label: 'Sessions', icon: Clock, shortLabel: 'Study' },
-    { path: '/analytics', label: 'Analytics', icon: BarChart3, shortLabel: 'Stats' },
-    { path: '/materials', label: 'Materials', icon: Upload, shortLabel: 'Files' },
-    { path: '/settings', label: 'Settings', icon: Settings, shortLabel: 'Config' }
+    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/exams', label: 'Exams', icon: Calendar },
+    { path: '/goals', label: 'Goals', icon: Target },
+    { path: '/sessions', label: 'Sessions', icon: Clock },
+    { path: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { path: '/materials', label: 'Materials', icon: Upload },
+    { path: '/settings', label: 'Settings', icon: Settings }
   ];
 
   const handleLogout = async () => {
@@ -140,31 +140,29 @@ export const DesktopNavbar: React.FC = () => {
 
       {/* Main Navigation Bar */}
       <nav className="bg-white dark:bg-gray-800 shadow-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
-        <div className="max-w-full mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16 md:h-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-20">
             
-            {/* Logo and Brand - Responsive sizing */}
-            <div className="flex items-center flex-shrink-0">
+            {/* Logo and Brand - Reduced gap between Study Tracker and PRO */}
+            <div className="flex items-center">
               <Link 
                 to="/" 
-                className="flex items-center gap-2 md:gap-3 hover:opacity-90 transition-all duration-300 group mr-4 md:mr-6 lg:mr-8"
+                className="flex items-center gap-3 hover:opacity-90 transition-all duration-300 group mr-8 lg:mr-12"
               >
-                <Logo size="sm" showText={false} className="md:w-10 md:h-10 lg:w-12 lg:h-12" />
-                <div className="flex items-center gap-1">
+                <Logo size="md" showText={false} />
+                <div className="flex items-center gap-1"> {/* Reduced gap from gap-2 to gap-1 */}
                   <div className="flex flex-col">
-                    <h1 className="text-lg md:text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
-                      <span className="block sm:hidden">ST</span>
-                      <span className="hidden sm:block md:hidden">Study</span>
-                      <span className="hidden md:block">Study Tracker</span>
+                    <h1 className="text-xl lg:text-2xl font-extrabold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 bg-clip-text text-transparent group-hover:from-indigo-500 group-hover:via-purple-500 group-hover:to-blue-500 transition-all duration-300 tracking-tight">
+                      Study Tracker
                     </h1>
-                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1 hidden md:block">
+                    <p className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wider uppercase -mt-1">
                     </p>
                   </div>
-                  <div className="flex flex-col items-center gap-1 ml-0.5 md:ml-1">
-                    <span className="inline-flex items-center px-1.5 md:px-2 lg:px-3 py-0.5 md:py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
+                  <div className="flex flex-col items-center gap-1 ml-1"> {/* Added ml-1 for slight spacing */}
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-600 text-amber-900 shadow-xl transform hover:scale-105 transition-all duration-200 border border-amber-300 hover:shadow-2xl">
                       PRO
                     </span>
-                    <div className="hidden md:flex gap-1">
+                    <div className="flex gap-1">
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse"></div>
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-75"></div>
                       <div className="w-1 h-1 bg-gradient-to-r from-amber-400 to-yellow-500 rounded-full animate-pulse delay-150"></div>
@@ -175,45 +173,37 @@ export const DesktopNavbar: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between flex-1">
-              {/* Desktop Navigation - Responsive layout */}
-              <div className="hidden md:flex items-center justify-center flex-1 max-w-4xl mx-4">
-                <div className="flex items-center space-x-0.5 md:space-x-1 lg:space-x-2">
-                  {navItems.map(({ path, label, shortLabel, icon: Icon }) => (
-                    <Link
-                      key={path}
-                      to={path}
-                      className={`
-                        flex items-center gap-1.5 md:gap-2 px-2 md:px-3 lg:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-xs md:text-sm font-medium
-                        transition-all duration-200 hover:scale-105 hover:shadow-lg
-                        ${location.pathname === path
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
-                        }
-                      `}
-                      title={label}
-                    >
-                      <Icon className="w-3.5 h-3.5 md:w-4 md:h-4 flex-shrink-0" />
-                      {/* Tablet: Show short labels, Desktop: Show full labels */}
-                      <span className="hidden md:inline lg:hidden whitespace-nowrap">
-                        {shortLabel}
-                      </span>
-                      <span className="hidden lg:inline whitespace-nowrap">
-                        {label}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
+              {/* Desktop Navigation - Hidden on mobile */}
+              <div className="hidden md:flex items-center space-x-1 xl:space-x-2">
+                {navItems.map(({ path, label, icon: Icon }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`
+                      flex items-center gap-2 px-3 xl:px-4 py-2 rounded-xl text-sm font-medium
+                      transition-all duration-200 hover:scale-105 hover:shadow-lg
+                      ${location.pathname === path
+                        ? 'bg-gradient-to-r from-purple-500 to-blue-600 text-white shadow-xl transform scale-105 border border-purple-300'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:shadow-md'
+                      }
+                    `}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="hidden lg:inline">{label}</span>
+                    <span className="md:inline lg:hidden">{label.length > 8 ? label.substring(0, 6) + '...' : label}</span>
+                  </Link>
+                ))}
               </div>
 
-              {/* Right Side Actions - Responsive sizing */}
-              <div className="flex items-center gap-1 md:gap-2 lg:gap-3 flex-shrink-0">
+              {/* Right Side Actions */}
+              <div className="flex items-center gap-2 lg:gap-3">
                 {/* Theme Toggle */}
                 <Button
                   variant="ghost"
                   size="sm"
                   icon={theme === 'dark' ? Sun : Moon}
                   onClick={toggleTheme}
-                  className="p-1.5 md:p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-lg md:rounded-xl shadow-sm hover:shadow-md"
+                  className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 />
                 
@@ -222,7 +212,7 @@ export const DesktopNavbar: React.FC = () => {
                   <button
                     onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                     className={`
-                      flex items-center gap-1.5 md:gap-2 px-2 md:px-3 py-1.5 md:py-2 rounded-lg md:rounded-xl transition-all duration-200 
+                      flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-200 
                       hover:scale-105 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800
                       ${showProfileDropdown 
                         ? 'bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 text-blue-600 dark:text-blue-400 shadow-lg scale-105' 
@@ -231,14 +221,14 @@ export const DesktopNavbar: React.FC = () => {
                     `}
                     title="Profile Menu"
                   >
-                    {/* Avatar Circle - Responsive sizing */}
+                    {/* Avatar Circle */}
                     <div className="relative">
                       {userAvatar ? (
                         <img
                           src={userAvatar}
                           alt="Profile"
                           className={`
-                            w-6 h-6 md:w-8 md:h-8 rounded-full object-cover transition-all duration-200 border-2
+                            w-8 h-8 rounded-full object-cover transition-all duration-200 border-2
                             ${showProfileDropdown 
                               ? 'border-blue-500 shadow-lg scale-105' 
                               : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 shadow-md'
@@ -247,7 +237,7 @@ export const DesktopNavbar: React.FC = () => {
                         />
                       ) : (
                         <div className={`
-                          w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs md:text-sm font-semibold transition-all duration-200
+                          w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200
                           ${showProfileDropdown 
                             ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg' 
                             : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-md'
@@ -256,13 +246,13 @@ export const DesktopNavbar: React.FC = () => {
                           {getUserInitials(user?.email)}
                         </div>
                       )}
-                      {/* Online Status Indicator - Responsive sizing */}
-                      <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 md:w-3 md:h-3 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full animate-pulse"></div>
+                      {/* Online Status Indicator */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-white dark:border-gray-800 rounded-full animate-pulse"></div>
                     </div>
                     
-                    {/* User Info - Show based on screen size */}
-                    <div className="hidden lg:flex flex-col items-start min-w-0">
-                      <span className="text-sm font-medium leading-tight truncate max-w-24 xl:max-w-32">
+                    {/* User Info (hidden on small screens) */}
+                    <div className="hidden md:flex flex-col items-start">
+                      <span className="text-sm font-medium leading-tight">
                         {getDisplayName()}
                       </span>
                       <div className="flex items-center gap-1">
@@ -274,25 +264,25 @@ export const DesktopNavbar: React.FC = () => {
                       </div>
                     </div>
                     
-                    {/* Chevron Icon - Responsive sizing */}
-                    <ChevronDown className={`w-3 h-3 md:w-4 md:h-4 transition-transform duration-200 ${showProfileDropdown ? 'rotate-180' : ''} flex-shrink-0`} />
+                    {/* Chevron Icon */}
+                    <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${showProfileDropdown ? 'rotate-180' : ''}`} />
                   </button>
                   
-                  {/* Enhanced Profile Dropdown - Responsive positioning and sizing */}
+                  {/* Enhanced Profile Dropdown */}
                   {showProfileDropdown && (
-                    <div className="absolute right-0 mt-3 w-72 md:w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
+                    <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-50 transform transition-all duration-200 origin-top-right overflow-hidden">
                       {/* User Info Header */}
-                      <div className="p-3 md:p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
+                      <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
                         <div className="flex items-center gap-3">
                           <div className="relative">
                             {userAvatar ? (
                               <img
                                 src={userAvatar}
                                 alt="Profile"
-                                className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover border-2 border-white shadow-lg"
+                                className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-lg"
                               />
                             ) : (
-                              <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-base md:text-lg font-bold shadow-lg">
+                              <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white flex items-center justify-center text-lg font-bold shadow-lg">
                                 {getUserInitials(user?.email)}
                               </div>
                             )}
@@ -302,7 +292,7 @@ export const DesktopNavbar: React.FC = () => {
                               className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-200"
                               title="Change avatar"
                             >
-                              <Camera className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                              <Camera className="w-4 h-4 text-white" />
                             </button>
                           </div>
                           <div className="flex-1 min-w-0">
@@ -312,7 +302,7 @@ export const DesktopNavbar: React.FC = () => {
                               </p>
                               <button
                                 onClick={() => setShowEditProfile(!showEditProfile)}
-                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors flex-shrink-0"
+                                className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
                                 title="Edit name"
                               >
                                 <Edit3 className="w-3 h-3 text-gray-500" />
@@ -363,12 +353,12 @@ export const DesktopNavbar: React.FC = () => {
                         >
                           {theme === 'dark' ? (
                             <>
-                              <Sun className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                              <Sun className="w-4 h-4 text-yellow-500" />
                               Switch to Light Mode
                             </>
                           ) : (
                             <>
-                              <Moon className="w-4 h-4 text-indigo-500 flex-shrink-0" />
+                              <Moon className="w-4 h-4 text-indigo-500" />
                               Switch to Dark Mode
                             </>
                           )}
@@ -385,7 +375,7 @@ export const DesktopNavbar: React.FC = () => {
                           }}
                           className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-200 font-medium"
                         >
-                          <LogOut className="w-4 h-4 flex-shrink-0" />
+                          <LogOut className="w-4 h-4" />
                           Sign Out
                         </button>
                       </div>
@@ -407,14 +397,14 @@ export const DesktopNavbar: React.FC = () => {
         />
       </nav>
 
-      {/* Fixed Focus Mode Button - Responsive positioning and sizing */}
+      {/* Fixed Focus Mode Button - Bottom Right */}
       <Button
         onClick={() => setShowFocusMode(true)}
-        className="fixed bottom-4 md:bottom-6 right-4 md:right-6 z-50 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full p-3 md:p-4 border border-purple-400 hover:border-purple-300"
+        className="fixed bottom-6 right-6 z-50 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full p-4 border border-purple-400 hover:border-purple-300"
         title="Enter Focus Mode"
       >
-        <Shield className="w-5 h-5 md:w-6 md:h-6" />
-        <span className="ml-2 font-semibold hidden sm:inline text-sm md:text-base">Focus Mode</span>
+        <Shield className="w-6 h-6" />
+        <span className="ml-2 font-semibold hidden sm:inline">Focus Mode</span>
       </Button>
       
       <LogoutConfirmation
