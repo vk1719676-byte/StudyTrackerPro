@@ -351,19 +351,4 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
       </div>
     </div>
   );
-};                Save Session
-                </button>
-                <button
-                  onClick={() => setShowManualEntry(false)}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold border-2 border-gray-300 dark:border-gray-600 transition-all duration-200 hover:scale-105"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 };
