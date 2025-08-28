@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Target, Clock, Settings, FlipVertical as Analytics, Upload, Shield, Menu } from 'lucide-react';
+import { Home, Calendar, Target, Clock, Settings, FlipVertical as Analytics, Shield } from 'lucide-react';
 import { FocusMode } from '../focus/FocusMode';
 
 export const MobileNavbar: React.FC = () => {
@@ -13,7 +13,6 @@ export const MobileNavbar: React.FC = () => {
     { path: '/goals', label: 'Goals', icon: Target },
     { path: '/sessions', label: 'Sessions', icon: Clock },
     { path: '/analytics', label: 'Analytics', icon: Analytics },
-    { path: '/materials', label: 'Materials', icon: Upload },
     { path: '/settings', label: 'Settings', icon: Settings }
   ];
 
