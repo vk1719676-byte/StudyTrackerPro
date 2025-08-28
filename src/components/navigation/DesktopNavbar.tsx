@@ -199,16 +199,6 @@ export const DesktopNavbar: React.FC = () => {
 
               {/* Right Side Actions with enhanced tablet styling */}
               <div className="flex items-center gap-2 md:gap-2.5 lg:gap-3">
-                {/* Theme Toggle with tablet enhancements */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={theme === 'dark' ? Sun : Moon}
-                  onClick={toggleTheme}
-                  className="p-2 md:p-2.5 lg:p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md md:shadow-lg md:bg-white/60 md:dark:bg-gray-700/40 md:backdrop-blur-sm md:border md:border-white/30 md:dark:border-gray-600/30 md:hover:shadow-xl md:hover:backdrop-blur-md md:hover:rotate-12"
-                  title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-                />
-                
                 {/* Enhanced Profile Button with tablet-specific styling */}
                 <div className="relative" ref={dropdownRef}>
                   <button
