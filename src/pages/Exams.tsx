@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, BarChart3, Grid, List, Award, Target, TrendingUp, BookOpen, Star } from 'lucide-react';
+import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, BarChart3, Award, Target, TrendingUp, BookOpen, Star, Timer, Zap } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
@@ -13,18 +13,25 @@ export const Exams: React.FC = () => {
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState<'date' | 'priority' | 'name'>('date');
+  const [currentTime, setCurrentTime] = useState(new Date());
   const [formData, setFormData] = useState({
     name: '',
     date: '',
     syllabus: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
-    dailyHours: '',
-    weeklyHours: ''
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+
+  // Update current time every second for real-time countdown
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -39,25 +46,28 @@ export const Exams: React.FC = () => {
 
   // Statistics calculations
   const stats = useMemo(() => {
-    const now = new Date();
+    const now = currentTime;
     const upcomingExams = exams.filter(exam => exam.date >= now);
     const pastExams = exams.filter(exam => exam.date < now);
     const urgentExams = exams.filter(exam => {
       const daysDiff = Math.ceil((exam.date.getTime() - now.getTime()) / (1000 * 3600 * 24));
       return daysDiff <= 7 && daysDiff >= 0;
     });
-    const totalStudyHours = exams.reduce((total, exam) => total + exam.goals.dailyHours * 7, 0);
     const highPriorityCount = exams.filter(exam => exam.priority === 'high').length;
+    const todayExams = exams.filter(exam => {
+      const examDate = new Date(exam.date);
+      return examDate.toDateString() === now.toDateString();
+    });
 
     return {
       total: exams.length,
       upcoming: upcomingExams.length,
       past: pastExams.length,
       urgent: urgentExams.length,
-      totalStudyHours,
-      highPriority: highPriorityCount
+      highPriority: highPriorityCount,
+      today: todayExams.length
     };
-  }, [exams]);
+  }, [exams, currentTime]);
 
   // Filtered and sorted exams
   const filteredExams = useMemo(() => {
@@ -91,8 +101,6 @@ export const Exams: React.FC = () => {
       date: '',
       syllabus: '',
       priority: 'medium',
-      dailyHours: '',
-      weeklyHours: ''
     });
     setEditingExam(null);
     setShowForm(false);
@@ -107,11 +115,6 @@ export const Exams: React.FC = () => {
       date: new Date(formData.date),
       syllabus: formData.syllabus,
       priority: formData.priority,
-      goals: {
-        dailyHours: parseFloat(formData.dailyHours) || 0,
-        weeklyHours: parseFloat(formData.weeklyHours) || 0,
-        topicProgress: {}
-      },
       userId: user.uid,
       createdAt: new Date()
     };
@@ -134,8 +137,6 @@ export const Exams: React.FC = () => {
       date: exam.date.toISOString().split('T')[0],
       syllabus: exam.syllabus,
       priority: exam.priority,
-      dailyHours: exam.goals.dailyHours.toString(),
-      weeklyHours: exam.goals.weeklyHours.toString()
     });
     setEditingExam(exam);
     setShowForm(true);
@@ -160,19 +161,74 @@ export const Exams: React.FC = () => {
     }
   };
 
-  const getTimeRemaining = (examDate: Date) => {
-    const now = new Date();
+  const getAdvancedTimeRemaining = (examDate: Date) => {
+    const now = currentTime;
     const timeDiff = examDate.getTime() - now.getTime();
-    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     
-    if (daysDiff < 0) return 'Past due';
-    if (daysDiff === 0) return 'Today!';
-    if (daysDiff === 1) return '1 day left';
-    return `${daysDiff} days left`;
+    if (timeDiff < 0) {
+      return { text: 'Past due', type: 'past', color: 'text-gray-500', bgColor: 'bg-gray-100 dark:bg-gray-700' };
+    }
+    
+    const days = Math.floor(timeDiff / (1000 * 3600 * 24));
+    const hours = Math.floor((timeDiff % (1000 * 3600 * 24)) / (1000 * 3600));
+    const minutes = Math.floor((timeDiff % (1000 * 3600)) / (1000 * 60));
+    const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+    
+    if (days === 0 && hours === 0 && minutes === 0) {
+      return { 
+        text: `${seconds}s`, 
+        type: 'critical', 
+        color: 'text-red-600 animate-pulse', 
+        bgColor: 'bg-red-100 dark:bg-red-900/30 ring-2 ring-red-400 ring-opacity-60' 
+      };
+    }
+    
+    if (days === 0 && hours < 24) {
+      return { 
+        text: hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m ${seconds}s`, 
+        type: 'urgent', 
+        color: 'text-orange-600 font-bold', 
+        bgColor: 'bg-orange-100 dark:bg-orange-900/30 ring-2 ring-orange-400 ring-opacity-60' 
+      };
+    }
+    
+    if (days === 0) {
+      return { 
+        text: 'Today!', 
+        type: 'today', 
+        color: 'text-green-600 font-bold animate-pulse', 
+        bgColor: 'bg-green-100 dark:bg-green-900/30 ring-2 ring-green-400 ring-opacity-60' 
+      };
+    }
+    
+    if (days <= 3) {
+      return { 
+        text: `${days}d ${hours}h`, 
+        type: 'warning', 
+        color: 'text-red-600 font-semibold', 
+        bgColor: 'bg-red-50 dark:bg-red-900/20 ring-1 ring-red-300 ring-opacity-50' 
+      };
+    }
+    
+    if (days <= 7) {
+      return { 
+        text: `${days} days`, 
+        type: 'caution', 
+        color: 'text-yellow-600 font-medium', 
+        bgColor: 'bg-yellow-50 dark:bg-yellow-900/20' 
+      };
+    }
+    
+    return { 
+      text: `${days} days`, 
+      type: 'normal', 
+      color: 'text-blue-600', 
+      bgColor: 'bg-blue-50 dark:bg-blue-900/20' 
+    };
   };
 
   const getProgressPercentage = (exam: Exam) => {
-    const now = new Date();
+    const now = currentTime;
     const totalTime = exam.date.getTime() - exam.createdAt.getTime();
     const elapsedTime = now.getTime() - exam.createdAt.getTime();
     return Math.min(Math.max((elapsedTime / totalTime) * 100, 0), 100);
@@ -222,7 +278,7 @@ export const Exams: React.FC = () => {
         </div>
 
         {/* Statistics Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
           <Card className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
@@ -263,21 +319,21 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5" />
+              <Timer className="w-5 h-5" />
               <div>
-                <p className="text-yellow-100 text-xs font-medium">Study Hours</p>
-                <p className="text-xl font-bold">{stats.totalStudyHours}</p>
+                <p className="text-teal-100 text-xs font-medium">Today</p>
+                <p className="text-xl font-bold">{stats.today}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5" />
               <div>
-                <p className="text-teal-100 text-xs font-medium">Completed</p>
+                <p className="text-yellow-100 text-xs font-medium">Completed</p>
                 <p className="text-xl font-bold">{stats.past}</p>
               </div>
             </div>
@@ -330,26 +386,6 @@ export const Exams: React.FC = () => {
                       <option value="high">🔴 High Priority</option>
                     </select>
                   </div>
-
-                  <Input
-                    label="Daily Study Goal (hours)"
-                    type="number"
-                    step="0.5"
-                    placeholder="e.g., 2"
-                    value={formData.dailyHours}
-                    onChange={(value) => setFormData({ ...formData, dailyHours: value })}
-                    className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
-                  />
-
-                  <Input
-                    label="Weekly Study Goal (hours)"
-                    type="number"
-                    step="0.5"
-                    placeholder="e.g., 14"
-                    value={formData.weeklyHours}
-                    onChange={(value) => setFormData({ ...formData, weeklyHours: value })}
-                    className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
-                  />
                 </div>
 
                 <div>
@@ -423,27 +459,6 @@ export const Exams: React.FC = () => {
                   <option value="name">Sort by Name</option>
                 </select>
               </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant={viewMode === 'grid' ? 'default' : 'secondary'}
-                  size="sm"
-                  icon={Grid}
-                  onClick={() => setViewMode('grid')}
-                  className="transition-all duration-200"
-                >
-                  Grid
-                </Button>
-                <Button
-                  variant={viewMode === 'list' ? 'default' : 'secondary'}
-                  size="sm"
-                  icon={List}
-                  onClick={() => setViewMode('list')}
-                  className="transition-all duration-200"
-                >
-                  List
-                </Button>
-              </div>
             </div>
           </Card>
         )}
@@ -487,181 +502,165 @@ export const Exams: React.FC = () => {
             </Button>
           </Card>
         ) : (
-          <div className={viewMode === 'grid' ? 
-            'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' : 
-            'space-y-4'
-          }>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredExams.map((exam, index) => {
-              const timeRemaining = getTimeRemaining(exam.date);
-              const isUrgent = timeRemaining.includes('day') && parseInt(timeRemaining) <= 7;
-              const isPastDue = timeRemaining === 'Past due';
-              const isToday = timeRemaining === 'Today!';
+              const timeData = getAdvancedTimeRemaining(exam.date);
+              const isUrgent = timeData.type === 'urgent' || timeData.type === 'warning';
+              const isPastDue = timeData.type === 'past';
+              const isToday = timeData.type === 'today';
+              const isCritical = timeData.type === 'critical';
               const progress = getProgressPercentage(exam);
 
               return (
                 <Card 
                   key={exam.id} 
                   className={`
-                    p-6 border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1
-                    ${isUrgent ? 'ring-2 ring-red-400 ring-opacity-60 shadow-red-100' : ''}
-                    ${isPastDue ? 'ring-2 ring-gray-400 ring-opacity-60 opacity-75' : ''}
-                    ${isToday ? 'ring-2 ring-green-400 ring-opacity-60 shadow-green-100' : ''}
-                    ${viewMode === 'list' ? 'flex items-center gap-6' : ''}
+                    p-6 border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden
+                    ${timeData.bgColor}
+                    ${isCritical ? 'animate-pulse shadow-red-500/50' : ''}
+                    ${isPastDue ? 'opacity-75' : ''}
                     animate-fade-in bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-700/50 backdrop-blur-sm
                   `}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  {viewMode === 'grid' ? (
-                    <>
-                      {/* Progress Bar */}
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-4">
-                        <div 
-                          className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 rounded-full transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        ></div>
-                      </div>
+                  {/* Animated Background Effect for Critical Exams */}
+                  {isCritical && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-pink-500/10 animate-pulse"></div>
+                  )}
+                  
+                  {/* Urgent Exam Glow Effect */}
+                  {isUrgent && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 animate-pulse"></div>
+                  )}
 
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight">
-                            {exam.name}
-                          </h3>
-                          <div className="flex items-center gap-2 mb-3">
-                            <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getPriorityColor(exam.priority)}`}>
-                              {exam.priority.toUpperCase()} PRIORITY
-                            </span>
-                            {isUrgent && <AlertTriangle className="w-4 h-4 text-red-500 animate-pulse" />}
-                            {isToday && <Star className="w-4 h-4 text-green-500 animate-pulse" />}
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={Edit}
-                            onClick={() => handleEdit(exam)}
-                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-all duration-200"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={Trash2}
-                            onClick={() => handleDelete(exam.id)}
-                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-all duration-200"
-                          />
+                  <div className="relative z-10">
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-4">
+                      <div 
+                        className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 rounded-full transition-all duration-500"
+                        style={{ width: `${progress}%` }}
+                      ></div>
+                    </div>
+
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight">
+                          {exam.name}
+                        </h3>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getPriorityColor(exam.priority)}`}>
+                            {exam.priority.toUpperCase()} PRIORITY
+                          </span>
+                          {isCritical && <Zap className="w-4 h-4 text-red-500 animate-bounce" />}
+                          {isUrgent && <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />}
+                          {isToday && <Star className="w-4 h-4 text-green-500 animate-pulse" />}
                         </div>
                       </div>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={Edit}
+                          onClick={() => handleEdit(exam)}
+                          className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400 transition-all duration-200"
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={Trash2}
+                          onClick={() => handleDelete(exam.id)}
+                          className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 transition-all duration-200"
+                        />
+                      </div>
+                    </div>
 
-                      <div className="space-y-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                          <Calendar className="w-4 h-4 text-purple-500" />
+                          <span className="font-medium">
+                            {exam.date.toLocaleDateString('en-US', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Advanced Countdown Timer */}
+                      <div className={`rounded-xl p-4 border-2 transition-all duration-300 ${timeData.bgColor}`}>
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                            <Calendar className="w-4 h-4 text-purple-500" />
-                            <span className="font-medium">
-                              {exam.date.toLocaleDateString('en-US', { 
-                                weekday: 'short', 
-                                month: 'short', 
-                                day: 'numeric',
-                                year: 'numeric'
-                              })}
+                          <div className="flex items-center gap-2">
+                            <Timer className={`w-5 h-5 ${timeData.color}`} />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Time Remaining
                             </span>
                           </div>
-                          <div className={`flex items-center gap-2 text-sm font-semibold px-2 py-1 rounded-lg ${
-                            isPastDue ? 'text-gray-500 bg-gray-100 dark:bg-gray-700' :
-                            isToday ? 'text-green-700 bg-green-100 dark:bg-green-900/20' :
-                            isUrgent ? 'text-red-700 bg-red-100 dark:bg-red-900/20' : 
-                            'text-blue-700 bg-blue-100 dark:bg-blue-900/20'
-                          }`}>
-                            <Clock className="w-4 h-4" />
-                            {timeRemaining}
-                          </div>
-                        </div>
-
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-4">
-                          <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                            <Target className="w-4 h-4 text-purple-600" />
-                            Study Goals
-                          </h4>
-                          <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                                {exam.goals.dailyHours}h
-                              </div>
-                              <div className="text-gray-600 dark:text-gray-400">Daily</div>
+                          {isCritical && (
+                            <div className="flex items-center gap-1">
+                              <Zap className="w-4 h-4 text-red-500 animate-bounce" />
+                              <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
+                                Critical
+                              </span>
                             </div>
-                            <div className="text-center">
-                              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                {exam.goals.weeklyHours}h
-                              </div>
-                              <div className="text-gray-600 dark:text-gray-400">Weekly</div>
-                            </div>
-                          </div>
+                          )}
                         </div>
-
-                        {exam.syllabus && (
-                          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                            <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                              <BookOpen className="w-4 h-4 text-green-600" />
-                              Syllabus Overview
-                            </h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
-                              {exam.syllabus}
-                            </p>
+                        <div className={`text-3xl font-bold mt-2 ${timeData.color} tracking-tight`}>
+                          {timeData.text}
+                        </div>
+                        {timeData.type === 'critical' && (
+                          <div className="mt-2 text-xs text-red-600 font-medium animate-pulse">
+                            🚨 EXAM STARTING SOON!
+                          </div>
+                        )}
+                        {timeData.type === 'today' && (
+                          <div className="mt-2 text-xs text-green-600 font-medium">
+                            🎯 Good luck with your exam today!
                           </div>
                         )}
                       </div>
-                    </>
-                  ) : (
-                    /* List View */
-                    <div className="flex items-center justify-between w-full gap-6">
-                      <div className="flex items-center gap-4 flex-1">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-500 to-blue-500 flex items-center justify-center">
-                          <BookOpen className="w-6 h-6 text-white" />
+
+                      {exam.syllabus && (
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                          <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-green-600" />
+                            Syllabus Overview
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
+                            {exam.syllabus}
+                          </p>
                         </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
-                            {exam.name}
-                          </h3>
-                          <div className="flex items-center gap-3">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(exam.priority)}`}>
-                              {exam.priority.toUpperCase()}
-                            </span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {exam.date.toLocaleDateString()}
-                            </span>
-                            <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                              {timeRemaining}
+                      )}
+                      
+                      {/* Exam Status Indicator */}
+                      <div className="flex items-center justify-between pt-2">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            isCritical ? 'bg-red-500 animate-ping' :
+                            isUrgent ? 'bg-orange-500 animate-pulse' :
+                            isToday ? 'bg-green-500 animate-pulse' :
+                            isPastDue ? 'bg-gray-400' : 'bg-blue-500'
+                          }`}></div>
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            {isCritical ? 'CRITICAL' :
+                             isUrgent ? 'URGENT' :
+                             isToday ? 'TODAY' :
+                             isPastDue ? 'PAST DUE' : 'SCHEDULED'}
+                          </span>
+                        </div>
+                        {(isCritical || isUrgent) && (
+                          <div className="flex items-center gap-1">
+                            <AlertTriangle className="w-3 h-3 text-red-500" />
+                            <span className="text-xs font-bold text-red-600">
+                              ACTION NEEDED
                             </span>
                           </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <div className="text-right text-sm">
-                          <div className="font-medium text-gray-900 dark:text-gray-100">
-                            {exam.goals.dailyHours}h daily
-                          </div>
-                          <div className="text-gray-600 dark:text-gray-400">
-                            {exam.goals.weeklyHours}h weekly
-                          </div>
-                        </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={Edit}
-                            onClick={() => handleEdit(exam)}
-                            className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            icon={Trash2}
-                            onClick={() => handleDelete(exam.id)}
-                            className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
-                          />
-                        </div>
+                        )}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </Card>
               );
             })}
