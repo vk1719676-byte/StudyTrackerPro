@@ -185,7 +185,7 @@ export const ExamCountdown: React.FC<ExamCountdownProps> = ({ exams }) => {
         </p>
         <div className="mt-6 inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
           <Award className="w-4 h-4" />
-          Get Started
+          Add Your First Exam From Exam Section
         </div>
       </Card>
     );
