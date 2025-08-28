@@ -3,8 +3,7 @@ import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clo
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
-import { PremiumBadge } from '../components/premium/PremiumBadge';
-import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
+import { ReviewForm } from '../components/review/ReviewForm';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
@@ -166,7 +165,8 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
-  const { user, isPremium } = useAuth();
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const { user } = useAuth();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
@@ -196,6 +196,15 @@ export const Dashboard: React.FC = () => {
       setCurrentTheme((prev) => (prev + 1) % heroThemes.length);
     }, 15000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Show review form after 30 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowReviewForm(true);
+    }, 30000); // 30 seconds
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSessionAdded = () => {
@@ -355,7 +364,6 @@ export const Dashboard: React.FC = () => {
                       {currentThemeData.greeting}
                     </p>
                   </div>
-                  {isPremium && <PremiumBadge size="lg" />}
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-3 text-sm font-semibold">
@@ -391,64 +399,6 @@ export const Dashboard: React.FC = () => {
 
         {/* Enhanced Text Banner - Now positioned after hero section */}
         <EnhancedTextBanner />
-
-        {/* Premium AI Section */}
-        {isPremium && (
-          <div className="mb-10">
-            <ModernCard className="p-8 bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-pink-900/20 border-2 border-indigo-200/60 dark:border-indigo-700/60">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-8">
-                <div className="flex items-center gap-3">
-                  <div className="p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
-                    <Brain className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-black text-gray-900 dark:text-gray-100">AI Study Assistant</h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Personalized insights powered by machine learning</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 ml-auto">
-                  <PremiumBadge size="lg" />
-                  <div className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    Active
-                  </div>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="text-2xl">🎯</div>
-                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Today's Focus</h3>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Mathematics shows the highest retention rate in your morning sessions. Optimal focus window: 9-11 AM.
-                  </p>
-                </div>
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="text-2xl">📊</div>
-                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Performance Trend</h3>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Your efficiency has improved 23% this week. Consistent 25-minute sessions are working perfectly.
-                  </p>
-                </div>
-                
-                <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-3xl p-6 shadow-lg border border-white/60 dark:border-gray-700/60 md:col-span-2 lg:col-span-1">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="text-2xl">💡</div>
-                    <h3 className="font-bold text-lg text-gray-800 dark:text-gray-200">Smart Recommendation</h3>
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                    Review Physics concepts tonight. Your brain consolidates information best 4-6 hours after learning.
-                  </p>
-                </div>
-              </div>
-            </ModernCard>
-          </div>
-        )}
 
         {/* Modern Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-10">
@@ -657,87 +607,6 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Premium Advanced Analytics */}
-        <div className="mb-10">
-          <PremiumFeatureGate
-            featureName="Advanced Analytics Dashboard"
-            description="Unlock detailed insights, AI predictions, and personalized recommendations"
-            className="min-h-[300px]"
-          >
-            <ModernCard className="p-8 border-2 border-indigo-200/60 dark:border-indigo-700/60">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-2xl shadow-xl">
-                  <BarChart3 className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Advanced Analytics</h2>
-                  <p className="text-gray-600 dark:text-gray-400">Deep insights into your learning patterns</p>
-                </div>
-                <div className="ml-auto bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 px-4 py-2 rounded-full text-sm font-bold">
-                  Premium Feature
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-6 border border-blue-200/50 dark:border-blue-700/50">
-                  <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-6 text-xl flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    Learning Curves
-                  </h3>
-                  <div className="h-24 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-800 dark:to-indigo-800 rounded-2xl flex items-end justify-around p-4">
-                    {[6, 8, 12, 9, 14, 11, 16].map((height, i) => (
-                      <div
-                        key={i}
-                        className="bg-gradient-to-t from-blue-500 to-blue-400 rounded-t-lg shadow-lg"
-                        style={{ width: '10px', height: `${height * 3}px` }}
-                      />
-                    ))}
-                  </div>
-                  <p className="text-sm text-blue-700 dark:text-blue-400 mt-4 font-medium">
-                    Your learning velocity is increasing consistently
-                  </p>
-                </div>
-                
-                <div className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-3xl p-6 border border-emerald-200/50 dark:border-emerald-700/50">
-                  <h3 className="font-bold text-emerald-900 dark:text-emerald-400 mb-6 text-xl flex items-center gap-2">
-                    <Target className="w-5 h-5" />
-                    AI Predictions
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
-                      <span className="font-medium">Math Exam</span>
-                      <span className="font-bold text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30 px-3 py-1 rounded-full">
-                        92% Success
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center p-4 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
-                      <span className="font-medium">Physics Quiz</span>
-                      <span className="font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/30 px-3 py-1 rounded-full">
-                        78% Success
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-3xl p-6 border border-purple-200/50 dark:border-purple-700/50">
-                  <h3 className="font-bold text-purple-900 dark:text-purple-400 mb-6 text-xl flex items-center gap-2">
-                    <Brain className="w-5 h-5" />
-                    Smart Tips
-                  </h3>
-                  <div className="space-y-3">
-                    {['Study Math at 9 AM for peak focus', 'Take 5-min breaks every 25 minutes', 'Review notes within 24 hours'].map((tip, i) => (
-                      <div key={i} className="flex items-center gap-3 p-3 bg-white/60 dark:bg-gray-800/60 rounded-2xl">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
-                        <p className="text-sm font-medium text-purple-700 dark:text-purple-300">{tip}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </ModernCard>
-          </PremiumFeatureGate>
-        </div>
-
         {/* Main Action Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
           <div>
@@ -793,6 +662,9 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Review Form Modal */}
+      <ReviewForm isOpen={showReviewForm} />
     </div>
   );
 };
