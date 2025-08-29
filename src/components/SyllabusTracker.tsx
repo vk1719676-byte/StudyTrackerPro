@@ -27,16 +27,16 @@ const Button: React.FC<ButtonProps> = ({
   icon: Icon,
   className = ''
 }) => {
-  const baseClasses = 'inline-flex items-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2';
+  const baseClasses = 'inline-flex items-center gap-2 font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 touch-manipulation';
   
   const variants = {
-    primary: 'bg-purple-600 hover:bg-purple-700 text-white focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed',
-    ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 focus:ring-gray-500'
+    primary: 'bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md',
+    ghost: 'bg-transparent hover:bg-gray-100 active:bg-gray-200 dark:hover:bg-gray-700 dark:active:bg-gray-600 text-gray-600 dark:text-gray-400 focus:ring-gray-500'
   };
 
   const sizes = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-sm'
+    sm: 'px-3 py-2 text-sm min-h-[36px] min-w-[36px]',
+    md: 'px-4 py-2.5 text-sm min-h-[44px] sm:min-h-[40px]'
   };
 
   return (
@@ -45,7 +45,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled}
       className={`${baseClasses} ${variants[variant]} ${sizes[size]} ${className}`}
     >
-      {Icon && <Icon className="w-4 h-4" />}
+      {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
       {children}
     </button>
   );
@@ -104,9 +104,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {
-      case 'high': return <Zap className="w-3 h-3 text-red-500" />;
-      case 'medium': return <Target className="w-3 h-3 text-yellow-500" />;
-      case 'low': return <Star className="w-3 h-3 text-green-500" />;
+      case 'high': return <Zap className="w-3 h-3 sm:w-4 sm:h-4 text-red-500" />;
+      case 'medium': return <Target className="w-3 h-3 sm:w-4 sm:h-4 text-yellow-500" />;
+      case 'low': return <Star className="w-3 h-3 sm:w-4 sm:h-4 text-green-500" />;
       default: return null;
     }
   };
@@ -121,30 +121,31 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
   };
 
   return (
-    <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-600/50 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+    <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-600/50 overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 mx-4 sm:mx-0">
       {/* Header */}
       <div 
-        className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b border-gray-200/50 dark:border-gray-600/50 cursor-pointer hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/30 dark:hover:to-blue-900/30 transition-all duration-200"
+        className="p-4 sm:p-6 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-b border-gray-200/50 dark:border-gray-600/50 cursor-pointer hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-900/30 dark:hover:to-blue-900/30 transition-all duration-200 touch-manipulation"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="p-2 bg-purple-600/10 rounded-lg">
-              <BookOpen className="w-6 h-6 text-purple-600" />
+          <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0">
+            <div className="p-2 bg-purple-600/10 rounded-lg flex-shrink-0">
+              <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
             </div>
-            <div>
-              <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="min-w-0 flex-1">
+              <h4 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
                 Syllabus Progress
               </h4>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">
-                {completedCount} of {topics.length} topics completed
+              <p className="text-gray-600 dark:text-gray-400 mt-0.5 sm:mt-1 text-sm sm:text-base">
+                {completedCount} of {topics.length} completed
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            {/* Circular Progress Indicator */}
-            <div className="relative w-16 h-16">
-              <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+          
+          {/* Mobile-optimized progress indicator */}
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+            <div className="relative w-12 h-12 sm:w-16 sm:h-16">
+              <svg className="w-12 h-12 sm:w-16 sm:h-16 transform -rotate-90" viewBox="0 0 36 36">
                 <circle
                   cx="18" cy="18" r="16"
                   fill="none"
@@ -162,25 +163,25 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                 />
               </svg>
               <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-gray-100">
                   {Math.round(progressPercentage)}%
                 </span>
               </div>
             </div>
             <div className="transform transition-transform duration-200">
               {isExpanded ? (
-                <ChevronUp className="w-6 h-6 text-gray-500" />
+                <ChevronUp className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
               ) : (
-                <ChevronDown className="w-6 h-6 text-gray-500" />
+                <ChevronDown className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" />
               )}
             </div>
           </div>
         </div>
 
         {/* Progress Bar */}
-        <div className="mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+        <div className="mt-3 sm:mt-4 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3 overflow-hidden">
           <div 
-            className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-700 ease-out shadow-sm"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 sm:h-3 rounded-full transition-all duration-700 ease-out shadow-sm"
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -188,8 +189,8 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
 
       {/* Expandable Content */}
       {isExpanded && (
-        <div className="p-6 space-y-6 animate-in slide-in-from-top-2 duration-300">
-          {/* Add New Topic Form */}
+        <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 animate-in slide-in-from-top-2 duration-300">
+          {/* Add New Topic Form - Mobile Optimized */}
           {!readOnly && (
             <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
               <div className="space-y-3">
@@ -199,13 +200,15 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                   value={newTopicName}
                   onChange={(e) => setNewTopicName(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && addTopic()}
-                  className="w-full px-4 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all duration-200"
+                  className="w-full px-4 py-3 sm:py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 transition-all duration-200 text-base sm:text-sm placeholder:text-gray-500"
                 />
-                <div className="flex gap-3">
+                
+                {/* Mobile-first layout: stack on small screens, row on larger */}
+                <div className="flex flex-col sm:flex-row gap-3">
                   <select
                     value={newTopicPriority}
                     onChange={(e) => setNewTopicPriority(e.target.value as any)}
-                    className="px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 text-sm"
+                    className="flex-1 px-3 py-3 sm:py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-1 focus:ring-purple-500/30 text-base sm:text-sm"
                   >
                     <option value="low">Low Priority</option>
                     <option value="medium">Medium Priority</option>
@@ -215,9 +218,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                     onClick={addTopic}
                     icon={Plus}
                     disabled={!newTopicName.trim()}
-                    className="bg-purple-600 hover:bg-purple-700 text-white shadow-sm hover:shadow-md"
+                    className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white shadow-sm hover:shadow-md w-full sm:w-auto justify-center min-h-[44px]"
                   >
-                    Add
+                    Add Topic
                   </Button>
                 </div>
               </div>
@@ -226,14 +229,14 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
 
           {/* Topics List */}
           {topics.length > 0 ? (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between mb-3">
-                <h5 className="text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <div className="space-y-3 sm:space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+                <h5 className="text-base sm:text-base font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
                   <BookOpen className="w-5 h-5" />
                   Study Topics ({topics.length})
                 </h5>
                 {topics.length > 0 && (
-                  <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-2 rounded-full text-center sm:text-left">
                     {completedCount} completed • {topics.length - completedCount} remaining
                   </div>
                 )}
@@ -243,16 +246,16 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                 <div
                   key={topic.id}
                   className={`
-                    group flex items-center gap-3 p-3 rounded-lg border transition-all duration-200
+                    group flex items-start sm:items-center gap-3 p-4 sm:p-3 rounded-lg border transition-all duration-200
                     ${topic.completed 
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700/50' 
-                      : 'bg-white dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'
+                      : 'bg-white dark:bg-gray-700/50 border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 active:bg-gray-100 dark:active:bg-gray-600'
                     }
                   `}
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  {/* Completion Checkbox */}
-                  <div className="relative">
+                  {/* Completion Checkbox - Larger for mobile */}
+                  <div className="relative flex-shrink-0 mt-0.5 sm:mt-0">
                     <input
                       type="checkbox"
                       checked={topic.completed}
@@ -262,25 +265,25 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                     />
                     <div 
                       className={`
-                        w-5 h-5 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200
+                        w-6 h-6 sm:w-5 sm:h-5 rounded-full border-2 cursor-pointer flex items-center justify-center transition-all duration-200 touch-manipulation
                         ${topic.completed 
-                          ? 'bg-green-500 border-green-500' 
-                          : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50 dark:border-gray-600 dark:hover:border-purple-500'
+                          ? 'bg-green-500 border-green-500 shadow-sm' 
+                          : 'border-gray-300 hover:border-purple-400 hover:bg-purple-50 active:bg-purple-100 dark:border-gray-600 dark:hover:border-purple-500'
                         }
                       `}
                       onClick={() => !readOnly && toggleTopic(topic.id)}
                     >
                       {topic.completed && (
-                        <Check className="w-3 h-3 text-white" />
+                        <Check className="w-3.5 h-3.5 sm:w-3 sm:h-3 text-white" />
                       )}
                     </div>
                   </div>
 
                   {/* Topic Content */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                       <span className={`
-                        text-sm font-medium transition-all duration-200
+                        text-base sm:text-sm font-medium transition-all duration-200 break-words
                         ${topic.completed 
                           ? 'text-green-700 dark:text-green-400 line-through opacity-75' 
                           : 'text-gray-900 dark:text-gray-100'
@@ -288,13 +291,22 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                       `}>
                         {topic.name}
                       </span>
-                      {getPriorityIcon(topic.priority)}
+                      <div className="flex items-center gap-2">
+                        {getPriorityIcon(topic.priority)}
+                        {/* Mobile: Show priority badge inline */}
+                        <span className={`
+                          sm:hidden px-2 py-1 rounded-full text-xs font-medium border transition-all duration-200
+                          ${getPriorityColor(topic.priority)}
+                        `}>
+                          {topic.priority}
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Priority Badge */}
+                  {/* Desktop Priority Badge */}
                   <span className={`
-                    px-2 py-1 rounded-full text-xs font-medium border transition-all duration-200
+                    hidden sm:inline-flex px-2 py-1 rounded-full text-xs font-medium border transition-all duration-200
                     ${getPriorityColor(topic.priority)}
                   `}>
                     {topic.priority}
@@ -302,11 +314,11 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
 
                   {/* Actions */}
                   {!readOnly && (
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200">
                       <select
                         value={topic.priority}
                         onChange={(e) => updateTopicPriority(topic.id, e.target.value as any)}
-                        className="text-xs border border-gray-200 rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        className="text-xs sm:text-xs border border-gray-200 rounded px-2 py-2 sm:py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 min-h-[36px] sm:min-h-auto"
                       >
                         <option value="low">Low</option>
                         <option value="medium">Med</option>
@@ -316,9 +328,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                         variant="ghost"
                         size="sm"
                         onClick={() => removeTopic(topic.id)}
-                        className="p-1 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-500"
+                        className="p-2 hover:bg-red-100 active:bg-red-200 dark:hover:bg-red-900/20 dark:active:bg-red-900/30 text-red-500 min-h-[36px] sm:min-h-auto justify-center"
                       >
-                        <X className="w-3 h-3" />
+                        <X className="w-4 h-4 sm:w-3 sm:h-3" />
                       </Button>
                     </div>
                   )}
@@ -326,40 +338,40 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-              <BookOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No topics added yet</p>
+            <div className="text-center py-12 sm:py-8 text-gray-500 dark:text-gray-400">
+              <BookOpen className="w-12 h-12 sm:w-8 sm:h-8 mx-auto mb-3 sm:mb-2 opacity-50" />
+              <p className="text-base sm:text-sm font-medium">No topics added yet</p>
               {!readOnly && (
-                <p className="text-xs mt-1">Add topics above to track your progress</p>
+                <p className="text-sm sm:text-xs mt-2 sm:mt-1 px-4">Add topics above to track your progress</p>
               )}
             </div>
           )}
 
-          {/* Progress Summary */}
+          {/* Progress Summary - Mobile optimized grid */}
           {topics.length > 0 && (
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-              <div className="grid grid-cols-3 gap-4 text-center">
-                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+            <div className="mt-6 sm:mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 sm:p-3 text-center">
+                  <div className="text-2xl sm:text-lg font-bold text-blue-600 dark:text-blue-400">
                     {topics.length}
                   </div>
-                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                  <div className="text-sm sm:text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
                     Total Topics
                   </div>
                 </div>
-                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-3">
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 sm:p-3 text-center">
+                  <div className="text-2xl sm:text-lg font-bold text-green-600 dark:text-green-400">
                     {completedCount}
                   </div>
-                  <div className="text-xs text-green-600 dark:text-green-400 font-medium">
+                  <div className="text-sm sm:text-xs text-green-600 dark:text-green-400 font-medium mt-1">
                     Completed
                   </div>
                 </div>
-                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 sm:p-3 text-center">
+                  <div className="text-2xl sm:text-lg font-bold text-purple-600 dark:text-purple-400">
                     {Math.round(progressPercentage)}%
                   </div>
-                  <div className="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                  <div className="text-sm sm:text-xs text-purple-600 dark:text-purple-400 font-medium mt-1">
                     Progress
                   </div>
                 </div>
@@ -367,9 +379,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
               
               {/* Study Recommendations */}
               {topics.length > 0 && progressPercentage < 100 && (
-                <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200/50 dark:border-purple-700/50">
+                <div className="mt-4 p-4 sm:p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200/50 dark:border-purple-700/50">
                   <div className="flex items-center gap-2 mb-2">
-                    <Target className="w-4 h-4 text-purple-600" />
+                    <Target className="w-4 h-4 text-purple-600 flex-shrink-0" />
                     <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
                       Study Recommendations
                     </span>
@@ -380,19 +392,19 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
                     
                     if (highPriorityIncomplete > 0) {
                       return (
-                        <p className="text-xs text-purple-600 dark:text-purple-400">
+                        <p className="text-sm sm:text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
                           🔥 Focus on {highPriorityIncomplete} high-priority topic{highPriorityIncomplete > 1 ? 's' : ''} first
                         </p>
                       );
                     } else if (mediumPriorityIncomplete > 0) {
                       return (
-                        <p className="text-xs text-purple-600 dark:text-purple-400">
+                        <p className="text-sm sm:text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
                           ⚡ Work through {mediumPriorityIncomplete} medium-priority topic{mediumPriorityIncomplete > 1 ? 's' : ''} next
                         </p>
                       );
                     } else {
                       return (
-                        <p className="text-xs text-purple-600 dark:text-purple-400">
+                        <p className="text-sm sm:text-xs text-purple-600 dark:text-purple-400 leading-relaxed">
                           ✨ Great progress! Complete remaining topics at your own pace
                         </p>
                       );
@@ -404,11 +416,11 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
               {/* Completion Celebration */}
               {progressPercentage === 100 && topics.length > 0 && (
                 <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200/50 dark:border-green-700/50 text-center">
-                  <div className="text-2xl mb-2">🎉</div>
-                  <h3 className="text-base font-bold text-green-700 dark:text-green-400 mb-1">
+                  <div className="text-3xl sm:text-2xl mb-2">🎉</div>
+                  <h3 className="text-lg sm:text-base font-bold text-green-700 dark:text-green-400 mb-1">
                     Congratulations!
                   </h3>
-                  <p className="text-xs text-green-600 dark:text-green-400">
+                  <p className="text-sm sm:text-xs text-green-600 dark:text-green-400">
                     You've completed all topics!
                   </p>
                 </div>
@@ -420,3 +432,36 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({
     </div>
   );
 };
+
+function App() {
+  const [topics, setTopics] = useState<SyllabusTopic[]>([
+    { id: '1', name: 'Introduction to React Hooks', completed: true, priority: 'high' },
+    { id: '2', name: 'State Management with useState', completed: true, priority: 'high' },
+    { id: '3', name: 'Effect Hook and Side Effects', completed: false, priority: 'high' },
+    { id: '4', name: 'Custom Hooks Development', completed: false, priority: 'medium' },
+    { id: '5', name: 'Context API and useContext', completed: false, priority: 'medium' },
+    { id: '6', name: 'Performance Optimization', completed: false, priority: 'low' },
+  ]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50 to-blue-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20 p-4 sm:p-8">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Learning Dashboard
+          </h1>
+          <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 px-4 sm:px-0">
+            Track your study progress and stay motivated
+          </p>
+        </div>
+        
+        <SyllabusTracker 
+          topics={topics} 
+          onTopicsChange={setTopics} 
+        />
+      </div>
+    </div>
+  );
+}
+
+export default App;
