@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Plus, Clock, BookOpen, Target, TrendingUp } from 'lucide-react';
+import { Play, Pause, Square, Plus, Clock, BookOpen, Target, TrendingUp, Timer } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
@@ -102,11 +102,11 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
 
   const getEfficiencyColor = (rating: number) => {
     const colors = {
-      5: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-900/20 dark:border-emerald-800',
-      4: 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800',
-      3: 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-800',
-      2: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800',
-      1: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800'
+      5: 'text-emerald-700 bg-gradient-to-r from-emerald-50 to-emerald-100 border-emerald-300 dark:text-emerald-300 dark:from-emerald-900/30 dark:to-emerald-800/20 dark:border-emerald-700',
+      4: 'text-green-700 bg-gradient-to-r from-green-50 to-green-100 border-green-300 dark:text-green-300 dark:from-green-900/30 dark:to-green-800/20 dark:border-green-700',
+      3: 'text-yellow-700 bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-300 dark:text-yellow-300 dark:from-yellow-900/30 dark:to-yellow-800/20 dark:border-yellow-700',
+      2: 'text-orange-700 bg-gradient-to-r from-orange-50 to-orange-100 border-orange-300 dark:text-orange-300 dark:from-orange-900/30 dark:to-orange-800/20 dark:border-orange-700',
+      1: 'text-red-700 bg-gradient-to-r from-red-50 to-red-100 border-red-300 dark:text-red-300 dark:from-red-900/30 dark:to-red-800/20 dark:border-red-700'
     };
     return colors[rating as keyof typeof colors] || colors[5];
   };
@@ -122,177 +122,223 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
     return labels[rating as keyof typeof labels] || 'Excellent';
   };
 
+  const isFormComplete = subject && topic && selectedExam;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg border-2 border-gray-800 dark:border-gray-200">
-          <Clock className="h-5 w-5 text-white" />
+      <div className="flex items-center gap-4 px-2">
+        <div className="relative">
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl blur opacity-30"></div>
+          <div className="relative p-3 bg-gradient-to-br from-indigo-600 to-indigo-700 dark:from-indigo-500 dark:to-indigo-600 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
+            <Clock className="h-6 w-6 text-white" />
+          </div>
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-          Study Timer
-        </h2>
+        <div>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+            Study Timer
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+            Track your study sessions and measure progress
+          </p>
+        </div>
       </div>
       
       {/* Main Timer Card */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
-        <div className="p-4 sm:p-6 space-y-6">
-          {/* Timer Display - Responsive */}
-          <div className="text-center">
-            <div className={`inline-block p-4 sm:p-6 rounded-xl border-2 transition-all duration-300 ${
-              isRunning 
-                ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-600 dark:border-indigo-400' 
-                : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
-            }`}>
-              <div className={`font-mono font-bold transition-all duration-300 ${
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl blur opacity-20 group-hover:opacity-30 transition-opacity duration-300"></div>
+        <div className="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl border-2 border-gray-800 dark:border-gray-200 shadow-2xl">
+          <div className="p-6 sm:p-8 space-y-8">
+            {/* Timer Display */}
+            <div className="text-center">
+              <div className={`relative inline-block p-8 sm:p-12 rounded-3xl transition-all duration-500 ${
                 isRunning 
-                  ? 'text-indigo-600 dark:text-indigo-400' 
-                  : 'text-gray-700 dark:text-gray-300'
-              } text-3xl sm:text-4xl md:text-5xl`}>
-                {formatTime(time)}
-              </div>
-              <div className={`mt-2 text-xs sm:text-sm font-medium ${
-                isRunning 
-                  ? 'text-indigo-500 dark:text-indigo-400' 
-                  : 'text-gray-500 dark:text-gray-400'
+                  ? 'bg-gradient-to-br from-indigo-50 via-indigo-100 to-purple-50 dark:from-indigo-900/40 dark:via-indigo-800/30 dark:to-purple-900/40 border-2 border-indigo-300 dark:border-indigo-500 shadow-xl' 
+                  : 'bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 border-2 border-gray-300 dark:border-gray-600 shadow-lg'
               }`}>
-                {isRunning ? 'Session Active' : 'Ready to Start'}
-              </div>
-            </div>
-          </div>
-
-          {/* Notice for missing session details */}
-          {(!subject || !topic || !selectedExam) && (
-            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg">
-              <div className="flex items-start gap-2">
-                <div className="flex-shrink-0 mt-0.5">
-                  <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">!</span>
+                {isRunning && (
+                  <div className="absolute -inset-2 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-3xl blur opacity-20 animate-pulse"></div>
+                )}
+                <div className="relative">
+                  <div className={`font-mono font-bold transition-all duration-300 ${
+                    isRunning 
+                      ? 'text-indigo-700 dark:text-indigo-300' 
+                      : 'text-gray-700 dark:text-gray-300'
+                  } text-4xl sm:text-6xl md:text-7xl tracking-wider`}>
+                    {formatTime(time)}
+                  </div>
+                  <div className={`mt-3 text-sm sm:text-base font-semibold tracking-wide ${
+                    isRunning 
+                      ? 'text-indigo-600 dark:text-indigo-400' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>
+                    <div className="flex items-center justify-center gap-2">
+                      <Timer className={`h-4 w-4 ${isRunning ? 'animate-spin' : ''}`} />
+                      {isRunning ? 'Session Active' : 'Ready to Start'}
+                    </div>
                   </div>
                 </div>
-                <div className="text-sm text-amber-800 dark:text-amber-200">
-                  <p className="font-medium">Add session details first to start timer or add manual entry</p>
-                  <p className="text-xs mt-1 opacity-90">Please fill in exam, subject, and topic fields below</p>
-                </div>
               </div>
             </div>
-          )}
 
-          {/* Control Buttons - Mobile Optimized */}
-          <div className="flex justify-center items-center gap-2 sm:gap-3">
-            {!isRunning ? (
+            {/* Notice for missing session details */}
+            {!isFormComplete && (
+              <div className="relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-amber-400 to-orange-400 rounded-xl blur opacity-20"></div>
+                <div className="relative p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border-2 border-amber-300 dark:border-amber-600 rounded-xl">
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-5 h-5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                    </div>
+                    <div className="text-amber-800 dark:text-amber-200">
+                      <p className="font-semibold text-sm sm:text-base">Complete session details to begin</p>
+                      <p className="text-xs sm:text-sm mt-1 opacity-90">Fill in exam, subject, and topic fields below to start timing or add manual entries</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Control Buttons */}
+            <div className="flex justify-center items-center gap-3 sm:gap-4">
+              {!isRunning ? (
+                <button
+                  onClick={startTimer}
+                  disabled={!isFormComplete}
+                  className={`group flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg border-2 transition-all duration-300 transform ${
+                    !isFormComplete
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                      : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 hover:shadow-xl active:scale-95 shadow-lg'
+                  }`}
+                >
+                  <Play className={`h-5 w-5 transition-transform duration-300 ${isFormComplete ? 'group-hover:scale-110' : ''}`} />
+                  <span>Start Session</span>
+                </button>
+              ) : (
+                <button
+                  onClick={pauseTimer}
+                  className="group flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-600 hover:to-amber-600 text-white rounded-2xl font-bold text-base sm:text-lg border-2 border-gray-800 dark:border-gray-200 transition-all duration-300 transform hover:scale-105 hover:shadow-xl active:scale-95 shadow-lg"
+                >
+                  <Pause className="h-5 w-5 transition-transform duration-300 group-hover:scale-110" />
+                  <span>Pause</span>
+                </button>
+              )}
+              
               <button
-                onClick={startTimer}
-                disabled={!subject || !topic || !selectedExam}
-                className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base border-2 transition-all duration-200 ${
-                  !subject || !topic || !selectedExam
+                onClick={stopTimer}
+                disabled={time === 0}
+                className={`group flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl font-bold text-base sm:text-lg border-2 transition-all duration-300 transform ${
+                  time === 0
                     ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
-                    : 'bg-green-500 hover:bg-green-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 active:scale-95'
+                    : 'bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 hover:shadow-xl active:scale-95 shadow-lg'
                 }`}
               >
-                <Play className="h-4 w-4" />
-                <span className="hidden sm:inline">Start</span>
+                <Square className={`h-5 w-5 transition-transform duration-300 ${time > 0 ? 'group-hover:scale-110' : ''}`} />
+                <span className="hidden sm:inline">Stop & Save</span>
+                <span className="sm:hidden">Stop</span>
               </button>
-            ) : (
-              <button
-                onClick={pauseTimer}
-                className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold text-sm sm:text-base border-2 border-gray-800 dark:border-gray-200 transition-all duration-200 hover:scale-105 active:scale-95"
-              >
-                <Pause className="h-4 w-4" />
-                <span className="hidden sm:inline">Pause</span>
-              </button>
-            )}
-            
-            <button
-              onClick={stopTimer}
-              disabled={time === 0}
-              className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base border-2 transition-all duration-200 ${
-                time === 0
-                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
-                  : 'bg-red-500 hover:bg-red-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 active:scale-95'
-              }`}
-            >
-              <Square className="h-4 w-4" />
-              <span className="hidden sm:inline">Stop & Save</span>
-            </button>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Study Session Form */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
-        <div className="p-4 sm:p-6 space-y-4">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-            <BookOpen className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-            Session Details
-          </h3>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <Target className="h-4 w-4" />
-                Exam
-              </label>
-              <select
-                value={selectedExam}
-                onChange={(e) => setSelectedExam(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                required
-              >
-                <option value="">Choose your exam</option>
-                {exams.map(exam => (
-                  <option key={exam.id} value={exam.id}>{exam.name}</option>
-                ))}
-              </select>
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity duration-300"></div>
+        <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl border-2 border-gray-800 dark:border-gray-200 shadow-xl">
+          <div className="p-6 sm:p-8 space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg">
+                <BookOpen className="h-5 w-5 text-white" />
+              </div>
+              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-gray-100 dark:to-gray-300 bg-clip-text text-transparent">
+                Session Details
+              </h3>
             </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {/* Exam Selection */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <Target className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  Target Exam
+                </label>
+                <div className="relative group/select">
+                  <select
+                    value={selectedExam}
+                    onChange={(e) => setSelectedExam(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-400 group-hover/select:shadow-lg font-medium"
+                    required
+                  >
+                    <option value="">Choose your exam</option>
+                    {exams.map(exam => (
+                      <option key={exam.id} value={exam.id}>{exam.name}</option>
+                    ))}
+                  </select>
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Subject
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Mathematics"
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                required
-              />
-            </div>
+              {/* Subject Input */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Subject
+                </label>
+                <div className="relative group/input">
+                  <input
+                    type="text"
+                    placeholder="e.g., Mathematics"
+                    value={subject}
+                    onChange={(e) => setSubject(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-400 group-hover/input:shadow-lg font-medium"
+                    required
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover/input:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Topic
-              </label>
-              <input
-                type="text"
-                placeholder="e.g., Calculus"
-                value={topic}
-                onChange={(e) => setTopic(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                required
-              />
-            </div>
+              {/* Topic Input */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  Topic
+                </label>
+                <div className="relative group/input">
+                  <input
+                    type="text"
+                    placeholder="e.g., Calculus"
+                    value={topic}
+                    onChange={(e) => setTopic(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-400 group-hover/input:shadow-lg font-medium"
+                    required
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover/input:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Efficiency Rating
-              </label>
-              <div className="relative">
-                <select
-                  value={efficiency}
-                  onChange={(e) => setEfficiency(parseInt(e.target.value))}
-                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                >
-                  <option value={5}>5 - Excellent</option>
-                  <option value={4}>4 - Good</option>
-                  <option value={3}>3 - Average</option>
-                  <option value={2}>2 - Below Average</option>
-                  <option value={1}>1 - Poor</option>
-                </select>
-                <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded-full text-xs font-medium border ${getEfficiencyColor(efficiency)}`}>
-                  {getEfficiencyLabel(efficiency)}
+              {/* Efficiency Rating */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  Efficiency Rating
+                </label>
+                <div className="relative group/select">
+                  <select
+                    value={efficiency}
+                    onChange={(e) => setEfficiency(parseInt(e.target.value))}
+                    className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-400 group-hover/select:shadow-lg font-medium appearance-none pr-12"
+                  >
+                    <option value={5}>5 - Excellent</option>
+                    <option value={4}>4 - Good</option>
+                    <option value={3}>3 - Average</option>
+                    <option value={2}>2 - Below Average</option>
+                    <option value={1}>1 - Poor</option>
+                  </select>
+                  <div className={`absolute right-4 top-1/2 transform -translate-y-1/2 px-3 py-1.5 rounded-full text-xs font-bold border-2 transition-all duration-300 ${getEfficiencyColor(efficiency)}`}>
+                    {getEfficiencyLabel(efficiency)}
+                  </div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover/select:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
               </div>
             </div>
@@ -301,52 +347,70 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
       </div>
 
       {/* Manual Entry Section */}
-      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
-        <div className="p-4 sm:p-6">
-          <button
-            onClick={() => setShowManualEntry(!showManualEntry)}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 font-medium border-2 border-dashed border-indigo-300 dark:border-indigo-600 hover:border-indigo-500"
-          >
-            <Plus className={`h-5 w-5 transform transition-transform duration-200 ${showManualEntry ? 'rotate-45' : ''}`} />
-            {showManualEntry ? 'Cancel Manual Entry' : 'Add Manual Entry'}
-          </button>
+      <div className="relative group">
+        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-10 group-hover:opacity-20 transition-opacity duration-300"></div>
+        <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl border-2 border-gray-800 dark:border-gray-200 shadow-xl">
+          <div className="p-6 sm:p-8">
+            <button
+              onClick={() => setShowManualEntry(!showManualEntry)}
+              className="group/btn w-full flex items-center justify-center gap-4 px-6 py-4 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/30 dark:hover:to-purple-900/30 rounded-xl transition-all duration-300 font-semibold border-2 border-dashed border-indigo-300 dark:border-indigo-600 hover:border-indigo-500 hover:shadow-lg"
+            >
+              <Plus className={`h-5 w-5 transform transition-all duration-300 group-hover/btn:scale-110 ${showManualEntry ? 'rotate-45' : ''}`} />
+              <span className="text-base">
+                {showManualEntry ? 'Cancel Manual Entry' : 'Add Manual Entry'}
+              </span>
+            </button>
 
-          {showManualEntry && (
-            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border-2 border-indigo-200 dark:border-indigo-800 space-y-4">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-indigo-700 dark:text-indigo-300">
-                  Duration (minutes)
-                </label>
-                <input
-                  type="number"
-                  placeholder="e.g., 60"
-                  value={manualDuration}
-                  onChange={(e) => setManualDuration(e.target.value)}
-                  className="w-full px-3 py-2 border-2 border-indigo-300 dark:border-indigo-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
-                  required
-                />
+            {showManualEntry && (
+              <div className="mt-6 relative">
+                <div className="absolute -inset-1 bg-gradient-to-r from-indigo-400 to-purple-400 rounded-xl blur opacity-10"></div>
+                <div className="relative p-6 bg-gradient-to-br from-indigo-50 via-indigo-50 to-purple-50 dark:from-indigo-900/40 dark:via-indigo-800/30 dark:to-purple-900/40 rounded-xl border-2 border-indigo-200 dark:border-indigo-700 space-y-6">
+                  <div className="space-y-3">
+                    <label className="block text-sm font-semibold text-indigo-800 dark:text-indigo-200 flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Duration (minutes)
+                    </label>
+                    <div className="relative group/duration">
+                      <input
+                        type="number"
+                        placeholder="e.g., 60"
+                        value={manualDuration}
+                        onChange={(e) => setManualDuration(e.target.value)}
+                        className="w-full px-4 py-3 border-2 border-indigo-300 dark:border-indigo-600 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 hover:border-indigo-400 group-hover/duration:shadow-lg font-medium"
+                        required
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-xl opacity-0 group-hover/duration:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <button
+                      onClick={handleManualEntry}
+                      disabled={!manualDuration || !isFormComplete}
+                      className={`group/save flex-1 px-6 py-3 rounded-xl font-semibold border-2 transition-all duration-300 transform ${
+                        !manualDuration || !isFormComplete
+                          ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white border-gray-800 dark:border-gray-200 hover:scale-105 hover:shadow-lg active:scale-95'
+                      }`}
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <Plus className={`h-4 w-4 transition-transform duration-300 ${!manualDuration || !isFormComplete ? '' : 'group-hover/save:scale-110'}`} />
+                        Save Session
+                      </span>
+                    </button>
+                    <button
+                      onClick={() => setShowManualEntry(false)}
+                      className="group/cancel px-6 py-3 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 hover:from-gray-300 hover:to-gray-400 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-xl font-semibold border-2 border-gray-300 dark:border-gray-600 transition-all duration-300 transform hover:scale-105 hover:shadow-lg active:scale-95"
+                    >
+                      <span className="flex items-center justify-center gap-2">
+                        <Square className="h-4 w-4 transition-transform duration-300 group-hover/cancel:scale-110" />
+                        Cancel
+                      </span>
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleManualEntry}
-                  disabled={!manualDuration || !subject || !topic || !selectedExam}
-                  className={`flex-1 px-4 py-2 rounded-lg font-semibold border-2 transition-all duration-200 ${
-                    !manualDuration || !subject || !topic || !selectedExam
-                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
-                      : 'bg-indigo-600 hover:bg-indigo-700 text-white border-gray-800 dark:border-gray-200 hover:scale-105'
-                  }`}
-                >
-                  Save Session
-                </button>
-                <button
-                  onClick={() => setShowManualEntry(false)}
-                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold border-2 border-gray-300 dark:border-gray-600 transition-all duration-200 hover:scale-105"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
