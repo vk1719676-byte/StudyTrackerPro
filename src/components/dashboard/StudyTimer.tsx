@@ -102,11 +102,11 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
 
   const getEfficiencyColor = (rating: number) => {
     const colors = {
-      5: 'text-emerald-700 bg-emerald-100 border-emerald-300',
-      4: 'text-green-700 bg-green-100 border-green-300',
-      3: 'text-yellow-700 bg-yellow-100 border-yellow-300',
-      2: 'text-orange-700 bg-orange-100 border-orange-300',
-      1: 'text-red-700 bg-red-100 border-red-300'
+      5: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-900/20 dark:border-emerald-800',
+      4: 'text-green-600 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/20 dark:border-green-800',
+      3: 'text-yellow-600 bg-yellow-50 border-yellow-200 dark:text-yellow-400 dark:bg-yellow-900/20 dark:border-yellow-800',
+      2: 'text-orange-600 bg-orange-50 border-orange-200 dark:text-orange-400 dark:bg-orange-900/20 dark:border-orange-800',
+      1: 'text-red-600 bg-red-50 border-red-200 dark:text-red-400 dark:bg-red-900/20 dark:border-red-800'
     };
     return colors[rating as keyof typeof colors] || colors[5];
   };
@@ -123,275 +123,231 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 p-4 sm:p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl shadow-xl">
-            <Clock className="h-10 w-10 text-white" />
-          </div>
-          <div>
-            <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Study Timer
-            </h1>
-            <p className="text-gray-600 mt-2 text-lg">Track your study sessions with precision</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="p-2 bg-indigo-600 dark:bg-indigo-500 rounded-lg border-2 border-gray-800 dark:border-gray-200">
+          <Clock className="h-5 w-5 text-white" />
         </div>
-        
-        {/* Main Timer Card */}
-        <Card className="relative overflow-hidden bg-white/70 backdrop-blur-sm border-0 shadow-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-indigo-500/5"></div>
-          <div className="relative p-8 sm:p-12 space-y-8">
-            {/* Timer Display */}
-            <div className="text-center">
-              <div className={`relative inline-block p-8 sm:p-12 rounded-3xl transition-all duration-500 ${
+        <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+          Study Timer
+        </h2>
+      </div>
+      
+      {/* Main Timer Card */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
+        <div className="p-4 sm:p-6 space-y-6">
+          {/* Timer Display - Responsive */}
+          <div className="text-center">
+            <div className={`inline-block p-4 sm:p-6 rounded-xl border-2 transition-all duration-300 ${
+              isRunning 
+                ? 'bg-indigo-50 dark:bg-indigo-900/20 border-indigo-600 dark:border-indigo-400' 
+                : 'bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600'
+            }`}>
+              <div className={`font-mono font-bold transition-all duration-300 ${
                 isRunning 
-                  ? 'bg-gradient-to-br from-blue-100 to-indigo-100 shadow-inner border-2 border-blue-300' 
-                  : 'bg-gradient-to-br from-gray-50 to-slate-100 shadow-inner border-2 border-gray-300'
+                  ? 'text-indigo-600 dark:text-indigo-400' 
+                  : 'text-gray-700 dark:text-gray-300'
+              } text-3xl sm:text-4xl md:text-5xl`}>
+                {formatTime(time)}
+              </div>
+              <div className={`mt-2 text-xs sm:text-sm font-medium ${
+                isRunning 
+                  ? 'text-indigo-500 dark:text-indigo-400' 
+                  : 'text-gray-500 dark:text-gray-400'
               }`}>
-                {isRunning && (
-                  <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-blue-400/10 to-indigo-400/10 animate-pulse"></div>
-                )}
-                <div className="relative">
-                  <div className={`font-mono font-bold transition-all duration-500 ${
-                    isRunning 
-                      ? 'text-blue-700 scale-110' 
-                      : 'text-gray-700 scale-100'
-                  } text-5xl sm:text-6xl md:text-7xl`}>
-                    {formatTime(time)}
+                {isRunning ? 'Session Active' : 'Ready to Start'}
+              </div>
+            </div>
+          </div>
+
+          {/* Notice for missing session details */}
+          {(!subject || !topic || !selectedExam) && (
+            <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="flex items-start gap-2">
+                <div className="flex-shrink-0 mt-0.5">
+                  <div className="w-4 h-4 bg-amber-500 rounded-full flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">!</span>
                   </div>
-                  <div className={`mt-4 text-base font-semibold transition-all duration-300 ${
-                    isRunning 
-                      ? 'text-blue-600' 
-                      : 'text-gray-500'
-                  }`}>
-                    {isRunning ? (
-                      <span className="inline-flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                        Session Active
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-2">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                        Ready to Start
-                      </span>
-                    )}
-                  </div>
+                </div>
+                <div className="text-sm text-amber-800 dark:text-amber-200">
+                  <p className="font-medium">Add session details first to start timer or add manual entry</p>
+                  <p className="text-xs mt-1 opacity-90">Please fill in exam, subject, and topic fields below</p>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* Notice for missing session details */}
-            {(!subject || !topic || !selectedExam) && (
-              <div className="relative overflow-hidden bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-6 shadow-lg">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-400 to-orange-400"></div>
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg">
-                      <span className="text-white text-sm font-bold">!</span>
-                    </div>
-                  </div>
-                  <div className="text-amber-800">
-                    <p className="font-bold text-lg">Complete session details to begin</p>
-                    <p className="text-sm mt-1 opacity-90">Fill in exam, subject, and topic fields below to start your timer</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Control Buttons */}
-            <div className="flex justify-center items-center gap-6">
-              {!isRunning ? (
-                <button
-                  onClick={startTimer}
-                  disabled={!subject || !topic || !selectedExam}
-                  className={`group relative flex items-center gap-4 px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform ${
-                    !subject || !topic || !selectedExam
-                      ? 'bg-gray-100 text-gray-400 border-2 border-gray-300 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white border-2 border-green-600 shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95'
-                  }`}
-                >
-                  <Play className="h-7 w-7" />
-                  <span>Start Timer</span>
-                  {(!subject || !topic || !selectedExam) && (
-                    <div className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 rounded-full animate-bounce"></div>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={pauseTimer}
-                  className="group flex items-center gap-4 px-10 py-5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white rounded-2xl font-bold text-xl border-2 border-yellow-600 shadow-xl transition-all duration-300 transform hover:shadow-2xl hover:scale-110 active:scale-95"
-                >
-                  <Pause className="h-7 w-7" />
-                  <span>Pause</span>
-                </button>
-              )}
-              
+          {/* Control Buttons - Mobile Optimized */}
+          <div className="flex justify-center items-center gap-2 sm:gap-3">
+            {!isRunning ? (
               <button
-                onClick={stopTimer}
-                disabled={time === 0}
-                className={`group flex items-center gap-4 px-10 py-5 rounded-2xl font-bold text-xl transition-all duration-300 transform ${
-                  time === 0
-                    ? 'bg-gray-100 text-gray-400 border-2 border-gray-300 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white border-2 border-red-600 shadow-xl hover:shadow-2xl hover:scale-110 active:scale-95'
+                onClick={startTimer}
+                disabled={!subject || !topic || !selectedExam}
+                className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base border-2 transition-all duration-200 ${
+                  !subject || !topic || !selectedExam
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                    : 'bg-green-500 hover:bg-green-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 active:scale-95'
                 }`}
               >
-                <Square className="h-7 w-7" />
-                <span>Stop & Save</span>
+                <Play className="h-4 w-4" />
+                <span className="hidden sm:inline">Start</span>
               </button>
-            </div>
-          </div>
-        </Card>
-
-        {/* Study Session Form */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-2xl">
-          <div className="p-8 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="p-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-2xl shadow-lg">
-                <BookOpen className="h-7 w-7 text-white" />
-              </div>
-              <h3 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-blue-600 bg-clip-text text-transparent">
-                Session Details
-              </h3>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <label className="block text-sm font-bold text-gray-700 flex items-center gap-3">
-                  <Target className="h-5 w-5 text-indigo-500" />
-                  Select Exam
-                </label>
-                <div className="relative">
-                  <select
-                    value={selectedExam}
-                    onChange={(e) => setSelectedExam(e.target.value)}
-                    className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl appearance-none cursor-pointer text-lg font-medium"
-                    required
-                  >
-                    <option value="">Choose your exam</option>
-                    {exams.map(exam => (
-                      <option key={exam.id} value={exam.id}>{exam.name}</option>
-                    ))}
-                  </select>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <label className="block text-sm font-bold text-gray-700">
-                  Subject
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., Mathematics"
-                  value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl placeholder:text-gray-400 text-lg font-medium"
-                  required
-                />
-              </div>
-
-              <div className="space-y-4">
-                <label className="block text-sm font-bold text-gray-700">
-                  Topic
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g., Calculus"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl placeholder:text-gray-400 text-lg font-medium"
-                  required
-                />
-              </div>
-
-              <div className="space-y-4">
-                <label className="block text-sm font-bold text-gray-700 flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-indigo-500" />
-                  Efficiency Rating
-                </label>
-                <div className="relative">
-                  <select
-                    value={efficiency}
-                    onChange={(e) => setEfficiency(parseInt(e.target.value))}
-                    className="w-full px-5 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 shadow-lg hover:shadow-xl appearance-none cursor-pointer text-lg font-medium"
-                  >
-                    <option value={5}>5 - Excellent</option>
-                    <option value={4}>4 - Good</option>
-                    <option value={3}>3 - Average</option>
-                    <option value={2}>2 - Below Average</option>
-                    <option value={1}>1 - Poor</option>
-                  </select>
-                  <div className={`absolute right-16 top-1/2 transform -translate-y-1/2 px-4 py-2 rounded-full text-sm font-bold border-2 ${getEfficiencyColor(efficiency)}`}>
-                    {getEfficiencyLabel(efficiency)}
-                  </div>
-                  <div className="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none">
-                    <svg className="w-6 h-6 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        {/* Manual Entry Section */}
-        <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-2xl">
-          <div className="p-8">
-            <button
-              onClick={() => setShowManualEntry(!showManualEntry)}
-              className="w-full flex items-center justify-center gap-4 px-8 py-5 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-2xl transition-all duration-300 font-bold text-lg border-2 border-dashed border-indigo-300 hover:border-indigo-500 group shadow-lg hover:shadow-xl"
-            >
-              <Plus className={`h-7 w-7 transform transition-transform duration-300 ${showManualEntry ? 'rotate-45' : 'group-hover:scale-110'}`} />
-              <span>
-                {showManualEntry ? 'Cancel Manual Entry' : 'Add Manual Entry'}
-              </span>
-            </button>
-
-            {showManualEntry && (
-              <div className="mt-8 p-8 bg-gradient-to-br from-indigo-50 to-blue-50 rounded-2xl border-2 border-indigo-200 space-y-6 animate-in slide-in-from-top duration-500 shadow-inner">
-                <div className="space-y-4">
-                  <label className="block text-sm font-bold text-indigo-800 flex items-center gap-3">
-                    <Clock className="h-5 w-5" />
-                    Duration (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="e.g., 60"
-                    value={manualDuration}
-                    onChange={(e) => setManualDuration(e.target.value)}
-                    className="w-full px-5 py-4 border-2 border-indigo-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 shadow-lg placeholder:text-gray-400 text-lg font-medium"
-                    required
-                  />
-                </div>
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleManualEntry}
-                    disabled={!manualDuration || !subject || !topic || !selectedExam}
-                    className={`flex-1 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 transform ${
-                      !manualDuration || !subject || !topic || !selectedExam
-                        ? 'bg-gray-100 text-gray-400 border-2 border-gray-300 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white border-2 border-indigo-600 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95'
-                    }`}
-                  >
-                    Save Session
-                  </button>
-                  <button
-                    onClick={() => setShowManualEntry(false)}
-                    className="px-8 py-4 bg-white hover:bg-gray-50 text-gray-700 rounded-xl font-bold border-2 border-gray-300 hover:border-gray-400 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl text-lg"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
+            ) : (
+              <button
+                onClick={pauseTimer}
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-yellow-500 hover:bg-yellow-600 text-white rounded-lg font-semibold text-sm sm:text-base border-2 border-gray-800 dark:border-gray-200 transition-all duration-200 hover:scale-105 active:scale-95"
+              >
+                <Pause className="h-4 w-4" />
+                <span className="hidden sm:inline">Pause</span>
+              </button>
             )}
+            
+            <button
+              onClick={stopTimer}
+              disabled={time === 0}
+              className={`flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-semibold text-sm sm:text-base border-2 transition-all duration-200 ${
+                time === 0
+                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                  : 'bg-red-500 hover:bg-red-600 text-white border-gray-800 dark:border-gray-200 hover:scale-105 active:scale-95'
+              }`}
+            >
+              <Square className="h-4 w-4" />
+              <span className="hidden sm:inline">Stop & Save</span>
+            </button>
           </div>
-        </Card>
+        </div>
+      </div>
+
+      {/* Study Session Form */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
+        <div className="p-4 sm:p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+            <BookOpen className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+            Session Details
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <Target className="h-4 w-4" />
+                Exam
+              </label>
+              <select
+                value={selectedExam}
+                onChange={(e) => setSelectedExam(e.target.value)}
+                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                required
+              >
+                <option value="">Choose your exam</option>
+                {exams.map(exam => (
+                  <option key={exam.id} value={exam.id}>{exam.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Subject
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Mathematics"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Topic
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., Calculus"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <TrendingUp className="h-4 w-4" />
+                Efficiency Rating
+              </label>
+              <div className="relative">
+                <select
+                  value={efficiency}
+                  onChange={(e) => setEfficiency(parseInt(e.target.value))}
+                  className="w-full px-3 py-2 border-2 border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                >
+                  <option value={5}>5 - Excellent</option>
+                  <option value={4}>4 - Good</option>
+                  <option value={3}>3 - Average</option>
+                  <option value={2}>2 - Below Average</option>
+                  <option value={1}>1 - Poor</option>
+                </select>
+                <div className={`absolute right-3 top-1/2 transform -translate-y-1/2 px-2 py-1 rounded-full text-xs font-medium border ${getEfficiencyColor(efficiency)}`}>
+                  {getEfficiencyLabel(efficiency)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Manual Entry Section */}
+      <div className="bg-white dark:bg-gray-900 rounded-xl border-2 border-gray-800 dark:border-gray-200 shadow-lg">
+        <div className="p-4 sm:p-6">
+          <button
+            onClick={() => setShowManualEntry(!showManualEntry)}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all duration-200 font-medium border-2 border-dashed border-indigo-300 dark:border-indigo-600 hover:border-indigo-500"
+          >
+            <Plus className={`h-5 w-5 transform transition-transform duration-200 ${showManualEntry ? 'rotate-45' : ''}`} />
+            {showManualEntry ? 'Cancel Manual Entry' : 'Add Manual Entry'}
+          </button>
+
+          {showManualEntry && (
+            <div className="mt-4 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border-2 border-indigo-200 dark:border-indigo-800 space-y-4">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                  Duration (minutes)
+                </label>
+                <input
+                  type="number"
+                  placeholder="e.g., 60"
+                  value={manualDuration}
+                  onChange={(e) => setManualDuration(e.target.value)}
+                  className="w-full px-3 py-2 border-2 border-indigo-300 dark:border-indigo-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200"
+                  required
+                />
+              </div>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleManualEntry}
+                  disabled={!manualDuration || !subject || !topic || !selectedExam}
+                  className={`flex-1 px-4 py-2 rounded-lg font-semibold border-2 transition-all duration-200 ${
+                    !manualDuration || !subject || !topic || !selectedExam
+                      ? 'bg-gray-100 dark:bg-gray-800 text-gray-400 border-gray-300 dark:border-gray-600 cursor-not-allowed'
+                      : 'bg-indigo-600 hover:bg-indigo-700 text-white border-gray-800 dark:border-gray-200 hover:scale-105'
+                  }`}
+                >
+                  Save Session
+                </button>
+                <button
+                  onClick={() => setShowManualEntry(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-semibold border-2 border-gray-300 dark:border-gray-600 transition-all duration-200 hover:scale-105"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
