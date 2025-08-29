@@ -3,50 +3,12 @@ import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, Bar
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserExams, addExam, updateExam, deleteExam } from '../services/firestore';
 import { Exam } from '../types';
 
-// Mock data for demonstration
-const mockExams: Exam[] = [
-  {
-    id: '1',
-    name: 'Mathematics Final',
-    date: new Date('2025-01-25'),
-    syllabus: 'Calculus, Linear Algebra, Statistics, Probability Theory, Mathematical Analysis',
-    priority: 'high',
-    userId: 'user1',
-    createdAt: new Date('2024-12-01')
-  },
-  {
-    id: '2',
-    name: 'Physics Midterm',
-    date: new Date('2025-01-20'),
-    syllabus: 'Mechanics, Thermodynamics, Electromagnetism, Quantum Physics',
-    priority: 'medium',
-    userId: 'user1',
-    createdAt: new Date('2024-11-15')
-  },
-  {
-    id: '3',
-    name: 'Computer Science Theory',
-    date: new Date('2025-01-15'),
-    syllabus: 'Data Structures, Algorithms, Complexity Theory, Database Systems',
-    priority: 'high',
-    userId: 'user1',
-    createdAt: new Date('2024-11-20')
-  },
-  {
-    id: '4',
-    name: 'Chemistry Lab',
-    date: new Date('2025-01-30'),
-    syllabus: 'Organic Chemistry, Inorganic Reactions, Laboratory Techniques',
-    priority: 'low',
-    userId: 'user1',
-    createdAt: new Date('2024-12-05')
-  }
-];
-
 export const Exams: React.FC = () => {
-  const [exams, setExams] = useState<Exam[]>(mockExams);
+  const [exams, setExams] = useState<Exam[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,7 +21,8 @@ export const Exams: React.FC = () => {
     syllabus: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   // Update current time every second for real-time countdown
   useEffect(() => {
@@ -69,6 +32,17 @@ export const Exams: React.FC = () => {
 
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const unsubscribe = getUserExams(user.uid, (examData) => {
+      setExams(examData);
+      setLoading(false);
+    });
+
+    return unsubscribe;
+  }, [user]);
 
   // Statistics calculations
   const stats = useMemo(() => {
@@ -134,29 +108,26 @@ export const Exams: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    if (!user) return;
 
-    const examData: Exam = {
-      id: editingExam?.id || Math.random().toString(36).substr(2, 9),
+    const examData = {
       name: formData.name,
       date: new Date(formData.date),
       syllabus: formData.syllabus,
       priority: formData.priority,
-      userId: 'user1',
-      createdAt: editingExam?.createdAt || new Date()
+      userId: user.uid,
+      createdAt: new Date()
     };
 
     try {
       if (editingExam) {
-        setExams(prev => prev.map(exam => exam.id === editingExam.id ? examData : exam));
+        await updateExam(editingExam.id, examData);
       } else {
-        setExams(prev => [...prev, examData]);
+        await addExam(examData);
       }
       resetForm();
     } catch (error) {
       console.error('Error saving exam:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -174,7 +145,7 @@ export const Exams: React.FC = () => {
   const handleDelete = async (examId: string) => {
     if (window.confirm('Are you sure you want to delete this exam?')) {
       try {
-        setExams(prev => prev.filter(exam => exam.id !== examId));
+        await deleteExam(examId);
       } catch (error) {
         console.error('Error deleting exam:', error);
       }
@@ -307,8 +278,8 @@ export const Exams: React.FC = () => {
         </div>
 
         {/* Statistics Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <Card className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               <div>
@@ -318,7 +289,7 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5" />
               <div>
@@ -328,7 +299,7 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="p-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5" />
               <div>
@@ -338,7 +309,7 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="p-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <Target className="w-5 h-5" />
               <div>
@@ -348,7 +319,7 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <Timer className="w-5 h-5" />
               <div>
@@ -358,7 +329,7 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+          <Card className="p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <Award className="w-5 h-5" />
               <div>
@@ -548,7 +519,7 @@ export const Exams: React.FC = () => {
                     ${timeData.bgColor}
                     ${isCritical ? 'animate-pulse shadow-red-500/50' : ''}
                     ${isPastDue ? 'opacity-75' : ''}
-                    bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-700/50 backdrop-blur-sm
+                    animate-fade-in bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-800 dark:to-gray-700/50 backdrop-blur-sm
                   `}
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
@@ -657,7 +628,7 @@ export const Exams: React.FC = () => {
                             <BookOpen className="w-4 h-4 text-green-600" />
                             Syllabus Overview
                           </h4>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
                             {exam.syllabus}
                           </p>
                         </div>
