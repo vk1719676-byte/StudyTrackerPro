@@ -3,9 +3,10 @@ import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, Bar
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
+import { SyllabusTracker } from '../components/SyllabusTracker';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, addExam, updateExam, deleteExam } from '../services/firestore';
-import { Exam } from '../types';
+import { Exam, SyllabusTopic } from '../types';
 
 export const Exams: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -13,13 +14,14 @@ export const Exams: React.FC = () => {
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'name'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'name' | 'progress'>('date');
   const [currentTime, setCurrentTime] = useState(new Date());
   const [formData, setFormData] = useState({
     name: '',
     date: '',
     syllabus: '',
     priority: 'medium' as 'low' | 'medium' | 'high',
+    syllabusTopics: [] as SyllabusTopic[],
   });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
@@ -37,14 +39,19 @@ export const Exams: React.FC = () => {
     if (!user) return;
 
     const unsubscribe = getUserExams(user.uid, (examData) => {
-      setExams(examData);
+      // Ensure syllabusTopics exists for all exams
+      const examsWithTopics = examData.map(exam => ({
+        ...exam,
+        syllabusTopics: exam.syllabusTopics || []
+      }));
+      setExams(examsWithTopics);
       setLoading(false);
     });
 
     return unsubscribe;
   }, [user]);
 
-  // Statistics calculations
+  // Enhanced statistics calculations including progress
   const stats = useMemo(() => {
     const now = currentTime;
     const upcomingExams = exams.filter(exam => exam.date >= now);
@@ -59,21 +66,34 @@ export const Exams: React.FC = () => {
       return examDate.toDateString() === now.toDateString();
     });
 
+    // Calculate overall progress
+    const totalTopics = exams.reduce((sum, exam) => sum + (exam.syllabusTopics?.length || 0), 0);
+    const completedTopics = exams.reduce((sum, exam) => 
+      sum + (exam.syllabusTopics?.filter(topic => topic.completed).length || 0), 0
+    );
+    const overallProgress = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0;
+
     return {
       total: exams.length,
       upcoming: upcomingExams.length,
       past: pastExams.length,
       urgent: urgentExams.length,
       highPriority: highPriorityCount,
-      today: todayExams.length
+      today: todayExams.length,
+      overallProgress: Math.round(overallProgress),
+      totalTopics,
+      completedTopics
     };
   }, [exams, currentTime]);
 
-  // Filtered and sorted exams
+  // Enhanced filtered and sorted exams
   const filteredExams = useMemo(() => {
     let filtered = exams.filter(exam => {
       const matchesSearch = exam.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           exam.syllabus.toLowerCase().includes(searchTerm.toLowerCase());
+                           exam.syllabus.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           (exam.syllabusTopics || []).some(topic => 
+                             topic.name.toLowerCase().includes(searchTerm.toLowerCase())
+                           );
       const matchesPriority = filterPriority === 'all' || exam.priority === filterPriority;
       return matchesSearch && matchesPriority;
     });
@@ -87,6 +107,12 @@ export const Exams: React.FC = () => {
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         case 'name':
           return a.name.localeCompare(b.name);
+        case 'progress':
+          const aProgress = a.syllabusTopics?.length > 0 ? 
+            (a.syllabusTopics.filter(t => t.completed).length / a.syllabusTopics.length) * 100 : 0;
+          const bProgress = b.syllabusTopics?.length > 0 ? 
+            (b.syllabusTopics.filter(t => t.completed).length / b.syllabusTopics.length) * 100 : 0;
+          return bProgress - aProgress;
         default:
           return 0;
       }
@@ -101,6 +127,7 @@ export const Exams: React.FC = () => {
       date: '',
       syllabus: '',
       priority: 'medium',
+      syllabusTopics: [],
     });
     setEditingExam(null);
     setShowForm(false);
@@ -116,7 +143,8 @@ export const Exams: React.FC = () => {
       syllabus: formData.syllabus,
       priority: formData.priority,
       userId: user.uid,
-      createdAt: new Date()
+      createdAt: editingExam?.createdAt || new Date(),
+      syllabusTopics: formData.syllabusTopics,
     };
 
     try {
@@ -137,18 +165,39 @@ export const Exams: React.FC = () => {
       date: exam.date.toISOString().split('T')[0],
       syllabus: exam.syllabus,
       priority: exam.priority,
+      syllabusTopics: exam.syllabusTopics || [],
     });
     setEditingExam(exam);
     setShowForm(true);
   };
 
   const handleDelete = async (examId: string) => {
-    if (window.confirm('Are you sure you want to delete this exam?')) {
+    if (window.confirm('Are you sure you want to delete this exam? This will also delete all syllabus progress.')) {
       try {
         await deleteExam(examId);
       } catch (error) {
         console.error('Error deleting exam:', error);
       }
+    }
+  };
+
+  const handleSyllabusTopicsChange = (topics: SyllabusTopic[]) => {
+    setFormData({ ...formData, syllabusTopics: topics });
+  };
+
+  const updateExamSyllabusTopics = async (examId: string, topics: SyllabusTopic[]) => {
+    const exam = exams.find(e => e.id === examId);
+    if (!exam) return;
+
+    const updatedExam = {
+      ...exam,
+      syllabusTopics: topics,
+    };
+
+    try {
+      await updateExam(examId, updatedExam);
+    } catch (error) {
+      console.error('Error updating syllabus topics:', error);
     }
   };
 
@@ -227,6 +276,12 @@ export const Exams: React.FC = () => {
     };
   };
 
+  const getExamProgress = (exam: Exam) => {
+    if (!exam.syllabusTopics || exam.syllabusTopics.length === 0) return 0;
+    const completed = exam.syllabusTopics.filter(topic => topic.completed).length;
+    return (completed / exam.syllabusTopics.length) * 100;
+  };
+
   const getProgressPercentage = (exam: Exam) => {
     const now = currentTime;
     const totalTime = exam.date.getTime() - exam.createdAt.getTime();
@@ -277,8 +332,8 @@ export const Exams: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+        {/* Enhanced Statistics Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
           <Card className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
@@ -329,18 +384,18 @@ export const Exams: React.FC = () => {
             </div>
           </Card>
           
-          <Card className="p-4 bg-gradient-to-r from-yellow-500 to-orange-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-violet-500 to-purple-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <Award className="w-5 h-5" />
+              <TrendingUp className="w-5 h-5" />
               <div>
-                <p className="text-yellow-100 text-xs font-medium">Completed</p>
-                <p className="text-xl font-bold">{stats.past}</p>
+                <p className="text-violet-100 text-xs font-medium">Study Progress</p>
+                <p className="text-xl font-bold">{stats.overallProgress}%</p>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Enhanced Form with Better Design */}
+        {/* Enhanced Form with Syllabus Tracker */}
         {showForm && (
           <Card className="mb-8 p-0 overflow-hidden border-0 shadow-2xl bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700">
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
@@ -348,7 +403,7 @@ export const Exams: React.FC = () => {
                 {editingExam ? 'Edit Exam' : 'Create New Exam'}
               </h2>
               <p className="opacity-90 mt-1">
-                {editingExam ? 'Update your exam details' : 'Add a new exam to track your preparation'}
+                {editingExam ? 'Update your exam details and syllabus' : 'Add a new exam and break down your study topics'}
               </p>
             </div>
             <div className="p-6">
@@ -390,14 +445,25 @@ export const Exams: React.FC = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Syllabus & Topics
+                    Syllabus Overview (Optional)
                   </label>
                   <textarea
-                    placeholder="📚 List the main topics, chapters, or areas you need to cover for this exam..."
+                    placeholder="📚 General description of what this exam covers..."
                     value={formData.syllabus}
                     onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
-                    rows={4}
+                    rows={3}
                     className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 resize-none"
+                  />
+                </div>
+
+                {/* Syllabus Topics Tracker in Form */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                    Syllabus Topics
+                  </label>
+                  <SyllabusTracker
+                    topics={formData.syllabusTopics}
+                    onTopicsChange={handleSyllabusTopicsChange}
                   />
                 </div>
 
@@ -431,7 +497,7 @@ export const Exams: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder="Search exams..."
+                    placeholder="Search exams and topics..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
@@ -457,6 +523,7 @@ export const Exams: React.FC = () => {
                   <option value="date">Sort by Date</option>
                   <option value="priority">Sort by Priority</option>
                   <option value="name">Sort by Name</option>
+                  <option value="progress">Sort by Progress</option>
                 </select>
               </div>
             </div>
@@ -491,7 +558,7 @@ export const Exams: React.FC = () => {
               Ready to ace your exams?
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
-              Start your journey to exam success. Add your first exam and let us help you create the perfect study plan.
+              Start your journey to exam success. Add your first exam and break down your study topics for better preparation tracking.
             </p>
             <Button 
               onClick={() => setShowForm(true)} 
@@ -510,6 +577,7 @@ export const Exams: React.FC = () => {
               const isToday = timeData.type === 'today';
               const isCritical = timeData.type === 'critical';
               const progress = getProgressPercentage(exam);
+              const studyProgress = getExamProgress(exam);
 
               return (
                 <Card 
@@ -534,12 +602,22 @@ export const Exams: React.FC = () => {
                   )}
 
                   <div className="relative z-10">
-                    {/* Progress Bar */}
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-4">
-                      <div 
-                        className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 rounded-full transition-all duration-500"
-                        style={{ width: `${progress}%` }}
-                      ></div>
+                    {/* Dual Progress Bars */}
+                    <div className="space-y-2 mb-4">
+                      {/* Time Progress */}
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div 
+                          className="bg-gradient-to-r from-purple-600 to-blue-600 h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                      </div>
+                      {/* Study Progress */}
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+                        <div 
+                          className="bg-gradient-to-r from-green-500 to-emerald-600 h-1.5 rounded-full transition-all duration-500"
+                          style={{ width: `${studyProgress}%` }}
+                        ></div>
+                      </div>
                     </div>
 
                     <div className="flex justify-between items-start mb-4">
@@ -547,10 +625,15 @@ export const Exams: React.FC = () => {
                         <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight">
                           {exam.name}
                         </h3>
-                        <div className="flex items-center gap-2 mb-3">
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getPriorityColor(exam.priority)}`}>
                             {exam.priority.toUpperCase()} PRIORITY
                           </span>
+                          {studyProgress === 100 && (
+                            <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold border border-green-200">
+                              ✅ READY
+                            </span>
+                          )}
                           {isCritical && <Zap className="w-4 h-4 text-red-500 animate-bounce" />}
                           {isUrgent && <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />}
                           {isToday && <Star className="w-4 h-4 text-green-500 animate-pulse" />}
@@ -587,6 +670,11 @@ export const Exams: React.FC = () => {
                             })}
                           </span>
                         </div>
+                        {(exam.syllabusTopics || []).length > 0 && (
+                          <div className="text-xs text-gray-500 dark:text-gray-400">
+                            {studyProgress.toFixed(0)}% study progress
+                          </div>
+                        )}
                       </div>
 
                       {/* Advanced Countdown Timer */}
@@ -622,6 +710,7 @@ export const Exams: React.FC = () => {
                         )}
                       </div>
 
+                      {/* Enhanced Syllabus Section */}
                       {exam.syllabus && (
                         <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
                           <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
@@ -633,6 +722,12 @@ export const Exams: React.FC = () => {
                           </p>
                         </div>
                       )}
+
+                      {/* Syllabus Tracker for Each Exam */}
+                      <SyllabusTracker
+                        topics={exam.syllabusTopics || []}
+                        onTopicsChange={(topics) => updateExamSyllabusTopics(exam.id, topics)}
+                      />
                       
                       {/* Exam Status Indicator */}
                       <div className="flex items-center justify-between pt-2">
@@ -667,6 +762,34 @@ export const Exams: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Custom Styles */}
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes scale-in {
+          from { transform: scale(0); }
+          to { transform: scale(1); }
+        }
+        
+        .animate-fade-in {
+          animation: fade-in 0.5s ease-out forwards;
+        }
+        
+        .animate-scale-in {
+          animation: scale-in 0.2s ease-out;
+        }
+        
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </div>
   );
 };
