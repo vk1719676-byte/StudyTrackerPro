@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X } from 'lucide-react';
+import { Play, Pause, Square, Clock, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X, PictureInPicture2 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { MusicPlayer } from './MusicPlayer';
+import { PictureInPictureTimer } from './PictureInPictureTimer';
 import { NotificationService } from '../../services/NotificationService';
 import { BackgroundTimerService } from '../../services/BackgroundTimerService';
 import { StorageService } from '../../services/StorageService';
@@ -73,6 +74,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
   const [showCustomTimer, setShowCustomTimer] = useState(false);
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [backgroundMode, setBackgroundMode] = useState(false);
+  const [isPipActive, setIsPipActive] = useState(false);
 
   // Services
   const notificationService = useRef(new NotificationService());
@@ -146,6 +148,9 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
             targetTime
           });
 
+          // Update document title for tab visibility
+          document.title = `${formatTime(Math.max(0, targetTime * 60 - newTime))} - Deep Focus`;
+
           return newTime;
         });
       }, 1000);
@@ -154,6 +159,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
         clearInterval(intervalRef.current);
       }
       backgroundTimerService.current.stopTimer();
+      document.title = 'Deep Focus - Productivity Timer';
     }
 
     return () => {
@@ -286,6 +292,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
     setTime(0);
     setBackgroundMode(false);
     backgroundTimerService.current.clearTimerState();
+    document.title = 'Deep Focus - Productivity Timer';
   };
 
   const switchMode = (newMode: TimerMode) => {
@@ -306,6 +313,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
         custom: minutes
       }));
     }
+  };
+
+  const handlePictureInPicture = () => {
+    setIsPipActive(true);
+    setIsMinimized(true);
   };
 
   // Timer mode configurations
@@ -390,7 +402,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
 
   // Floating Timer Component
   const FloatingTimer = () => {
-    if (!isMinimized || (!isRunning && time === 0)) return null;
+    if (!isMinimized || (!isRunning && time === 0) || isPipActive) return null;
 
     const currentMode = timerModes.find(m => m.key === mode);
 
@@ -417,6 +429,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
             </div>
             
             <div className="flex gap-1">
+              <button
+                onClick={handlePictureInPicture}
+                className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-all"
+                title="Picture-in-Picture Mode"
+              >
+                <PictureInPicture2 className="w-3.5 h-3.5 text-blue-500" />
+              </button>
               <button
                 onClick={() => setIsMinimized(false)}
                 className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all"
@@ -482,6 +501,21 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
     <>
       <BackgroundStatusIndicator />
       <FloatingTimer />
+      
+      {/* Picture-in-Picture Timer */}
+      {isPipActive && (
+        <PictureInPictureTimer
+          time={time}
+          targetTime={targetTime}
+          mode={mode}
+          isRunning={isRunning}
+          onClose={() => setIsPipActive(false)}
+          onMaximize={() => {
+            setIsPipActive(false);
+            setIsMinimized(false);
+          }}
+        />
+      )}
 
       {isOpen && !isMinimized && (
         <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -516,6 +550,13 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose, onNotific
                 </div>
                 
                 <div className="flex gap-2">
+                  <Button
+                    onClick={handlePictureInPicture}
+                    icon={PictureInPicture2}
+                    variant="ghost"
+                    size="sm"
+                    title="Picture-in-Picture Mode"
+                  />
                   <Button
                     onClick={() => setIsMinimized(true)}
                     icon={Minimize2}
