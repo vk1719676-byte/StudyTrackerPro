@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, BookOpen, Clock, Target, TrendingUp, Edit3, Trash2, Brain } from 'lucide-react';
 import { Chapter, SyllabusTopic } from '../types';
-import { TopicTracker } from './TopicTracker';
 import { Button } from './ui/Button';
 
 interface ChapterTrackerProps {
@@ -68,23 +67,6 @@ export const ChapterTracker: React.FC<ChapterTrackerProps> = ({
     onChaptersChange(updatedChapters);
     setEditingChapter(null);
     setEditingName('');
-  };
-
-  const updateChapterTopics = (chapterId: string, topics: SyllabusTopic[]) => {
-    const updatedChapters = chapters.map(chapter => {
-      if (chapter.id === chapterId) {
-        const completed = topics.length > 0 && topics.every(topic => topic.completed);
-        const progress = topics.length > 0 ? (topics.filter(topic => topic.completed).length / topics.length) * 100 : 0;
-        return {
-          ...chapter,
-          topics,
-          completed,
-          progress
-        };
-      }
-      return chapter;
-    });
-    onChaptersChange(updatedChapters);
   };
 
   const updateChapterImportance = (chapterId: string, importance: 'low' | 'medium' | 'high') => {
@@ -289,11 +271,10 @@ export const ChapterTracker: React.FC<ChapterTrackerProps> = ({
               {/* Chapter Content */}
               {isExpanded && (
                 <div className="px-4 pb-4 border-t border-gray-200 dark:border-gray-600 pt-4 bg-gray-50/50 dark:bg-gray-800/50">
-                  <TopicTracker
-                    topics={chapter.topics}
-                    onTopicsChange={(topics) => updateChapterTopics(chapter.id, topics)}
-                    chapterId={chapter.id}
-                  />
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <Brain className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm">Chapter details can be viewed here</p>
+                  </div>
                 </div>
               )}
             </div>
