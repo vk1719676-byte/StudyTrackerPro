@@ -6,7 +6,6 @@ import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTheme } from '../../contexts/ThemeContext';
 import { FocusMode } from '../focus/FocusMode';
-import { NotificationSystem } from '../notifications/NotificationSystem';
 
 interface LogoutConfirmationProps {
   isOpen: boolean;
@@ -198,9 +197,6 @@ export const DesktopNavbar: React.FC = () => {
 
               {/* Right Side Actions */}
               <div className="flex items-center gap-2 lg:gap-3">
-                {/* Notification System */}
-                <NotificationSystem />
-
                 {/* Theme Toggle */}
                 <Button
                   variant="ghost"
