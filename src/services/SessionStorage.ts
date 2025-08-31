@@ -11,7 +11,7 @@ export interface FocusSession {
   isActive: boolean;
 }
 
-class SessionStorageService {
+export class SessionStorageService {
   private store: Store;
   private readonly SESSION_KEY = 'activeFocusSession';
 
