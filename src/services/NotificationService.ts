@@ -1,4 +1,4 @@
-class NotificationService {
+export class NotificationService {
   private notificationInterval: number | null = null;
   private permission: NotificationPermission = 'default';
 
