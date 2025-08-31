@@ -862,7 +862,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                       className="w-10 h-10 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400"
                       disabled={isUpdating}
                     >
-                      <span className="sr-only">Subject actions</span>
+                      <span className="sr-only">Actions</span>
                     </Button>
                     
                     {showActions && (
@@ -973,7 +973,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                                 className="w-8 h-8 p-1.5 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600 dark:text-blue-400"
                                 disabled={isUpdating}
                               >
-                                <span className="sr-only">Edit chapter</span>
+                                <span className="sr-only">Edit</span>
                               </Button>
                               <Button
                                 variant="ghost"
@@ -987,7 +987,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                                 className="w-8 h-8 p-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400"
                                 disabled={isUpdating}
                               >
-                                <span className="sr-only">Delete chapter</span>
+                                <span className="sr-only">Delete</span>
                               </Button>
                             </div>
                           </div>
@@ -1134,4 +1134,3 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
     </div>
   );
 };
-
