@@ -1,14 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, BarChart3, Award, Target, TrendingUp, BookOpen, Star, Timer, Zap, ChevronDown, ChevronUp } from 'lucide-react';
-import { Button } from './components/ui/Button';
-import { Card } from './components/ui/Card';
-import { Input } from './components/ui/Input';
-import { Modal } from './components/ui/Modal';
-import { ProgressRing } from './components/ui/ProgressRing';
-import { SyllabusTracker } from './components/syllabus/SyllabusTracker';
-import { useAuth } from './contexts/AuthContext';
-import { getUserExams, addExam, updateExam, deleteExam } from './services/firestore';
-import { Exam, SyllabusTracker as SyllabusTrackerType } from './types';
+import { Plus, Calendar, Clock, AlertTriangle, Edit, Trash2, Search, Filter, BarChart3, Award, Target, TrendingUp, BookOpen, Star, Timer, Zap } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserExams, addExam, updateExam, deleteExam } from '../services/firestore';
+import { Exam } from '../types';
 
 export const Exams: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -16,10 +13,8 @@ export const Exams: React.FC = () => {
   const [editingExam, setEditingExam] = useState<Exam | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterPriority, setFilterPriority] = useState<'all' | 'high' | 'medium' | 'low'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'name' | 'progress'>('date');
+  const [sortBy, setSortBy] = useState<'date' | 'priority' | 'name'>('date');
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [expandedExams, setExpandedExams] = useState<Set<string>>(new Set());
-  const [selectedExamForSyllabus, setSelectedExamForSyllabus] = useState<Exam | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     date: '',
@@ -64,15 +59,6 @@ export const Exams: React.FC = () => {
       return examDate.toDateString() === now.toDateString();
     });
 
-    // Syllabus progress stats
-    const totalChapters = exams.reduce((sum, exam) => 
-      sum + (exam.syllabusTracker?.totalChapters || 0), 0);
-    const completedChapters = exams.reduce((sum, exam) => 
-      sum + (exam.syllabusTracker?.completedChapters || 0), 0);
-    const averageProgress = exams.length > 0 
-      ? exams.reduce((sum, exam) => sum + (exam.syllabusTracker?.totalProgress || 0), 0) / exams.length 
-      : 0;
-
     return {
       total: exams.length,
       upcoming: upcomingExams.length,
@@ -80,9 +66,6 @@ export const Exams: React.FC = () => {
       urgent: urgentExams.length,
       highPriority: highPriorityCount,
       today: todayExams.length,
-      totalChapters,
-      completedChapters,
-      averageProgress,
     };
   }, [exams, currentTime]);
 
@@ -104,10 +87,6 @@ export const Exams: React.FC = () => {
           return priorityOrder[b.priority] - priorityOrder[a.priority];
         case 'name':
           return a.name.localeCompare(b.name);
-        case 'progress':
-          const aProgress = a.syllabusTracker?.totalProgress || 0;
-          const bProgress = b.syllabusTracker?.totalProgress || 0;
-          return bProgress - aProgress;
         default:
           return 0;
       }
@@ -138,14 +117,6 @@ export const Exams: React.FC = () => {
       priority: formData.priority,
       userId: user.uid,
       createdAt: editingExam?.createdAt || new Date(),
-      syllabusTracker: editingExam?.syllabusTracker || {
-        subjects: [],
-        totalProgress: 0,
-        completedChapters: 0,
-        totalChapters: 0,
-        estimatedTotalHours: 0,
-        actualTotalHours: 0,
-      },
     };
 
     try {
@@ -178,32 +149,6 @@ export const Exams: React.FC = () => {
       } catch (error) {
         console.error('Error deleting exam:', error);
       }
-    }
-  };
-
-  const toggleExamExpansion = (examId: string) => {
-    const newExpanded = new Set(expandedExams);
-    if (newExpanded.has(examId)) {
-      newExpanded.delete(examId);
-    } else {
-      newExpanded.add(examId);
-    }
-    setExpandedExams(newExpanded);
-  };
-
-  const updateExamSyllabus = async (examId: string, tracker: SyllabusTrackerType) => {
-    const exam = exams.find(e => e.id === examId);
-    if (!exam) return;
-
-    const updatedExam = {
-      ...exam,
-      syllabusTracker: tracker,
-    };
-
-    try {
-      await updateExam(examId, updatedExam);
-    } catch (error) {
-      console.error('Error updating syllabus:', error);
     }
   };
 
@@ -302,21 +247,21 @@ export const Exams: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8 pb-20 md:pb-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
         {/* Header Section with Enhanced Design */}
-        <div className="relative mb-8 md:mb-12">
+        <div className="relative mb-12">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 rounded-3xl blur-3xl"></div>
-          <div className="relative backdrop-blur-sm bg-white/70 dark:bg-gray-800/70 rounded-3xl p-6 md:p-8 border border-white/20 shadow-xl">
+          <div className="relative backdrop-blur-sm bg-white/70 dark:bg-gray-800/70 rounded-3xl p-8 border border-white/20 shadow-xl">
             <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 md:w-16 md:h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center">
-                  <BookOpen className="w-6 h-6 md:w-8 md:h-8 text-white" />
+                <div className="w-16 h-16 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl flex items-center justify-center">
+                  <BookOpen className="w-8 h-8 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-1 md:mb-2">
+                  <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
                     Your Exams
                   </h1>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm md:text-lg">
+                  <p className="text-gray-600 dark:text-gray-400 text-lg">
                     Master your preparation with intelligent exam management
                   </p>
                 </div>
@@ -324,7 +269,7 @@ export const Exams: React.FC = () => {
               <Button
                 onClick={() => setShowForm(true)}
                 icon={Plus}
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 w-full lg:w-auto"
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
               >
                 Add Exam
               </Button>
@@ -332,164 +277,146 @@ export const Exams: React.FC = () => {
           </div>
         </div>
 
-        {/* Enhanced Statistics Dashboard - Responsive Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 mb-6 md:mb-8">
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+        {/* Enhanced Statistics Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
+          <Card className="p-4 bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
+              <BookOpen className="w-5 h-5" />
+              <div>
                 <p className="text-blue-100 text-xs font-medium">Total Exams</p>
-                <p className="text-lg md:text-xl font-bold">{stats.total}</p>
+                <p className="text-xl font-bold">{stats.total}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
+              <Calendar className="w-5 h-5" />
+              <div>
                 <p className="text-green-100 text-xs font-medium">Upcoming</p>
-                <p className="text-lg md:text-xl font-bold">{stats.upcoming}</p>
+                <p className="text-xl font-bold">{stats.upcoming}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-red-500 to-pink-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
+              <AlertTriangle className="w-5 h-5" />
+              <div>
                 <p className="text-red-100 text-xs font-medium">Urgent</p>
-                <p className="text-lg md:text-xl font-bold">{stats.urgent}</p>
+                <p className="text-xl font-bold">{stats.urgent}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-purple-500 to-indigo-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <Target className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
+              <Target className="w-5 h-5" />
+              <div>
                 <p className="text-purple-100 text-xs font-medium">High Priority</p>
-                <p className="text-lg md:text-xl font-bold">{stats.highPriority}</p>
+                <p className="text-xl font-bold">{stats.highPriority}</p>
               </div>
             </div>
           </Card>
           
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
+          <Card className="p-4 bg-gradient-to-r from-teal-500 to-cyan-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex items-center gap-2">
-              <Timer className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
+              <Timer className="w-5 h-5" />
+              <div>
                 <p className="text-teal-100 text-xs font-medium">Today</p>
-                <p className="text-lg md:text-xl font-bold">{stats.today}</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-3 md:p-4 bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 shadow-lg hover:shadow-xl transition-all duration-300">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
-              <div className="min-w-0">
-                <p className="text-orange-100 text-xs font-medium">Avg Progress</p>
-                <p className="text-lg md:text-xl font-bold">{Math.round(stats.averageProgress)}%</p>
+                <p className="text-xl font-bold">{stats.today}</p>
               </div>
             </div>
           </Card>
         </div>
 
-        {/* Enhanced Form Modal */}
-        <Modal
-          isOpen={showForm}
-          onClose={resetForm}
-          title={editingExam ? 'Edit Exam' : 'Create New Exam'}
-          size="lg"
-        >
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Input
-                label="Exam Name"
-                placeholder="e.g., Mathematics Final"
-                value={formData.name}
-                onChange={(value) => setFormData({ ...formData, name: value })}
-                required
-                className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
-              />
-
-              <Input
-                label="Exam Date"
-                type="date"
-                value={formData.date}
-                onChange={(value) => setFormData({ ...formData, date: value })}
-                required
-                className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
-              />
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Priority Level
-                </label>
-                <select
-                  value={formData.priority}
-                  onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
-                >
-                  <option value="low">🟢 Low Priority</option>
-                  <option value="medium">🟡 Medium Priority</option>
-                  <option value="high">🔴 High Priority</option>
-                </select>
-              </div>
+        {/* Enhanced Form */}
+        {showForm && (
+          <Card className="mb-8 p-0 overflow-hidden border-0 shadow-2xl bg-gradient-to-r from-white to-gray-50 dark:from-gray-800 dark:to-gray-700">
+            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-6 text-white">
+              <h2 className="text-2xl font-bold">
+                {editingExam ? 'Edit Exam' : 'Create New Exam'}
+              </h2>
+              <p className="opacity-90 mt-1">
+                {editingExam ? 'Update your exam details' : 'Add a new exam to track your preparation'}
+              </p>
             </div>
+            <div className="p-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Input
+                    label="Exam Name"
+                    placeholder="e.g., Mathematics Final"
+                    value={formData.name}
+                    onChange={(value) => setFormData({ ...formData, name: value })}
+                    required
+                    className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                  />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Syllabus Overview
-              </label>
-              <textarea
-                placeholder="📚 General description of what this exam covers..."
-                value={formData.syllabus}
-                onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
-                rows={4}
-                className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 resize-none"
-              />
+                  <Input
+                    label="Exam Date"
+                    type="date"
+                    value={formData.date}
+                    onChange={(value) => setFormData({ ...formData, date: value })}
+                    required
+                    className="border-gray-200 focus:border-purple-500 focus:ring-purple-500/20"
+                  />
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                      Priority Level
+                    </label>
+                    <select
+                      value={formData.priority}
+                      onChange={(e) => setFormData({ ...formData, priority: e.target.value as any })}
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200"
+                    >
+                      <option value="low">🟢 Low Priority</option>
+                      <option value="medium">🟡 Medium Priority</option>
+                      <option value="high">🔴 High Priority</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Syllabus Overview (Optional)
+                  </label>
+                  <textarea
+                    placeholder="📚 General description of what this exam covers..."
+                    value={formData.syllabus}
+                    onChange={(e) => setFormData({ ...formData, syllabus: e.target.value })}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/20 transition-all duration-200 resize-none"
+                  />
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button 
+                    type="submit"
+                    className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {editingExam ? '✏️ Update Exam' : '➕ Create Exam'}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    onClick={resetForm}
+                    className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-200"
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button 
-                type="submit"
-                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 shadow-lg hover:shadow-xl transition-all duration-200 flex-1 md:flex-none"
-              >
-                {editingExam ? '✏️ Update Exam' : '➕ Create Exam'}
-              </Button>
-              <Button 
-                type="button" 
-                variant="secondary" 
-                onClick={resetForm}
-                className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-all duration-200"
-              >
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </Modal>
-
-        {/* Syllabus Tracker Modal */}
-        <Modal
-          isOpen={!!selectedExamForSyllabus}
-          onClose={() => setSelectedExamForSyllabus(null)}
-          title={`Syllabus Tracker - ${selectedExamForSyllabus?.name}`}
-          size="full"
-        >
-          {selectedExamForSyllabus?.syllabusTracker && (
-            <SyllabusTracker
-              syllabusTracker={selectedExamForSyllabus.syllabusTracker}
-              onUpdateTracker={(tracker) => updateExamSyllabus(selectedExamForSyllabus.id, tracker)}
-            />
-          )}
-        </Modal>
+          </Card>
+        )}
 
         {/* Enhanced Search and Filter Section */}
         {exams.length > 0 && (
-          <Card className="mb-6 md:mb-8 p-4 md:p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="mb-8 p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
             <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-              <div className="flex flex-col sm:flex-row gap-3 md:gap-4 flex-1">
+              <div className="flex flex-col sm:flex-row gap-4 flex-1">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input
@@ -520,7 +447,6 @@ export const Exams: React.FC = () => {
                   <option value="date">Sort by Date</option>
                   <option value="priority">Sort by Priority</option>
                   <option value="name">Sort by Name</option>
-                  <option value="progress">Sort by Progress</option>
                 </select>
               </div>
             </div>
@@ -528,9 +454,9 @@ export const Exams: React.FC = () => {
         )}
 
         {filteredExams.length === 0 && exams.length > 0 ? (
-          <Card className="p-8 md:p-12 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
-            <Search className="w-12 h-12 md:w-16 md:h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg md:text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+          <Card className="p-12 text-center bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg">
+            <Search className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
               No exams found
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -547,11 +473,11 @@ export const Exams: React.FC = () => {
             </Button>
           </Card>
         ) : exams.length === 0 ? (
-          <Card className="p-8 md:p-12 text-center bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-700 border-0 shadow-xl">
-            <div className="w-20 h-20 md:w-24 md:h-24 mx-auto mb-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-              <Calendar className="w-10 h-10 md:w-12 md:h-12 text-white" />
+          <Card className="p-12 text-center bg-gradient-to-br from-white to-purple-50 dark:from-gray-800 dark:to-gray-700 border-0 shadow-xl">
+            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
+              <Calendar className="w-12 h-12 text-white" />
             </div>
-            <h3 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+            <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-3">
               Ready to ace your exams?
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto leading-relaxed">
@@ -566,7 +492,7 @@ export const Exams: React.FC = () => {
             </Button>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredExams.map((exam, index) => {
               const timeData = getAdvancedTimeRemaining(exam.date);
               const isUrgent = timeData.type === 'urgent' || timeData.type === 'warning';
@@ -574,14 +500,12 @@ export const Exams: React.FC = () => {
               const isToday = timeData.type === 'today';
               const isCritical = timeData.type === 'critical';
               const progress = getProgressPercentage(exam);
-              const syllabusProgress = exam.syllabusTracker?.totalProgress || 0;
-              const isExpanded = expandedExams.has(exam.id);
 
               return (
                 <Card 
                   key={exam.id} 
                   className={`
-                    border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden
+                    p-6 border-0 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 relative overflow-hidden
                     ${timeData.bgColor}
                     ${isCritical ? 'animate-pulse shadow-red-500/50' : ''}
                     ${isPastDue ? 'opacity-75' : ''}
@@ -599,7 +523,7 @@ export const Exams: React.FC = () => {
                     <div className="absolute inset-0 bg-gradient-to-r from-orange-500/5 to-red-500/5 animate-pulse"></div>
                   )}
 
-                  <div className="relative z-10 p-4 md:p-6">
+                  <div className="relative z-10">
                     {/* Time Progress Bar */}
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mb-4">
                       <div 
@@ -609,20 +533,20 @@ export const Exams: React.FC = () => {
                     </div>
 
                     <div className="flex justify-between items-start mb-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight truncate">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2 leading-tight">
                           {exam.name}
                         </h3>
                         <div className="flex items-center gap-2 mb-3 flex-wrap">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold shadow-sm ${getPriorityColor(exam.priority)}`}>
-                            {exam.priority.toUpperCase()}
+                            {exam.priority.toUpperCase()} PRIORITY
                           </span>
                           {isCritical && <Zap className="w-4 h-4 text-red-500 animate-bounce" />}
                           {isUrgent && <AlertTriangle className="w-4 h-4 text-orange-500 animate-pulse" />}
                           {isToday && <Star className="w-4 h-4 text-green-500 animate-pulse" />}
                         </div>
                       </div>
-                      <div className="flex gap-1 ml-2">
+                      <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -640,7 +564,7 @@ export const Exams: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-3 md:space-y-4">
+                    <div className="space-y-4">
                       <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                         <Calendar className="w-4 h-4 text-purple-500" />
                         <span className="font-medium">
@@ -654,24 +578,24 @@ export const Exams: React.FC = () => {
                       </div>
 
                       {/* Advanced Countdown Timer */}
-                      <div className={`rounded-xl p-3 md:p-4 border-2 transition-all duration-300 ${timeData.bgColor}`}>
+                      <div className={`rounded-xl p-4 border-2 transition-all duration-300 ${timeData.bgColor}`}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <Timer className={`w-4 h-4 md:w-5 md:h-5 ${timeData.color}`} />
-                            <span className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">
+                            <Timer className={`w-5 h-5 ${timeData.color}`} />
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               Time Remaining
                             </span>
                           </div>
                           {isCritical && (
                             <div className="flex items-center gap-1">
-                              <Zap className="w-3 h-3 md:w-4 md:h-4 text-red-500 animate-bounce" />
-                              <span className="text-xs font-bold text-red-600 uppercase tracking-wide hidden sm:block">
+                              <Zap className="w-4 h-4 text-red-500 animate-bounce" />
+                              <span className="text-xs font-bold text-red-600 uppercase tracking-wide">
                                 Critical
                               </span>
                             </div>
                           )}
                         </div>
-                        <div className={`text-2xl md:text-3xl font-bold mt-2 ${timeData.color} tracking-tight`}>
+                        <div className={`text-3xl font-bold mt-2 ${timeData.color} tracking-tight`}>
                           {timeData.text}
                         </div>
                         {timeData.type === 'critical' && (
@@ -686,128 +610,16 @@ export const Exams: React.FC = () => {
                         )}
                       </div>
 
-                      {/* Syllabus Progress Section */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-800">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <BarChart3 className="w-4 h-4 text-purple-600" />
-                            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                              Syllabus Progress
-                            </span>
-                          </div>
-                          <div className="text-right">
-                            <div className="text-xl font-bold text-purple-600 dark:text-purple-400">
-                              {Math.round(syllabusProgress)}%
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="w-full bg-purple-200 dark:bg-purple-800 rounded-full h-2 overflow-hidden mb-3">
-                          <div 
-                            className="bg-gradient-to-r from-purple-600 to-blue-600 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${syllabusProgress}%` }}
-                          ></div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-3 text-xs">
-                          <div className="text-center">
-                            <div className="font-bold text-gray-900 dark:text-gray-100">
-                              {exam.syllabusTracker?.completedChapters || 0}
-                            </div>
-                            <div className="text-gray-600 dark:text-gray-400">
-                              Completed
-                            </div>
-                          </div>
-                          <div className="text-center">
-                            <div className="font-bold text-gray-900 dark:text-gray-100">
-                              {exam.syllabusTracker?.totalChapters || 0}
-                            </div>
-                            <div className="text-gray-600 dark:text-gray-400">
-                              Total Chapters
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex justify-between items-center mt-3 pt-3 border-t border-purple-200 dark:border-purple-700">
-                          <button
-                            onClick={() => setSelectedExamForSyllabus(exam)}
-                            className="text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 text-sm font-medium transition-colors duration-200"
-                          >
-                            Manage Syllabus →
-                          </button>
-                          <button
-                            onClick={() => toggleExamExpansion(exam.id)}
-                            className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors duration-200"
-                          >
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Expandable Details */}
-                      {isExpanded && (
-                        <div className="space-y-3 animate-fade-in">
-                          {/* Syllabus Overview */}
-                          {exam.syllabus && (
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
-                              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
-                                <BookOpen className="w-4 h-4 text-green-600" />
-                                Syllabus Overview
-                              </h4>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                                {exam.syllabus}
-                              </p>
-                            </div>
-                          )}
-
-                          {/* Quick Subject Overview */}
-                          {exam.syllabusTracker && exam.syllabusTracker.subjects.length > 0 && (
-                            <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
-                              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                                <Target className="w-4 h-4 text-blue-600" />
-                                Subject Progress
-                              </h4>
-                              <div className="grid grid-cols-1 gap-3">
-                                {exam.syllabusTracker.subjects.slice(0, 3).map((subject) => {
-                                  const subjectProgress = subject.chapters.length > 0 
-                                    ? (subject.chapters.filter(ch => ch.completed).length / subject.chapters.length) * 100 
-                                    : 0;
-                                  
-                                  return (
-                                    <div key={subject.id} className="flex items-center gap-3">
-                                      <div 
-                                        className="w-3 h-3 rounded-full"
-                                        style={{ backgroundColor: subject.color }}
-                                      ></div>
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                          {subject.name}
-                                        </div>
-                                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-1">
-                                          <div 
-                                            className="bg-gradient-to-r from-purple-500 to-blue-500 h-1.5 rounded-full transition-all duration-300"
-                                            style={{ width: `${subjectProgress}%` }}
-                                          ></div>
-                                        </div>
-                                      </div>
-                                      <span className="text-xs font-bold text-gray-600 dark:text-gray-400">
-                                        {Math.round(subjectProgress)}%
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                                {exam.syllabusTracker.subjects.length > 3 && (
-                                  <div className="text-xs text-gray-500 dark:text-gray-400 text-center pt-2">
-                                    +{exam.syllabusTracker.subjects.length - 3} more subjects
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
+                      {/* Syllabus Section */}
+                      {exam.syllabus && (
+                        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4">
+                          <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2">
+                            <BookOpen className="w-4 h-4 text-green-600" />
+                            Syllabus Overview
+                          </h4>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
+                            {exam.syllabus}
+                          </p>
                         </div>
                       )}
                       
@@ -830,7 +642,7 @@ export const Exams: React.FC = () => {
                         {(isCritical || isUrgent) && (
                           <div className="flex items-center gap-1">
                             <AlertTriangle className="w-3 h-3 text-red-500" />
-                            <span className="text-xs font-bold text-red-600 hidden sm:block">
+                            <span className="text-xs font-bold text-red-600">
                               ACTION NEEDED
                             </span>
                           </div>
@@ -853,8 +665,8 @@ export const Exams: React.FC = () => {
         }
         
         @keyframes scale-in {
-          from { transform: scale(0.95); opacity: 0; }
-          to { transform: scale(1); opacity: 1; }
+          from { transform: scale(0); }
+          to { transform: scale(1); }
         }
         
         .animate-fade-in {
@@ -862,7 +674,7 @@ export const Exams: React.FC = () => {
         }
         
         .animate-scale-in {
-          animation: scale-in 0.3s ease-out;
+          animation: scale-in 0.2s ease-out;
         }
         
         .line-clamp-3 {
@@ -876,4 +688,4 @@ export const Exams: React.FC = () => {
   );
 };
 
-export default Exams;
+export default Exams
