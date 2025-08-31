@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ChevronDown, ChevronRight, Plus, Check, Clock, Star, BookOpen, Target, TrendingUp, Award, Zap, Timer, Brain, CheckCircle2, Circle, Edit2, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Check, Clock, Star, BookOpen, Target, TrendingUp, Award, Zap, Timer, Brain, CheckCircle2, Circle, Edit2, Trash2, Save, X } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { Input } from './ui/Input';
@@ -20,6 +20,11 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   const [newSubjectName, setNewSubjectName] = useState('');
   const [newChapterName, setNewChapterName] = useState('');
   const [newChapterDifficulty, setNewChapterDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
+  
+  // Edit form states
+  const [editSubjectName, setEditSubjectName] = useState('');
+  const [editChapterName, setEditChapterName] = useState('');
+  const [editChapterDifficulty, setEditChapterDifficulty] = useState<'easy' | 'medium' | 'hard'>('medium');
 
   // Calculate comprehensive progress statistics
   const progressStats = useMemo(() => {
@@ -115,7 +120,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
         return {
           ...subject,
           chapters: updatedChapters,
-          isCompleted: updatedChapters.every(ch => ch.isCompleted)
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
         };
       }
       return subject;
@@ -159,6 +164,79 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
       subjects: updatedSubjects,
       overallProgress: calculateOverallProgress(updatedSubjects)
     });
+  };
+
+  const startEditingSubject = (subject: Subject) => {
+    setEditingSubject(subject);
+    setEditSubjectName(subject.name);
+  };
+
+  const saveSubjectEdit = async () => {
+    if (!editingSubject || !editSubjectName.trim()) return;
+    
+    const updatedSubjects = exam.subjects.map(subject => 
+      subject.id === editingSubject.id 
+        ? { ...subject, name: editSubjectName.trim() }
+        : subject
+    );
+
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setEditingSubject(null);
+    setEditSubjectName('');
+  };
+
+  const cancelSubjectEdit = () => {
+    setEditingSubject(null);
+    setEditSubjectName('');
+  };
+
+  const startEditingChapter = (subjectId: string, chapter: Chapter) => {
+    setEditingChapter({ subjectId, chapter });
+    setEditChapterName(chapter.name);
+    setEditChapterDifficulty(chapter.difficulty || 'medium');
+  };
+
+  const saveChapterEdit = async () => {
+    if (!editingChapter || !editChapterName.trim()) return;
+    
+    const updatedSubjects = exam.subjects.map(subject => {
+      if (subject.id === editingChapter.subjectId) {
+        const updatedChapters = subject.chapters.map(chapter => 
+          chapter.id === editingChapter.chapter.id
+            ? { 
+                ...chapter, 
+                name: editChapterName.trim(),
+                difficulty: editChapterDifficulty
+              }
+            : chapter
+        );
+        return {
+          ...subject,
+          chapters: updatedChapters,
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
+        };
+      }
+      return subject;
+    });
+
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setEditingChapter(null);
+    setEditChapterName('');
+    setEditChapterDifficulty('medium');
+  };
+
+  const cancelChapterEdit = () => {
+    setEditingChapter(null);
+    setEditChapterName('');
+    setEditChapterDifficulty('medium');
   };
 
   const deleteSubject = async (subjectId: string) => {
@@ -311,6 +389,84 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
         </Card>
       )}
 
+      {/* Edit Subject Form */}
+      {editingSubject && (
+        <Card className="p-6 bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-2 border-green-200 dark:border-green-600 shadow-xl">
+          <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Edit2 className="w-5 h-5 text-green-600" />
+            Edit Subject
+          </h4>
+          <div className="flex gap-3">
+            <Input
+              placeholder="Subject name"
+              value={editSubjectName}
+              onChange={setEditSubjectName}
+              className="flex-1"
+              onKeyPress={(e) => e.key === 'Enter' && saveSubjectEdit()}
+            />
+            <Button 
+              onClick={saveSubjectEdit}
+              icon={Save}
+              className="bg-green-600 hover:bg-green-700"
+              disabled={!editSubjectName.trim()}
+            >
+              Save
+            </Button>
+            <Button 
+              onClick={cancelSubjectEdit}
+              icon={X}
+              variant="secondary"
+            >
+              Cancel
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      {/* Edit Chapter Form */}
+      {editingChapter && (
+        <Card className="p-6 bg-gradient-to-r from-white to-green-50 dark:from-gray-800 dark:to-green-900/20 border-2 border-green-200 dark:border-green-600 shadow-xl">
+          <h4 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+            <Edit2 className="w-5 h-5 text-green-600" />
+            Edit Chapter
+          </h4>
+          <div className="space-y-3">
+            <Input
+              placeholder="Chapter name"
+              value={editChapterName}
+              onChange={setEditChapterName}
+              onKeyPress={(e) => e.key === 'Enter' && saveChapterEdit()}
+            />
+            <div className="flex items-center gap-3">
+              <select
+                value={editChapterDifficulty}
+                onChange={(e) => setEditChapterDifficulty(e.target.value as any)}
+                className="px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
+              >
+                <option value="easy">🟢 Easy</option>
+                <option value="medium">🟡 Medium</option>
+                <option value="hard">🔴 Hard</option>
+              </select>
+              <Button 
+                onClick={saveChapterEdit}
+                icon={Save}
+                className="bg-green-600 hover:bg-green-700"
+                disabled={!editChapterName.trim()}
+              >
+                Save
+              </Button>
+              <Button 
+                onClick={cancelChapterEdit}
+                icon={X}
+                variant="secondary"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
       {/* Subjects List */}
       <div className="space-y-4">
         {exam.subjects.map((subject) => {
@@ -375,7 +531,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                       variant="ghost"
                       size="sm"
                       icon={Edit2}
-                      onClick={() => setEditingSubject(subject)}
+                      onClick={() => startEditingSubject(subject)}
                       className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600"
                     />
                     <Button
@@ -442,7 +598,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                             variant="ghost"
                             size="sm"
                             icon={Edit2}
-                            onClick={() => setEditingChapter({ subjectId: subject.id, chapter })}
+                            onClick={() => startEditingChapter(subject.id, chapter)}
                             className="p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600"
                           />
                           <Button
