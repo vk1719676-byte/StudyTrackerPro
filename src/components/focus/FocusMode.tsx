@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Square, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X } from 'lucide-react';
+import { Play, Pause, Square, Target, CheckCircle, Minimize2, Maximize2, Brain, Coffee, Settings, X, Bell, BellOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { MusicPlayer } from './MusicPlayer';
+import { sessionStorage, FocusSession } from '../services/SessionStorage';
+import { notificationService } from '../services/NotificationService';
 
 interface FocusModeProps {
   isOpen: boolean;
@@ -57,11 +59,72 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
   const [currentSubject, setCurrentSubject] = useState('');
   const [currentTask, setCurrentTask] = useState('');
   const [studyHistory, setStudyHistory] = useState<StudySession[]>([]);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [sessionRecovered, setSessionRecovered] = useState(false);
+  const [showCompletionMessage, setShowCompletionMessage] = useState(false);
 
   const intervalRef = useRef<number>();
   const targetTime = pomodoroSettings[mode];
 
-  // Simple timer management
+  // Initialize notifications on mount
+  useEffect(() => {
+    const initNotifications = async () => {
+      if (notificationService.isSupported()) {
+        const hasPermission = await notificationService.requestPermission();
+        setNotificationsEnabled(hasPermission);
+      }
+    };
+    initNotifications();
+  }, []);
+
+  // Check for existing session on component mount
+  useEffect(() => {
+    const checkExistingSession = () => {
+      const existingSession = sessionStorage.getActiveSession();
+      
+      if (existingSession) {
+        const remainingTime = sessionStorage.calculateRemainingTime(existingSession);
+        
+        if (remainingTime > 0) {
+          // Resume session
+          setMode(existingSession.mode);
+          setTime(existingSession.duration * 60 - remainingTime);
+          setCurrentSubject(existingSession.subject || '');
+          setCurrentTask(existingSession.task || '');
+          setPomodoroCount(existingSession.pomodoroCount);
+          setIsRunning(true);
+          setSessionRecovered(true);
+
+          // Show resume notification
+          if (notificationsEnabled) {
+            notificationService.showSessionResumedNotification(Math.ceil(remainingTime / 60));
+            notificationService.startPersistentReminder(existingSession.mode);
+          }
+
+          // Auto-minimize to floating timer
+          setTimeout(() => setIsMinimized(true), 2000);
+        } else {
+          // Session expired, show completion
+          setMode(existingSession.mode);
+          setCurrentSubject(existingSession.subject || '');
+          setCurrentTask(existingSession.task || '');
+          setPomodoroCount(existingSession.pomodoroCount);
+          setShowCompletionMessage(true);
+          sessionStorage.clearSession();
+
+          if (notificationsEnabled) {
+            notificationService.showSessionCompleteNotification(existingSession.mode);
+          }
+        }
+      }
+    };
+
+    if (isOpen) {
+      checkExistingSession();
+    }
+  }, [isOpen, notificationsEnabled]);
+
+  // Timer logic
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = window.setInterval(() => {
@@ -117,6 +180,19 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     setStudyHistory(prev => [...prev, newSession]);
     setTime(0);
     setIsRunning(false);
+    setShowCompletionMessage(true);
+
+    // Clear persistent session and notifications
+    sessionStorage.clearSession();
+    notificationService.stopPersistentReminder();
+
+    // Show completion notification
+    if (notificationsEnabled) {
+      notificationService.showSessionCompleteNotification(mode);
+    }
+
+    // Auto-hide completion message after 5 seconds
+    setTimeout(() => setShowCompletionMessage(false), 5000);
   };
 
   const formatTime = (seconds: number) => {
@@ -129,23 +205,75 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     return Math.min((time / (targetTime * 60)) * 100, 100);
   };
 
-  const startFocus = () => {
+  const startFocus = async () => {
+    // Request notification permission if not already granted
+    if (notificationService.isSupported() && !notificationsEnabled) {
+      const hasPermission = await notificationService.requestPermission();
+      setNotificationsEnabled(hasPermission);
+    }
+
     setIsRunning(true);
+    setSessionRecovered(false);
+    setShowCompletionMessage(false);
+
+    // Create and save persistent session
+    const session: FocusSession = {
+      id: Date.now().toString(),
+      startTime: Date.now() - (time * 1000), // Account for current elapsed time
+      duration: targetTime,
+      mode,
+      subject: currentSubject,
+      task: currentTask,
+      pomodoroCount,
+      isActive: true
+    };
+
+    sessionStorage.saveSession(session);
+
+    // Show notifications
+    if (notificationsEnabled) {
+      notificationService.showSessionStartNotification(mode, targetTime);
+      notificationService.startPersistentReminder(mode);
+    }
   };
 
   const pauseFocus = () => {
     setIsRunning(false);
+    
+    // Update session with current progress
+    const session: FocusSession = {
+      id: Date.now().toString(),
+      startTime: Date.now() - (time * 1000),
+      duration: targetTime,
+      mode,
+      subject: currentSubject,
+      task: currentTask,
+      pomodoroCount,
+      isActive: false
+    };
+
+    sessionStorage.saveSession(session);
+    notificationService.stopPersistentReminder();
   };
 
   const stopFocus = () => {
     setIsRunning(false);
     setTime(0);
+    setSessionRecovered(false);
+    setShowCompletionMessage(false);
+    
+    // Clear persistent session
+    sessionStorage.clearSession();
+    notificationService.stopPersistentReminder();
   };
 
   const switchMode = (newMode: TimerMode) => {
     if (!isRunning) {
       setMode(newMode);
       setTime(0);
+      setSessionRecovered(false);
+      setShowCompletionMessage(false);
+      sessionStorage.clearSession();
     }
   };
 
@@ -155,6 +283,18 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
         ...prev,
         custom: minutes
       }));
+    }
+  };
+
+  const toggleNotifications = async () => {
+    if (!notificationService.isSupported()) return;
+
+    if (!notificationsEnabled) {
+      const hasPermission = await notificationService.requestPermission();
+      setNotificationsEnabled(hasPermission);
+    } else {
+      setNotificationsEnabled(false);
+      notificationService.stopPersistentReminder();
     }
   };
 
@@ -190,6 +330,66 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
     }
   ];
 
+  // Session Recovery Banner
+  const SessionRecoveryBanner = () => {
+    if (!sessionRecovered) return null;
+
+    return (
+      <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200/50 dark:border-blue-800/50 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+            <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-blue-800 dark:text-blue-200 text-sm">
+              Session Recovered! 🔄
+            </div>
+            <div className="text-xs text-blue-600 dark:text-blue-400">
+              Your focus session was automatically resumed from where you left off.
+            </div>
+          </div>
+          <button
+            onClick={() => setSessionRecovered(false)}
+            className="p-1 hover:bg-blue-200 dark:hover:bg-blue-800/50 rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  // Session Completion Banner
+  const CompletionBanner = () => {
+    if (!showCompletionMessage) return null;
+
+    return (
+      <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200/50 dark:border-green-800/50 rounded-2xl">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-xl">
+            <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+          </div>
+          <div className="flex-1">
+            <div className="font-semibold text-green-800 dark:text-green-200 text-sm">
+              Session Complete! 🎉
+            </div>
+            <div className="text-xs text-green-600 dark:text-green-400">
+              {mode === 'focus' || mode === 'custom' 
+                ? 'Excellent work! Your focus session has finished.'
+                : 'Break time is over. Ready to get back to work?'}
+            </div>
+          </div>
+          <button
+            onClick={() => setShowCompletionMessage(false)}
+            className="p-1 hover:bg-green-200 dark:hover:bg-green-800/50 rounded-lg transition-colors"
+          >
+            <X className="w-4 h-4 text-green-600 dark:text-green-400" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   // Floating Timer Component
   const FloatingTimer = () => {
     if (!isMinimized || (!isRunning && time === 0)) return null;
@@ -205,10 +405,15 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 {currentMode && <currentMode.icon className="w-4 h-4 text-current" />}
               </div>
               <div>
-                <div className="font-semibold text-sm">
+                <div className="font-semibold text-sm flex items-center gap-2">
                   {mode === 'focus' ? 'Focus Session' : 
                    mode === 'custom' ? 'Custom Timer' : 
                    mode === 'shortBreak' ? 'Short Break' : 'Long Break'}
+                  {sessionRecovered && (
+                    <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs rounded-full font-medium">
+                      Recovered
+                    </span>
+                  )}
                 </div>
                 {currentSubject && (
                   <div className="text-xs text-gray-500 truncate max-w-[120px]">
@@ -318,6 +523,14 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                 
                 <div className="flex gap-2">
                   <Button
+                    onClick={toggleNotifications}
+                    icon={notificationsEnabled ? Bell : BellOff}
+                    variant="ghost"
+                    size="sm"
+                    className={notificationsEnabled ? 'text-blue-600' : 'text-gray-400'}
+                    title={notificationsEnabled ? 'Disable notifications' : 'Enable notifications'}
+                  />
+                  <Button
                     onClick={() => setIsMinimized(true)}
                     icon={Minimize2}
                     variant="ghost"
@@ -331,6 +544,52 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
               </div>
+
+              {/* Recovery and Completion Banners */}
+              <SessionRecoveryBanner />
+              <CompletionBanner />
+
+              {/* Notification Status */}
+              {notificationService.isSupported() && (
+                <div className={`p-3 rounded-xl border transition-all ${
+                  notificationsEnabled 
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/50'
+                    : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800/50'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    {notificationsEnabled ? (
+                      <Bell className="w-4 h-4 text-green-600" />
+                    ) : (
+                      <BellOff className="w-4 h-4 text-orange-600" />
+                    )}
+                    <div className="flex-1">
+                      <div className={`text-sm font-medium ${
+                        notificationsEnabled ? 'text-green-800 dark:text-green-200' : 'text-orange-800 dark:text-orange-200'
+                      }`}>
+                        {notificationsEnabled ? 'Notifications enabled' : 'Notifications disabled'}
+                      </div>
+                      <div className={`text-xs ${
+                        notificationsEnabled ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'
+                      }`}>
+                        {notificationsEnabled 
+                          ? 'You\'ll receive session updates and reminders'
+                          : 'Click to enable session notifications'
+                        }
+                      </div>
+                    </div>
+                    {!notificationsEnabled && (
+                      <Button
+                        onClick={toggleNotifications}
+                        size="sm"
+                        variant="secondary"
+                        className="text-xs"
+                      >
+                        Enable
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Compact Mode Switcher */}
               <div className="grid grid-cols-4 gap-2 p-2 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-2xl">
@@ -476,10 +735,11 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                       <div className="text-sm text-gray-500 dark:text-gray-400">
                         {formatTime(Math.max(0, targetTime * 60 - time))} remaining
                       </div>
-                      <div className={`text-xs font-medium mt-1 ${
+                      <div className={`text-xs font-medium mt-1 flex items-center justify-center gap-1 ${
                         isRunning ? 'text-green-600 animate-pulse' : 'text-gray-400'
                       }`}>
-                        {isRunning ? '● Running' : '⏸ Ready'}
+                        <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        {isRunning ? 'Running' : 'Ready'}
                       </div>
                     </div>
                   </div>
@@ -508,7 +768,8 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
                     }`}
                     disabled={time >= targetTime * 60 || ((mode === 'focus' || mode === 'custom') && !currentSubject.trim())}
                   >
-                    {(mode === 'focus' || mode === 'custom') ? 'Start Focus Session' : 'Start Break'}
+                    {sessionRecovered ? 'Resume Session' : 
+                     (mode === 'focus' || mode === 'custom') ? 'Start Focus Session' : 'Start Break'}
                   </Button>
                 ) : (
                   <Button
