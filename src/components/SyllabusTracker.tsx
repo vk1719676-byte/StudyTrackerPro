@@ -62,6 +62,18 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
     setExpandedSubjects(newExpanded);
   };
 
+  const calculateOverallProgress = (subjects: Subject[]) => {
+    const totalChapters = subjects.reduce((acc, subject) => acc + subject.chapters.length, 0);
+    const completedChapters = subjects.reduce((acc, subject) => 
+      acc + subject.chapters.filter(chapter => chapter.isCompleted).length, 0);
+    return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
+  };
+
+  const getRandomSubjectColor = () => {
+    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'];
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
   const addSubject = async () => {
     if (!newSubjectName.trim()) return;
     
@@ -81,6 +93,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
     
     setNewSubjectName('');
     setShowAddSubject(false);
+    
+    // Auto-expand the new subject
+    setExpandedSubjects(prev => new Set([...prev, newSubject.id]));
   };
 
   const addChapter = async (subjectId: string) => {
@@ -175,18 +190,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
       subjects: updatedSubjects,
       overallProgress: calculateOverallProgress(updatedSubjects)
     });
-  };
-
-  const calculateOverallProgress = (subjects: Subject[]) => {
-    const totalChapters = subjects.reduce((acc, subject) => acc + subject.chapters.length, 0);
-    const completedChapters = subjects.reduce((acc, subject) => 
-      acc + subject.chapters.filter(chapter => chapter.isCompleted).length, 0);
-    return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
-  };
-
-  const getRandomSubjectColor = () => {
-    const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500'];
-    return colors[Math.floor(Math.random() * colors.length)];
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -570,29 +573,4 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
       )}
     </div>
   );
-
-  // Helper function to add subject
-  async function addSubject() {
-    if (!newSubjectName.trim()) return;
-    
-    const newSubject: Subject = {
-      id: Date.now().toString(),
-      name: newSubjectName.trim(),
-      chapters: [],
-      color: getRandomSubjectColor(),
-      isCompleted: false
-    };
-
-    const updatedSubjects = [...exam.subjects, newSubject];
-    await onUpdateExam(exam.id, { 
-      subjects: updatedSubjects,
-      overallProgress: calculateOverallProgress(updatedSubjects)
-    });
-    
-    setNewSubjectName('');
-    setShowAddSubject(false);
-    
-    // Auto-expand the new subject
-    setExpandedSubjects(prev => new Set([...prev, newSubject.id]));
-  }
 };
