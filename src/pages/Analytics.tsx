@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Download, FileText } from 'lucide-react';
+import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Download } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
@@ -9,12 +9,13 @@ import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks } from 'date-fns';
 import { exportToPDF } from '../utils/pdfExport';
+import { exportToPDF } from '../utils/pdfExport';
 
 export const Analytics: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
-  const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const { user, isPremium } = useAuth();
 
@@ -35,6 +36,18 @@ export const Analytics: React.FC = () => {
       unsubscribeExams();
     };
   }, [user]);
+
+  const handlePDFExport = async () => {
+    setIsExporting(true);
+    try {
+      await exportToPDF('analytics-content', 'studyflow-analytics-report');
+    } catch (error) {
+      console.error('Failed to export PDF:', error);
+      alert('Failed to export PDF. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const handlePDFExport = async () => {
     setIsExporting(true);
@@ -228,8 +241,16 @@ export const Analytics: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
-
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Discover insights, track progress, and optimize your learning journey with data-driven analytics
+              </p>
+            </div>
+            <div className="flex-1 flex justify-end">
+              <button
+                onClick={handlePDFExport}
+                disabled={isExporting}
+                className="group relative overflow-hidden bg-gradient-to-r from-violet-500 to-cyan-500 hover:from-violet-600 hover:to-cyan-600 text-white px-6 py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+              >
         {/* Main Analytics Content */}
         <div id="analytics-content">
           {/* Enhanced Summary Stats */}
@@ -242,6 +263,23 @@ export const Analytics: React.FC = () => {
               onMouseLeave={() => setHoveredCard(null)}
             >
               <div className="flex items-center gap-4">
+                <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg">
+                  <Clock className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-1">Total Study Time</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                    {formatTime(totalStudyTime)}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <ArrowUp className="w-4 h-4 text-green-500 mr-1" />
+                    <span className="text-sm font-medium text-green-500">+12%</span>
+                    <span className="text-xs text-gray-500 ml-2">vs last week</span>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
                 <div className="p-4 bg-gradient-to-br from-violet-500 to-purple-600 rounded-2xl shadow-lg">
                   <Clock className="w-7 h-7 text-white" />
                 </div>
@@ -527,6 +565,9 @@ export const Analytics: React.FC = () => {
             {/* Premium Analytics Section with enhanced design */}
             <div className="space-y-8">
               <div className="flex items-center justify-between">
+            {/* Premium Analytics Section with enhanced design */}
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
                   <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl">
                     <Brain className="w-8 h-8 text-white" />
@@ -535,7 +576,7 @@ export const Analytics: React.FC = () => {
                 </h2>
                 {isPremium && <PremiumBadge />}
               </div>
-
+                        </h4>
               <PremiumFeatureGate
                 featureName="Advanced Analytics Dashboard"
                 description="Get detailed insights into your study patterns, performance predictions, and personalized recommendations"
@@ -590,7 +631,7 @@ export const Analytics: React.FC = () => {
                       </div>
                     </div>
                   </Card>
-
+                  <Card className="p-8 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border-0 shadow-xl backdrop-blur-sm">
                   {/* Predictive Analytics with enhanced design */}
                   <Card className="p-8 bg-gradient-to-br from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border-0 shadow-xl backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-6">
@@ -646,7 +687,7 @@ export const Analytics: React.FC = () => {
                 </div>
               </PremiumFeatureGate>
             </div>
-
+                  <div className="flex items-center mt-2">
             {/* Efficiency Distribution with enhanced design */}
             <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
               <div className="flex items-center justify-between mb-8">
@@ -721,7 +762,7 @@ export const Analytics: React.FC = () => {
             </Card>
           </div>
         </div>
-
+              </div>
         {/* Export Success Message */}
         {isExporting && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
