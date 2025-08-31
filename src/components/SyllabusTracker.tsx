@@ -16,7 +16,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   const [showAddChapter, setShowAddChapter] = useState<string | null>(null);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [editingChapter, setEditingChapter] = useState<{ subjectId: string; chapter: Chapter } | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
   
   const [newSubjectName, setNewSubjectName] = useState('');
   const [newChapterName, setNewChapterName] = useState('');
@@ -29,26 +28,14 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
 
   // Calculate comprehensive progress statistics
   const progressStats = useMemo(() => {
-    if (!exam?.subjects || !Array.isArray(exam.subjects)) {
-      return {
-        overallProgress: 0,
-        totalChapters: 0,
-        completedChapters: 0,
-        totalStudyTime: 0,
-        subjectProgress: [],
-        completedSubjects: 0
-      };
-    }
-
-    const totalChapters = exam.subjects.reduce((acc, subject) => 
-      acc + (subject?.chapters?.length || 0), 0);
+    const totalChapters = exam.subjects.reduce((acc, subject) => acc + subject.chapters.length, 0);
     const completedChapters = exam.subjects.reduce((acc, subject) => 
-      acc + (subject?.chapters?.filter(chapter => chapter?.isCompleted)?.length || 0), 0);
+      acc + subject.chapters.filter(chapter => chapter.isCompleted).length, 0);
     const overallProgress = totalChapters > 0 ? (completedChapters / totalChapters) * 100 : 0;
     
     const subjectProgress = exam.subjects.map(subject => {
-      const completed = subject?.chapters?.filter(ch => ch?.isCompleted)?.length || 0;
-      const total = subject?.chapters?.length || 0;
+      const completed = subject.chapters.filter(ch => ch.isCompleted).length;
+      const total = subject.chapters.length;
       return {
         ...subject,
         progress: total > 0 ? (completed / total) * 100 : 0,
@@ -58,7 +45,7 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
     });
 
     const totalStudyTime = exam.subjects.reduce((acc, subject) => 
-      acc + (subject?.chapters?.reduce((chAcc, chapter) => chAcc + (chapter?.studyTime || 0), 0) || 0), 0);
+      acc + subject.chapters.reduce((chAcc, chapter) => chAcc + (chapter.studyTime || 0), 0), 0);
 
     return {
       overallProgress: Math.round(overallProgress),
@@ -66,9 +53,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
       completedChapters,
       totalStudyTime,
       subjectProgress,
-      completedSubjects: exam.subjects.filter(s => s?.isCompleted).length
+      completedSubjects: exam.subjects.filter(s => s.isCompleted).length
     };
-  }, [exam?.subjects]);
+  }, [exam.subjects]);
 
   const toggleSubjectExpansion = (subjectId: string) => {
     const newExpanded = new Set(expandedSubjects);
@@ -81,10 +68,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   };
 
   const calculateOverallProgress = (subjects: Subject[]) => {
-    if (!subjects || !Array.isArray(subjects)) return 0;
-    const totalChapters = subjects.reduce((acc, subject) => acc + (subject?.chapters?.length || 0), 0);
+    const totalChapters = subjects.reduce((acc, subject) => acc + subject.chapters.length, 0);
     const completedChapters = subjects.reduce((acc, subject) => 
-      acc + (subject?.chapters?.filter(chapter => chapter?.isCompleted)?.length || 0), 0);
+      acc + subject.chapters.filter(chapter => chapter.isCompleted).length, 0);
     return totalChapters > 0 ? Math.round((completedChapters / totalChapters) * 100) : 0;
   };
 
@@ -94,125 +80,90 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   };
 
   const addSubject = async () => {
-    if (!newSubjectName.trim() || isUpdating) return;
+    if (!newSubjectName.trim()) return;
     
-    try {
-      setIsUpdating(true);
-      const newSubject: Subject = {
-        id: Date.now().toString(),
-        name: newSubjectName.trim(),
-        chapters: [],
-        color: getRandomSubjectColor(),
-        isCompleted: false
-      };
+    const newSubject: Subject = {
+      id: Date.now().toString(),
+      name: newSubjectName.trim(),
+      chapters: [],
+      color: getRandomSubjectColor(),
+      isCompleted: false
+    };
 
-      const updatedSubjects = [...(exam.subjects || []), newSubject];
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-      
-      setNewSubjectName('');
-      setShowAddSubject(false);
-      
-      // Auto-expand the new subject
-      setExpandedSubjects(prev => new Set([...prev, newSubject.id]));
-    } catch (error) {
-      console.error('Error adding subject:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    const updatedSubjects = [...exam.subjects, newSubject];
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setNewSubjectName('');
+    setShowAddSubject(false);
+    
+    // Auto-expand the new subject
+    setExpandedSubjects(prev => new Set([...prev, newSubject.id]));
   };
 
   const addChapter = async (subjectId: string) => {
-    if (!newChapterName.trim() || isUpdating) return;
+    if (!newChapterName.trim()) return;
     
-    try {
-      setIsUpdating(true);
-      const newChapter: Chapter = {
-        id: Date.now().toString(),
-        name: newChapterName.trim(),
-        isCompleted: false,
-        difficulty: newChapterDifficulty,
-        studyTime: 0
-      };
+    const newChapter: Chapter = {
+      id: Date.now().toString(),
+      name: newChapterName.trim(),
+      isCompleted: false,
+      difficulty: newChapterDifficulty,
+      studyTime: 0
+    };
 
-      const updatedSubjects = (exam.subjects || []).map(subject => {
-        if (subject.id === subjectId) {
-          const updatedChapters = [...(subject.chapters || []), newChapter];
-          return {
-            ...subject,
-            chapters: updatedChapters,
-            isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
-          };
-        }
-        return subject;
-      });
+    const updatedSubjects = exam.subjects.map(subject => {
+      if (subject.id === subjectId) {
+        const updatedChapters = [...subject.chapters, newChapter];
+        return {
+          ...subject,
+          chapters: updatedChapters,
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
+        };
+      }
+      return subject;
+    });
 
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-      
-      setNewChapterName('');
-      setNewChapterDifficulty('medium');
-      setShowAddChapter(null);
-    } catch (error) {
-      console.error('Error adding chapter:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setNewChapterName('');
+    setNewChapterDifficulty('medium');
+    setShowAddChapter(null);
   };
 
   const toggleChapterCompletion = async (subjectId: string, chapterId: string) => {
-    if (isUpdating) return;
-    
-    try {
-      setIsUpdating(true);
-      
-      // Find the subject and chapter to ensure they exist
-      const subject = exam.subjects?.find(s => s.id === subjectId);
-      const chapter = subject?.chapters?.find(c => c.id === chapterId);
-      
-      if (!subject || !chapter) {
-        console.error('Subject or chapter not found');
-        return;
+    const updatedSubjects = exam.subjects.map(subject => {
+      if (subject.id === subjectId) {
+        const updatedChapters = subject.chapters.map(chapter => {
+          if (chapter.id === chapterId) {
+            const isCompleted = !chapter.isCompleted;
+            return {
+              ...chapter,
+              isCompleted,
+              completedAt: isCompleted ? new Date() : undefined
+            };
+          }
+          return chapter;
+        });
+        
+        return {
+          ...subject,
+          chapters: updatedChapters,
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
+        };
       }
+      return subject;
+    });
 
-      const updatedSubjects = exam.subjects.map(subject => {
-        if (subject.id === subjectId) {
-          const updatedChapters = subject.chapters.map(chapter => {
-            if (chapter.id === chapterId) {
-              const isCompleted = !chapter.isCompleted;
-              return {
-                ...chapter,
-                isCompleted,
-                completedAt: isCompleted ? new Date() : undefined
-              };
-            }
-            return chapter;
-          });
-          
-          return {
-            ...subject,
-            chapters: updatedChapters,
-            isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
-          };
-        }
-        return subject;
-      });
-
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-    } catch (error) {
-      console.error('Error toggling chapter completion:', error);
-      // Optionally show user-friendly error message
-      alert('Failed to update chapter. Please try again.');
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
   };
 
   const startEditingSubject = (subject: Subject) => {
@@ -221,28 +172,21 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   };
 
   const saveSubjectEdit = async () => {
-    if (!editingSubject || !editSubjectName.trim() || isUpdating) return;
+    if (!editingSubject || !editSubjectName.trim()) return;
     
-    try {
-      setIsUpdating(true);
-      const updatedSubjects = (exam.subjects || []).map(subject => 
-        subject.id === editingSubject.id 
-          ? { ...subject, name: editSubjectName.trim() }
-          : subject
-      );
+    const updatedSubjects = exam.subjects.map(subject => 
+      subject.id === editingSubject.id 
+        ? { ...subject, name: editSubjectName.trim() }
+        : subject
+    );
 
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-      
-      setEditingSubject(null);
-      setEditSubjectName('');
-    } catch (error) {
-      console.error('Error saving subject edit:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setEditingSubject(null);
+    setEditSubjectName('');
   };
 
   const cancelSubjectEdit = () => {
@@ -257,43 +201,36 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   };
 
   const saveChapterEdit = async () => {
-    if (!editingChapter || !editChapterName.trim() || isUpdating) return;
+    if (!editingChapter || !editChapterName.trim()) return;
     
-    try {
-      setIsUpdating(true);
-      const updatedSubjects = (exam.subjects || []).map(subject => {
-        if (subject.id === editingChapter.subjectId) {
-          const updatedChapters = subject.chapters.map(chapter => 
-            chapter.id === editingChapter.chapter.id
-              ? { 
-                  ...chapter, 
-                  name: editChapterName.trim(),
-                  difficulty: editChapterDifficulty
-                }
-              : chapter
-          );
-          return {
-            ...subject,
-            chapters: updatedChapters,
-            isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
-          };
-        }
-        return subject;
-      });
+    const updatedSubjects = exam.subjects.map(subject => {
+      if (subject.id === editingChapter.subjectId) {
+        const updatedChapters = subject.chapters.map(chapter => 
+          chapter.id === editingChapter.chapter.id
+            ? { 
+                ...chapter, 
+                name: editChapterName.trim(),
+                difficulty: editChapterDifficulty
+              }
+            : chapter
+        );
+        return {
+          ...subject,
+          chapters: updatedChapters,
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
+        };
+      }
+      return subject;
+    });
 
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-      
-      setEditingChapter(null);
-      setEditChapterName('');
-      setEditChapterDifficulty('medium');
-    } catch (error) {
-      console.error('Error saving chapter edit:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
+    
+    setEditingChapter(null);
+    setEditChapterName('');
+    setEditChapterDifficulty('medium');
   };
 
   const cancelChapterEdit = () => {
@@ -303,48 +240,34 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
   };
 
   const deleteSubject = async (subjectId: string) => {
-    if (!window.confirm('Are you sure you want to delete this subject and all its chapters?') || isUpdating) return;
+    if (!window.confirm('Are you sure you want to delete this subject and all its chapters?')) return;
     
-    try {
-      setIsUpdating(true);
-      const updatedSubjects = (exam.subjects || []).filter(subject => subject.id !== subjectId);
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-    } catch (error) {
-      console.error('Error deleting subject:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    const updatedSubjects = exam.subjects.filter(subject => subject.id !== subjectId);
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
   };
 
   const deleteChapter = async (subjectId: string, chapterId: string) => {
-    if (!window.confirm('Are you sure you want to delete this chapter?') || isUpdating) return;
+    if (!window.confirm('Are you sure you want to delete this chapter?')) return;
     
-    try {
-      setIsUpdating(true);
-      const updatedSubjects = (exam.subjects || []).map(subject => {
-        if (subject.id === subjectId) {
-          const updatedChapters = subject.chapters.filter(chapter => chapter.id !== chapterId);
-          return {
-            ...subject,
-            chapters: updatedChapters,
-            isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
-          };
-        }
-        return subject;
-      });
+    const updatedSubjects = exam.subjects.map(subject => {
+      if (subject.id === subjectId) {
+        const updatedChapters = subject.chapters.filter(chapter => chapter.id !== chapterId);
+        return {
+          ...subject,
+          chapters: updatedChapters,
+          isCompleted: updatedChapters.every(ch => ch.isCompleted) && updatedChapters.length > 0
+        };
+      }
+      return subject;
+    });
 
-      await onUpdateExam(exam.id, { 
-        subjects: updatedSubjects,
-        overallProgress: calculateOverallProgress(updatedSubjects)
-      });
-    } catch (error) {
-      console.error('Error deleting chapter:', error);
-    } finally {
-      setIsUpdating(false);
-    }
+    await onUpdateExam(exam.id, { 
+      subjects: updatedSubjects,
+      overallProgress: calculateOverallProgress(updatedSubjects)
+    });
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -364,15 +287,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
       default: return '⚪';
     }
   };
-
-  // Safety check for exam data
-  if (!exam || !exam.subjects) {
-    return (
-      <Card className="p-6">
-        <p className="text-gray-500 dark:text-gray-400">Loading exam data...</p>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -434,7 +348,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
           onClick={() => setShowAddSubject(true)}
           icon={Plus}
           variant="secondary"
-          disabled={isUpdating}
           className="w-full bg-gradient-to-r from-blue-50 to-purple-50 hover:from-blue-100 hover:to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 border-2 border-dashed border-blue-300 dark:border-blue-600 text-blue-600 dark:text-blue-400 transition-all duration-200"
         >
           Add New Subject
@@ -455,14 +368,13 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
               onChange={setNewSubjectName}
               className="flex-1"
               onKeyPress={(e) => e.key === 'Enter' && addSubject()}
-              disabled={isUpdating}
             />
             <Button 
               onClick={addSubject}
               className="bg-blue-600 hover:bg-blue-700"
-              disabled={!newSubjectName.trim() || isUpdating}
+              disabled={!newSubjectName.trim()}
             >
-              {isUpdating ? 'Adding...' : 'Add'}
+              Add
             </Button>
             <Button 
               onClick={() => {
@@ -470,7 +382,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                 setNewSubjectName('');
               }}
               variant="secondary"
-              disabled={isUpdating}
             >
               Cancel
             </Button>
@@ -492,21 +403,19 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
               onChange={setEditSubjectName}
               className="flex-1"
               onKeyPress={(e) => e.key === 'Enter' && saveSubjectEdit()}
-              disabled={isUpdating}
             />
             <Button 
               onClick={saveSubjectEdit}
               icon={Save}
               className="bg-green-600 hover:bg-green-700"
-              disabled={!editSubjectName.trim() || isUpdating}
+              disabled={!editSubjectName.trim()}
             >
-              {isUpdating ? 'Saving...' : 'Save'}
+              Save
             </Button>
             <Button 
               onClick={cancelSubjectEdit}
               icon={X}
               variant="secondary"
-              disabled={isUpdating}
             >
               Cancel
             </Button>
@@ -527,14 +436,12 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
               value={editChapterName}
               onChange={setEditChapterName}
               onKeyPress={(e) => e.key === 'Enter' && saveChapterEdit()}
-              disabled={isUpdating}
             />
             <div className="flex items-center gap-3">
               <select
                 value={editChapterDifficulty}
                 onChange={(e) => setEditChapterDifficulty(e.target.value as any)}
                 className="px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                disabled={isUpdating}
               >
                 <option value="easy">🟢 Easy</option>
                 <option value="medium">🟡 Medium</option>
@@ -544,15 +451,14 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                 onClick={saveChapterEdit}
                 icon={Save}
                 className="bg-green-600 hover:bg-green-700"
-                disabled={!editChapterName.trim() || isUpdating}
+                disabled={!editChapterName.trim()}
               >
-                {isUpdating ? 'Saving...' : 'Save'}
+                Save
               </Button>
               <Button 
                 onClick={cancelChapterEdit}
                 icon={X}
                 variant="secondary"
-                disabled={isUpdating}
               >
                 Cancel
               </Button>
@@ -627,7 +533,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                       icon={Edit2}
                       onClick={() => startEditingSubject(subject)}
                       className="p-2 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600"
-                      disabled={isUpdating}
                     />
                     <Button
                       variant="ghost"
@@ -635,7 +540,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                       icon={Trash2}
                       onClick={() => deleteSubject(subject.id)}
                       className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
-                      disabled={isUpdating}
                     />
                   </div>
                 </div>
@@ -646,20 +550,15 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                 <div className="border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
                   {/* Chapter List */}
                   <div className="p-4 space-y-3">
-                    {subject.chapters?.map((chapter) => (
+                    {subject.chapters.map((chapter) => (
                       <div key={chapter.id} className="flex items-center gap-3 p-3 bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 group">
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggleChapterCompletion(subject.id, chapter.id);
-                          }}
-                          disabled={isUpdating}
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
+                          onClick={() => toggleChapterCompletion(subject.id, chapter.id)}
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 hover:scale-110 ${
                             chapter.isCompleted 
                               ? 'bg-green-600 border-green-600 text-white' 
                               : 'border-gray-300 dark:border-gray-600 hover:border-green-400 dark:hover:border-green-500'
-                          } ${isUpdating ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                          }`}
                         >
                           {chapter.isCompleted && <Check className="w-3 h-3" />}
                         </button>
@@ -701,7 +600,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                             icon={Edit2}
                             onClick={() => startEditingChapter(subject.id, chapter)}
                             className="p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-600"
-                            disabled={isUpdating}
                           />
                           <Button
                             variant="ghost"
@@ -709,11 +607,10 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                             icon={Trash2}
                             onClick={() => deleteChapter(subject.id, chapter.id)}
                             className="p-1 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600"
-                            disabled={isUpdating}
                           />
                         </div>
                       </div>
-                    )) || []}
+                    ))}
                     
                     {/* Add Chapter Form */}
                     {showAddChapter === subject.id ? (
@@ -724,14 +621,12 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                             value={newChapterName}
                             onChange={setNewChapterName}
                             onKeyPress={(e) => e.key === 'Enter' && addChapter(subject.id)}
-                            disabled={isUpdating}
                           />
                           <div className="flex items-center gap-3">
                             <select
                               value={newChapterDifficulty}
                               onChange={(e) => setNewChapterDifficulty(e.target.value as any)}
                               className="px-3 py-2 border border-gray-200 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-                              disabled={isUpdating}
                             >
                               <option value="easy">🟢 Easy</option>
                               <option value="medium">🟡 Medium</option>
@@ -741,9 +636,9 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                               onClick={() => addChapter(subject.id)}
                               size="sm"
                               className="bg-blue-600 hover:bg-blue-700"
-                              disabled={!newChapterName.trim() || isUpdating}
+                              disabled={!newChapterName.trim()}
                             >
-                              {isUpdating ? 'Adding...' : 'Add Chapter'}
+                              Add Chapter
                             </Button>
                             <Button 
                               onClick={() => {
@@ -753,7 +648,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                               }}
                               variant="secondary"
                               size="sm"
-                              disabled={isUpdating}
                             >
                               Cancel
                             </Button>
@@ -766,7 +660,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
                         variant="ghost"
                         icon={Plus}
                         className="w-full py-3 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
-                        disabled={isUpdating}
                       >
                         Add Chapter to {subject.name}
                       </Button>
@@ -829,7 +722,6 @@ export const SyllabusTracker: React.FC<SyllabusTrackerProps> = ({ exam, onUpdate
             onClick={() => setShowAddSubject(true)}
             icon={Plus}
             className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-            disabled={isUpdating}
           >
             Add Your First Subject
           </Button>
