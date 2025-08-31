@@ -4,6 +4,7 @@ import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, Bo
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
+import { ExportButton } from '../components/ui/ExportButton';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
@@ -179,15 +180,50 @@ export const Analytics: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
-        {/* Header with improved design */}
-        <div className="mb-12 text-center">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-            Study Analytics
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Discover insights, track progress, and optimize your learning journey with data-driven analytics
-          </p>
+      <div id="analytics-export-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
+        {/* Header with Export Button */}
+        <div className="mb-12">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8">
+            <div className="text-center sm:text-left">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+                Study Analytics
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl">
+                Discover insights, track progress, and optimize your learning journey with data-driven analytics
+              </p>
+            </div>
+            
+            {/* Export Button */}
+            <div className="flex flex-col items-center gap-3">
+              <ExportButton 
+                targetElementId="analytics-export-content"
+                filename="StudyPro-Analytics-Report"
+                className="whitespace-nowrap"
+              />
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                <div>Professional PDF with watermark</div>
+                <div className="text-violet-600 dark:text-violet-400 font-medium">
+                  {format(new Date(), 'MMM dd, yyyy')}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Report Metadata for PDF */}
+          <div className="hidden" id="pdf-metadata">
+            <div className="bg-gradient-to-r from-violet-600 to-purple-600 p-6 rounded-2xl text-white mb-8">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold mb-2">StudyPro Analytics Report</h2>
+                  <p className="opacity-90">Generated on {format(new Date(), 'EEEE, MMMM dd, yyyy')} at {format(new Date(), 'h:mm a')}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-3xl font-bold">{totalSessions}</div>
+                  <div className="text-sm opacity-75">Total Sessions</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Time frame selector */}
@@ -697,6 +733,31 @@ export const Analytics: React.FC = () => {
             </div>
           </Card>
         </div>
+
+        {/* Export Information Panel */}
+        <Card className="p-6 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border border-violet-200/30 dark:border-violet-700/30 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-r from-violet-500 to-purple-500 rounded-xl">
+                <FileText className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                  Professional Report Export
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Generate a comprehensive PDF report with advanced watermarking and professional formatting
+                </p>
+              </div>
+            </div>
+            <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+              <div>Report includes:</div>
+              <div className="font-medium text-violet-600 dark:text-violet-400">
+                Charts • Stats • Insights • Watermarks
+              </div>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   );
