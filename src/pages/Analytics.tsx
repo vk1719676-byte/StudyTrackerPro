@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity } from 'lucide-react';
 import { Card } from '../components/ui/Card';
+import { ExportButton } from '../components/ui/ExportButton';
+import { ChartContainer } from '../components/analytics/ChartContainer';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
+import { PDFExportService } from '../services/pdfExportService';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks } from 'date-fns';
 
 export const Analytics: React.FC = () => {
@@ -114,6 +117,22 @@ export const Analytics: React.FC = () => {
     }));
   };
 
+  const handlePDFExport = async () => {
+    const exportService = new PDFExportService();
+    
+    const analyticsData = {
+      sessions,
+      exams,
+      totalStudyTime,
+      averageSessionTime,
+      averageEfficiency,
+      totalSessions,
+      subjectData: getSubjectData()
+    };
+
+    await exportService.exportAnalyticsToPDF(analyticsData);
+  };
+
   const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#14b8a6'];
 
   const weeklyData = getWeeklyData();
@@ -180,14 +199,21 @@ export const Analytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
-        {/* Header with improved design */}
+        {/* Header with improved design and export button */}
         <div className="mb-12 text-center">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-            Study Analytics
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Discover insights, track progress, and optimize your learning journey with data-driven analytics
-          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-between mb-6">
+            <div className="flex-1">
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+                Study Analytics
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Discover insights, track progress, and optimize your learning journey with data-driven analytics
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0">
+              <ExportButton onExport={handlePDFExport} />
+            </div>
+          </div>
         </div>
 
         {/* Time frame selector */}
@@ -317,15 +343,14 @@ export const Analytics: React.FC = () => {
           {/* Basic Analytics - Always Available */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {/* Weekly Progress */}
-            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  Weekly Study Hours
-                </h3>
-                <div className="flex items-center gap-2 px-3 py-1 bg-violet-100 dark:bg-violet-900/30 rounded-full">
-                  <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-violet-700 dark:text-violet-300">Live Data</span>
-                </div>
+            <ChartContainer
+              id="weekly-chart"
+              title="Weekly Study Hours"
+              subtitle="Track your study consistency over time"
+            >
+              <div className="flex items-center gap-2 px-3 py-1 bg-violet-100 dark:bg-violet-900/30 rounded-full mb-4 w-fit">
+                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-medium text-violet-700 dark:text-violet-300">Live Data</span>
               </div>
               <ResponsiveContainer width="100%" height={320}>
                 <BarChart data={weeklyData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -364,23 +389,22 @@ export const Analytics: React.FC = () => {
                   />
                 </BarChart>
               </ResponsiveContainer>
-            </Card>
+            </ChartContainer>
 
             {/* Daily Efficiency */}
-            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                  Daily Performance Trend
-                </h3>
-                <div className="flex gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Hours</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                    <span className="text-xs text-gray-600 dark:text-gray-400">Efficiency</span>
-                  </div>
+            <ChartContainer
+              id="daily-chart"
+              title="Daily Performance Trend"
+              subtitle="Hours studied vs efficiency ratings"
+            >
+              <div className="flex gap-4 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Hours</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">Efficiency</span>
                 </div>
               </div>
               <ResponsiveContainer width="100%" height={320}>
@@ -444,60 +468,62 @@ export const Analytics: React.FC = () => {
                   />
                 </LineChart>
               </ResponsiveContainer>
-            </Card>
+            </ChartContainer>
           </div>
 
           {/* Subject Distribution with enhanced design */}
           <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Study Time by Subject
-              </h3>
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                  {subjectData.length} Subjects
-                </span>
+            <div id="subject-distribution">
+              <div className="flex items-center justify-between mb-8">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                  Study Time by Subject
+                </h3>
+                <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                  <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                    {subjectData.length} Subjects
+                  </span>
+                </div>
               </div>
-            </div>
-            <div className="space-y-4">
-              {subjectData.slice(0, 5).map((subject, index) => {
-                const maxHours = Math.max(...subjectData.map(s => s.hours));
-                const percentage = (subject.hours / maxHours) * 100;
-                
-                return (
-                  <div key={subject.subject} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/30 rounded-xl p-4 transition-all duration-300">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
+              <div className="space-y-4">
+                {subjectData.slice(0, 5).map((subject, index) => {
+                  const maxHours = Math.max(...subjectData.map(s => s.hours));
+                  const percentage = (subject.hours / maxHours) * 100;
+                  
+                  return (
+                    <div key={subject.subject} className="group hover:bg-gray-50/50 dark:hover:bg-gray-700/30 rounded-xl p-4 transition-all duration-300">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-5 h-5 rounded-lg shadow-sm"
+                            style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          />
+                          <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
+                            {subject.subject}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-gray-900 dark:text-gray-100 font-bold text-xl">
+                            {subject.hours}h
+                          </div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {subject.sessions} sessions
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
                         <div 
-                          className="w-5 h-5 rounded-lg shadow-sm"
-                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                          className="h-full rounded-full transition-all duration-1000 ease-out"
+                          style={{ 
+                            width: `${percentage}%`,
+                            backgroundColor: COLORS[index % COLORS.length],
+                          }}
                         />
-                        <span className="text-gray-900 dark:text-gray-100 font-semibold text-lg">
-                          {subject.subject}
-                        </span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-gray-900 dark:text-gray-100 font-bold text-xl">
-                          {subject.hours}h
-                        </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-400">
-                          {subject.sessions} sessions
-                        </div>
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all duration-1000 ease-out"
-                        style={{ 
-                          width: `${percentage}%`,
-                          backgroundColor: COLORS[index % COLORS.length],
-                        }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           </Card>
 
@@ -625,17 +651,16 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Efficiency Distribution with enhanced design */}
-          <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
-            <div className="flex items-center justify-between mb-8">
-              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                Efficiency Ratings Distribution
-              </h3>
-              <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full">
-                <Star className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
-                  Avg: {averageEfficiency.toFixed(1)}/5
-                </span>
-              </div>
+          <ChartContainer
+            id="efficiency-chart"
+            title="Efficiency Ratings Distribution"
+            subtitle="How you rate your study sessions"
+          >
+            <div className="flex items-center gap-2 px-3 py-1 bg-orange-100 dark:bg-orange-900/30 rounded-full mb-6 w-fit">
+              <Star className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <span className="text-sm font-medium text-orange-700 dark:text-orange-300">
+                Avg: {averageEfficiency.toFixed(1)}/5
+              </span>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <ResponsiveContainer width="100%" height={300}>
@@ -695,7 +720,7 @@ export const Analytics: React.FC = () => {
                 ))}
               </div>
             </div>
-          </Card>
+          </ChartContainer>
         </div>
       </div>
     </div>
