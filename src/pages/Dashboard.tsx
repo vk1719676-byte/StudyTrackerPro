@@ -759,10 +759,10 @@ export const Dashboard: React.FC = () => {
                   <div className="flex flex-col gap-3">
                     <button className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
                       <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
-                      Add New Exam
+                      Add New Exam From Exam Section
                     </button>
                     <button className="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-semibold text-sm">
-                      Review Study Schedule →
+      Study Tracker Pro
                     </button>
                   </div>
                 </div>
