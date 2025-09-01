@@ -4,6 +4,7 @@ import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
 import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
+import { TeachersDayPopup } from '../components/popup/TeachersDayPopup';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserExams, getUserSessions } from '../services/firestore';
 import { Exam, StudySession } from '../types';
@@ -164,11 +165,29 @@ export const Dashboard: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(0);
+  const [showTeachersDayPopup, setShowTeachersDayPopup] = useState(false);
   const { user } = useAuth();
 
   // Get display name
   const savedDisplayName = user ? localStorage.getItem(`displayName-${user.uid}`) : null;
   const displayName = savedDisplayName || user?.displayName || user?.email?.split('@')[0];
+
+  // Check if Teachers Day popup should be shown
+  useEffect(() => {
+    const hasJoinedTelegram = localStorage.getItem('teachersDayTelegramJoined');
+    const hasSeenPopup = localStorage.getItem('teachersDayPopupShown');
+    
+    // Show popup if user hasn't joined Telegram and hasn't seen popup today
+    if (!hasJoinedTelegram && !hasSeenPopup) {
+      const timer = setTimeout(() => {
+        setShowTeachersDayPopup(true);
+        // Mark as shown for today
+        localStorage.setItem('teachersDayPopupShown', new Date().toDateString());
+      }, 3000); // Show after 3 seconds
+      
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -198,6 +217,10 @@ export const Dashboard: React.FC = () => {
 
   const handleSessionAdded = () => {
     // Sessions updated via real-time listener
+  };
+
+  const handleCloseTeachersDayPopup = () => {
+    setShowTeachersDayPopup(false);
   };
 
   // Analytics calculations
@@ -651,6 +674,12 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Teachers Day Popup */}
+      <TeachersDayPopup 
+        isOpen={showTeachersDayPopup} 
+        onClose={handleCloseTeachersDayPopup} 
+      />
     </div>
   );
 };
