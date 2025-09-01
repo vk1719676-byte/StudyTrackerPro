@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Download, FileText } from 'lucide-react';
+import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
@@ -8,14 +8,11 @@ import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks } from 'date-fns';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 export const Analytics: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [exportingPDF, setExportingPDF] = useState(false);
   const [activeTimeframe, setActiveTimeframe] = useState<'week' | 'month' | 'year'>('week');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const { user, isPremium } = useAuth();
@@ -37,178 +34,6 @@ export const Analytics: React.FC = () => {
       unsubscribeExams();
     };
   }, [user]);
-
-  const exportToPDF = async () => {
-    setExportingPDF(true);
-    
-    try {
-      // Create a temporary watermark element
-      const watermarkElement = document.createElement('div');
-      watermarkElement.id = 'pdf-watermark';
-      watermarkElement.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(139, 92, 246, 0.2);
-        border-radius: 16px;
-        padding: 16px 24px;
-        z-index: 9999;
-        font-family: 'Inter', sans-serif;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-      `;
-      
-      const currentDate = new Date();
-      watermarkElement.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-          <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="
-              width: 40px; 
-              height: 40px; 
-              background: linear-gradient(135deg, #8b5cf6, #3b82f6); 
-              border-radius: 12px; 
-              display: flex; 
-              align-items: center; 
-              justify-content: center;
-              color: white;
-              font-weight: bold;
-              font-size: 18px;
-            ">S</div>
-            <div>
-              <div style="font-weight: 700; color: #1f2937; font-size: 16px; margin-bottom: 2px;">StudyTracker Pro</div>
-              <div style="font-size: 12px; color: #6b7280;">Analytics Dashboard Report</div>
-            </div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-size: 12px; color: #6b7280; margin-bottom: 2px;">
-              Generated: ${format(currentDate, 'PPP')} at ${format(currentDate, 'p')}
-            </div>
-            <div style="font-size: 10px; color: #9ca3af;">
-              © ${currentDate.getFullYear()} StudyTracker Pro • studytracker.app
-            </div>
-          </div>
-        </div>
-        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(139, 92, 246, 0.1);">
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6b7280;">
-            <span>User: ${user?.email || 'Anonymous'}</span>
-            <span>Report ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
-            <span>Export Version: 1.0</span>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(watermarkElement);
-
-      // Wait for watermark to render
-      await new Promise(resolve => setTimeout(resolve, 100));
-
-      // Get the main content element
-      const element = document.querySelector('.min-h-screen') as HTMLElement;
-      
-      if (!element) {
-        throw new Error('Could not find content to export');
-      }
-
-      // Configure html2canvas for better quality
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher resolution
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight,
-        scrollX: 0,
-        scrollY: 0
-      });
-
-      // Remove watermark after capture
-      document.body.removeChild(watermarkElement);
-
-      const imgData = canvas.toDataURL('image/png');
-      
-      // Create PDF with proper dimensions
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Calculate image dimensions to fit PDF
-      const imgWidth = pdfWidth - 20; // 10mm margin on each side
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Add the image to PDF
-      let yPosition = 10;
-      let remainingHeight = imgHeight;
-      
-      while (remainingHeight > 0) {
-        const pageHeight = Math.min(remainingHeight, pdfHeight - 20);
-        
-        pdf.addImage(
-          imgData,
-          'PNG',
-          10,
-          yPosition,
-          imgWidth,
-          imgHeight,
-          undefined,
-          'FAST'
-        );
-        
-        remainingHeight -= (pdfHeight - 20);
-        if (remainingHeight > 0) {
-          pdf.addPage();
-          yPosition = -(imgHeight - remainingHeight) + 10;
-        }
-      }
-
-      // Add header watermark to each page
-      const totalPages = pdf.internal.pages.length - 1; // Subtract 1 because pages array includes a null first element
-      
-      for (let i = 1; i <= totalPages; i++) {
-        pdf.setPage(i);
-        
-        // Header watermark
-        pdf.setFillColor(139, 92, 246);
-        pdf.setGlobalAlpha(0.1);
-        pdf.rect(0, 0, pdfWidth, 15, 'F');
-        pdf.setGlobalAlpha(1);
-        
-        // Header text
-        pdf.setFontSize(8);
-        pdf.setTextColor(100, 100, 100);
-        pdf.text('StudyTracker Pro - Analytics Report', 10, 8);
-        pdf.text(`Page ${i} of ${totalPages}`, pdfWidth - 30, 8);
-        
-        // Footer watermark
-        pdf.setFillColor(59, 130, 246);
-        pdf.setGlobalAlpha(0.1);
-        pdf.rect(0, pdfHeight - 15, pdfWidth, 15, 'F');
-        pdf.setGlobalAlpha(1);
-        
-        // Footer text
-        pdf.setFontSize(7);
-        pdf.setTextColor(120, 120, 120);
-        pdf.text(`Generated on ${format(currentDate, 'PPP')} | © StudyTracker Pro`, 10, pdfHeight - 8);
-        pdf.text('studytracker.app', pdfWidth - 25, pdfHeight - 8);
-      }
-
-      // Save the PDF
-      const fileName = `StudyTracker-Analytics-${format(currentDate, 'yyyy-MM-dd')}.pdf`;
-      pdf.save(fileName);
-      
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
-      alert('Failed to export PDF. Please try again.');
-    } finally {
-      setExportingPDF(false);
-    }
-  };
 
   // Prepare data for charts
   const getWeeklyData = () => {
@@ -355,61 +180,14 @@ export const Analytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
-        {/* Header with improved design and PDF export button */}
+        {/* Header with improved design */}
         <div className="mb-12 text-center">
-          <div className="flex justify-between items-start mb-6">
-            <div className="flex-1">
-              <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-                Study Analytics
-              </h1>
-              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-                Discover insights, track progress, and optimize your learning journey with data-driven analytics
-              </p>
-            </div>
-            
-            {/* PDF Export Button */}
-            <div className="flex-shrink-0 ml-8">
-              <button
-                onClick={exportToPDF}
-                disabled={exportingPDF}
-                className={`
-                  group relative flex items-center gap-3 px-6 py-3 
-                  bg-gradient-to-r from-violet-600 to-cyan-600 
-                  hover:from-violet-700 hover:to-cyan-700 
-                  text-white font-semibold rounded-2xl 
-                  shadow-lg hover:shadow-xl 
-                  transform transition-all duration-300 
-                  hover:scale-105 active:scale-95
-                  disabled:opacity-50 disabled:cursor-not-allowed 
-                  disabled:transform-none disabled:hover:shadow-lg
-                  border-0
-                `}
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                
-                {exportingPDF ? (
-                  <>
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white/30 border-t-white"></div>
-                    <span className="relative z-10">Generating PDF...</span>
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-5 h-5 relative z-10 group-hover:rotate-12 transition-transform duration-300" />
-                    <span className="relative z-10">Export PDF</span>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse"></div>
-                  </>
-                )}
-              </button>
-              
-              {/* Export info tooltip */}
-              <div className="mt-2 text-center">
-                <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
-                  <FileText className="w-3 h-3" />
-                  Professional report with watermark
-                </span>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+            Study Analytics
+          </h1>
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Discover insights, track progress, and optimize your learning journey with data-driven analytics
+          </p>
         </div>
 
         {/* Time frame selector */}
