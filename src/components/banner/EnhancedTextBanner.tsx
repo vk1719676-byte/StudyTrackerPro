@@ -6,7 +6,6 @@ import {
   ExternalLink,
   X,
   Bell,
-  GraduationCap,
   Heart
 } from 'lucide-react';
 
@@ -100,42 +99,6 @@ export const EnhancedTextBanner: React.FC = () => {
 
   return (
     <div className="mb-4 relative">
-      {/* Advanced Logo Header */}
-      <div className="text-center mb-4 relative overflow-hidden">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 via-purple-600/5 to-blue-600/5 dark:from-blue-400/10 dark:via-purple-400/10 dark:to-blue-400/10 rounded-2xl" />
-        
-        {/* Logo Container */}
-        <div className="relative py-3 px-4">
-          {/* Main Logo Text */}
-          <div className="flex items-center justify-center gap-3 mb-1">
-            {/* Logo Icon */}
-            <div className="p-2 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg group-hover:shadow-xl transition-all duration-300">
-              <GraduationCap className="w-6 h-6 md:w-7 md:h-7 text-white" />
-            </div>
-            
-            {/* Logo Text */}
-            <div className="flex flex-col items-start">
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent bg-size-200 animate-gradient">
-                Study Tracker
-              </h1>
-              <span className="text-lg md:text-xl font-semibold text-purple-600 dark:text-purple-400 -mt-1">
-                Pro
-              </span>
-            </div>
-          </div>
-          
-          {/* Tagline */}
-          <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-            Your Ultimate Study Management Solution
-          </p>
-        </div>
-
-        {/* Subtle decorative elements */}
-        <div className="absolute top-2 right-4 w-8 h-8 bg-gradient-to-br from-blue-200 to-purple-200 dark:from-blue-800 dark:to-purple-800 rounded-full opacity-20 animate-pulse" />
-        <div className="absolute bottom-2 left-4 w-6 h-6 bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 dark:to-blue-800 rounded-full opacity-30 animate-pulse animation-delay-1000" />
-      </div>
-
       {/* Compact Notice Banner */}
       <div 
         className={`relative overflow-hidden ${currentNoticeData.bgColor} border border-gray-200 dark:border-gray-700/50 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group backdrop-blur-sm`}
@@ -275,26 +238,8 @@ export const EnhancedTextBanner: React.FC = () => {
           100% { transform: translateX(100%); opacity: 0; }
         }
         
-        @keyframes gradient {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        
         .animate-progress {
           animation: progress 5s ease-in-out infinite;
-        }
-        
-        .animate-gradient {
-          background-size: 200% 200%;
-          animation: gradient 3s ease-in-out infinite;
-        }
-        
-        .animation-delay-1000 {
-          animation-delay: 1s;
-        }
-        
-        .bg-size-200 {
-          background-size: 200% 200%;
         }
       `}</style>
     </div>
