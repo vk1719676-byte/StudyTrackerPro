@@ -4,7 +4,6 @@ import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, Bo
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
-import { PDFExporter } from '../components/analytics/PDFExporter';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
@@ -181,26 +180,14 @@ export const Analytics: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-all duration-500">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
-        {/* Header with improved design and PDF Export */}
+        {/* Header with improved design */}
         <div className="mb-12 text-center">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
             Study Analytics
           </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover insights, track progress, and optimize your learning journey with data-driven analytics
           </p>
-          
-          {/* PDF Export Button */}
-          <div className="flex justify-center mb-8">
-            <PDFExporter
-              sessions={sessions}
-              exams={exams}
-              totalStudyTime={totalStudyTime}
-              averageSessionTime={averageSessionTime}
-              averageEfficiency={averageEfficiency}
-              totalSessions={totalSessions}
-            />
-          </div>
         </div>
 
         {/* Time frame selector */}
