@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, MapPin, BookMarked, Progress, Zap as Lightning } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -520,251 +520,76 @@ export const Dashboard: React.FC = () => {
             </ModernCard>
           </div>
 
-          {/* Enhanced Upcoming Deadlines */}
+          {/* Upcoming Deadlines */}
           <div>
             <ModernCard className="p-8 h-full">
-              {/* Header with enhanced styling */}
-              <div className="flex flex-col gap-4 mb-8">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="relative p-3 bg-gradient-to-br from-red-500 via-red-600 to-pink-600 rounded-2xl shadow-lg">
-                      <AlertCircle className="w-6 h-6 text-white" />
-                      {upcomingDeadlines.length > 0 && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-pulse shadow-lg border-2 border-white"></div>
-                      )}
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Upcoming Deadlines</h2>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Next 7 days</p>
-                    </div>
-                  </div>
-                  {upcomingDeadlines.length > 0 && (
-                    <div className="bg-gradient-to-r from-red-100 to-orange-100 dark:from-red-900/30 dark:to-orange-900/30 text-red-700 dark:text-red-400 px-4 py-2 rounded-full text-sm font-bold border border-red-200/50 dark:border-red-700/50">
-                      {upcomingDeadlines.length} Exam{upcomingDeadlines.length !== 1 ? 's' : ''}
-                    </div>
-                  )}
+              <div className="flex items-center gap-3 mb-8">
+                <div className="p-3 bg-gradient-to-br from-red-600 to-pink-600 rounded-2xl shadow-lg">
+                  <AlertCircle className="w-6 h-6 text-white" />
                 </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Deadlines</h2>
               </div>
               
               {upcomingDeadlines.length > 0 ? (
-                <div className="space-y-5">
-                  {upcomingDeadlines.slice(0, 4).map((exam, index) => {
+                <div className="space-y-4">
+                  {upcomingDeadlines.slice(0, 4).map((exam) => {
                     const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    const hoursUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60));
-                    const isUrgent = daysUntil <= 2;
-                    const isCritical = daysUntil <= 1;
+                    const isUrgent = daysUntil <= 3;
                     const studySessionsForExam = sessions.filter(s => s.examId === exam.id);
                     const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
-                    const recommendedStudyTime = 300; // 5 hours recommended
-                    const preparationProgress = Math.min((totalStudyTime / recommendedStudyTime) * 100, 100);
-                    
-                    // Determine exam time
-                    const examDate = new Date(exam.date);
-                    const timeString = examDate.toLocaleTimeString('en-US', { 
-                      hour: 'numeric', 
-                      minute: '2-digit',
-                      hour12: true 
-                    });
-                    const dateString = examDate.toLocaleDateString('en-US', { 
-                      weekday: 'short',
-                      month: 'short', 
-                      day: 'numeric' 
-                    });
                     
                     return (
-                      <div 
-                        key={exam.id} 
-                        className={`group relative overflow-hidden transition-all duration-500 hover:scale-[1.02] ${
-                          isCritical 
-                            ? 'bg-gradient-to-br from-red-50 via-red-50 to-pink-50 dark:from-red-900/25 dark:via-red-900/20 dark:to-pink-900/25' 
-                            : isUrgent 
-                            ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/25 dark:via-amber-900/20 dark:to-yellow-900/25' 
-                            : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/25 dark:via-indigo-900/20 dark:to-purple-900/25'
-                        } rounded-2xl p-5 border-l-4 shadow-sm hover:shadow-xl ${
-                          isCritical ? 'border-red-500' : isUrgent ? 'border-amber-500' : 'border-blue-500'
-                        }`}
-                      >
-                        {/* Urgent indicator */}
-                        {isCritical && (
-                          <div className="absolute top-2 right-2">
-                            <div className="flex items-center gap-1 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold animate-pulse">
-                              <Lightning className="w-3 h-3" />
-                              CRITICAL
-                            </div>
+                      <div key={exam.id} className={`p-5 rounded-2xl border-l-4 transition-all duration-300 hover:shadow-lg ${
+                        isUrgent 
+                          ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-500' 
+                          : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-500'
+                      }`}>
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1 truncate">
+                              {exam.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                              {exam.subject}
+                            </p>
                           </div>
-                        )}
-                        
-                        {/* Main content */}
-                        <div className="space-y-4">
-                          {/* Header */}
-                          <div className="flex items-start justify-between">
-                            <div className="min-w-0 flex-1 pr-4">
-                              <div className="flex items-center gap-3 mb-2">
-                                <div className={`p-2 rounded-xl shadow-md ${
-                                  isCritical 
-                                    ? 'bg-gradient-to-br from-red-500 to-pink-500' 
-                                    : isUrgent 
-                                    ? 'bg-gradient-to-br from-amber-500 to-orange-500' 
-                                    : 'bg-gradient-to-br from-blue-500 to-indigo-500'
-                                }`}>
-                                  <BookMarked className="w-4 h-4 text-white" />
-                                </div>
-                                <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg truncate">
-                                  {exam.name}
-                                </h3>
-                              </div>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 truncate">
-                                {exam.subject}
-                              </p>
-                              
-                              {/* Date and time */}
-                              <div className="flex items-center gap-4 text-sm">
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                  <Calendar className="w-4 h-4" />
-                                  <span className="font-medium">{dateString}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                  <Clock className="w-4 h-4" />
-                                  <span className="font-medium">{timeString}</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            {/* Countdown badge */}
-                            <div className="flex-shrink-0">
-                              <div className={`text-center p-3 rounded-2xl shadow-lg ${
-                                isCritical 
-                                  ? 'bg-gradient-to-br from-red-500 to-red-600 text-white' 
-                                  : isUrgent 
-                                  ? 'bg-gradient-to-br from-amber-500 to-orange-500 text-white' 
-                                  : 'bg-gradient-to-br from-blue-500 to-indigo-500 text-white'
-                              }`}>
-                                <div className="text-2xl font-black leading-none">
-                                  {daysUntil === 0 ? hoursUntil <= 24 ? `${hoursUntil}h` : 'Today' : daysUntil}
-                                </div>
-                                <div className="text-xs font-bold opacity-90">
-                                  {daysUntil === 0 ? hoursUntil <= 24 ? 'Hours' : '' : daysUntil === 1 ? 'Day' : 'Days'}
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Progress section */}
-                          <div className="space-y-3">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                Study Progress
-                              </span>
-                              <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                                {formatMinutes(totalStudyTime)} / {formatMinutes(recommendedStudyTime)}
-                              </span>
-                            </div>
-                            
-                            {/* Enhanced progress bar */}
-                            <div className="relative">
-                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                                <div 
-                                  className={`h-full transition-all duration-1000 ease-out ${
-                                    preparationProgress >= 100 
-                                      ? 'bg-gradient-to-r from-emerald-400 to-green-500' 
-                                      : preparationProgress >= 60 
-                                      ? 'bg-gradient-to-r from-blue-400 to-indigo-500' 
-                                      : 'bg-gradient-to-r from-amber-400 to-orange-500'
-                                  } shadow-lg`}
-                                  style={{ width: `${preparationProgress}%` }}
-                                >
-                                  <div className="h-full bg-white/20 animate-pulse rounded-full"></div>
-                                </div>
-                              </div>
-                              
-                              {/* Progress percentage */}
-                              <div className="absolute right-0 -top-6">
-                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${
-                                  preparationProgress >= 100 
-                                    ? 'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40' 
-                                    : preparationProgress >= 60 
-                                    ? 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40' 
-                                    : 'text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/40'
-                                }`}>
-                                  {Math.round(preparationProgress)}%
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {/* Status and actions */}
-                            <div className="flex items-center justify-between pt-2">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${
-                                  preparationProgress >= 100 ? 'bg-emerald-500 animate-pulse' :
-                                  preparationProgress >= 60 ? 'bg-blue-500' :
-                                  preparationProgress >= 30 ? 'bg-amber-500' : 'bg-red-500 animate-pulse'
-                                }`}></div>
-                                <span className={`text-xs font-bold ${
-                                  preparationProgress >= 100 ? 'text-emerald-700 dark:text-emerald-400' :
-                                  preparationProgress >= 60 ? 'text-blue-700 dark:text-blue-400' :
-                                  preparationProgress >= 30 ? 'text-amber-700 dark:text-amber-400' : 'text-red-700 dark:text-red-400'
-                                }`}>
-                                  {preparationProgress >= 100 ? 'Excellent' :
-                                   preparationProgress >= 60 ? 'Good Progress' :
-                                   preparationProgress >= 30 ? 'Need More Study' : 'Critical - Study Now!'}
-                                </span>
-                              </div>
-                              
-                              <button className={`group/btn flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-300 hover:scale-105 shadow-md ${
-                                isCritical 
-                                  ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white' 
-                                  : isUrgent 
-                                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white' 
-                                  : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white'
-                              }`}>
-                                <Lightning className="w-3 h-3 group-hover/btn:animate-pulse" />
-                                Study Now
-                                <ChevronRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-                              </button>
-                            </div>
+                          <div className="text-right flex-shrink-0 ml-4">
+                            <span className={`text-sm font-bold px-3 py-2 rounded-xl ${
+                              isUrgent ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40' : 'text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/40'
+                            }`}>
+                              {daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}
+                            </span>
                           </div>
                         </div>
                         
-                        {/* Hover effect overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {formatMinutes(totalStudyTime)} studied
+                          </span>
+                          <span className={`font-bold px-3 py-1 rounded-full text-xs ${
+                            totalStudyTime >= 300 ? 'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40' : 
+                            totalStudyTime >= 120 ? 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40' : 
+                            'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
+                          }`}>
+                            {totalStudyTime >= 300 ? 'Well Prepared' : 
+                             totalStudyTime >= 120 ? 'Good Progress' : 'Need More Time'}
+                          </span>
+                        </div>
                       </div>
                     );
                   })}
-                  
-                  {/* View all link */}
-                  {upcomingDeadlines.length > 4 && (
-                    <button className="w-full mt-4 flex items-center justify-center gap-2 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold bg-indigo-50 dark:bg-indigo-900/30 px-4 py-3 rounded-2xl hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-all duration-300 group">
-                      View All {upcomingDeadlines.length} Deadlines
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                    </button>
-                  )}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <div className="relative mb-6">
-                    <div className="p-8 bg-gradient-to-br from-emerald-100 via-green-100 to-teal-100 dark:from-emerald-900/30 dark:via-green-900/30 dark:to-teal-900/30 rounded-full mx-auto inline-block shadow-lg">
-                      <CheckCircle2 className="w-16 h-16 text-emerald-600 dark:text-emerald-400 mx-auto" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce shadow-lg">
-                      <Star className="w-4 h-4 text-white m-1" />
-                    </div>
+                <div className="text-center py-8">
+                  <div className="p-6 bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 rounded-3xl mb-4 inline-block">
+                    <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
                   </div>
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-xl mb-3">
-                    All Clear! 🎉
+                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">
+                    No Upcoming Deadlines
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    No upcoming deadlines in the next 7 days.<br/>
-                    Perfect time to get ahead on your studies!
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Great! You're all caught up 🎉
                   </p>
-                  <div className="flex flex-col gap-3">
-                    <button className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
-                      <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform duration-300" />
-                      Add New Exam From Exam Section
-                    </button>
-                    <button className="text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-semibold text-sm">
-      Study Tracker Pro
-                    </button>
-                  </div>
                 </div>
               )}
             </ModernCard>
