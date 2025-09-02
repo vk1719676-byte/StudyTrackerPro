@@ -535,24 +535,7 @@ export const FocusMode: React.FC<FocusModeProps> = ({ isOpen, onClose }) => {
               {/* Music Player Integration */}
               <MusicPlayer />
 
-              {/* Compact Stats */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{pomodoroCount}</div>
-                  <div className="text-xs text-blue-700 dark:text-blue-300 font-medium">Sessions Today</div>
-                </div>
-                
-                <div className="text-center p-4 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-2xl">
-                  <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">{currentStreak}</div>
-                  <div className="text-xs text-orange-700 dark:text-orange-300 font-medium">Current Streak</div>
-                </div>
-                
-                <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400">{sessionsCompleted}</div>
-                  <div className="text-xs text-green-700 dark:text-green-300 font-medium">Total Sessions</div>
-                </div>
-              </div>
-
+              
               {/* Action Buttons */}
               <div className="flex gap-3 pt-2">
                 <Button
