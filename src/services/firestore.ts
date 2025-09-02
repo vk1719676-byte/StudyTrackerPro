@@ -127,8 +127,8 @@ export const getLeaderboardData = (callback: (leaderboard: any[]) => void) => {
   });
 };
 
-// Study Materials
-export const addStudyMaterial = async (material: Omit<StudyMaterial, 'id'>) => {
+// Study Materials (keeping the interface for any existing StudyMaterial type)
+export const addStudyMaterial = async (material: any) => {
   const docRef = await addDoc(collection(db, 'studyMaterials'), {
     ...material,
     uploadedAt: Timestamp.fromDate(material.uploadedAt)
@@ -136,7 +136,7 @@ export const addStudyMaterial = async (material: Omit<StudyMaterial, 'id'>) => {
   return docRef.id;
 };
 
-export const getUserStudyMaterials = (userId: string, callback: (materials: StudyMaterial[]) => void) => {
+export const getUserStudyMaterials = (userId: string, callback: (materials: any[]) => void) => {
   const q = query(
     collection(db, 'studyMaterials'),
     where('userId', '==', userId)
@@ -147,7 +147,7 @@ export const getUserStudyMaterials = (userId: string, callback: (materials: Stud
       id: doc.id,
       ...doc.data(),
       uploadedAt: doc.data().uploadedAt.toDate()
-    })) as StudyMaterial[];
+    }));
     
     // Sort by upload date on the client side
     materials.sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
