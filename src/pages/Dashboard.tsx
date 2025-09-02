@@ -520,78 +520,220 @@ export const Dashboard: React.FC = () => {
             </ModernCard>
           </div>
 
-          {/* Upcoming Deadlines */}
+          {/* Enhanced Upcoming Deadlines */}
           <div>
-            <ModernCard className="p-8 h-full">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 bg-gradient-to-br from-red-600 to-pink-600 rounded-2xl shadow-lg">
-                  <AlertCircle className="w-6 h-6 text-white" />
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Deadlines</h2>
-              </div>
-              
-              {upcomingDeadlines.length > 0 ? (
-                <div className="space-y-4">
-                  {upcomingDeadlines.slice(0, 4).map((exam) => {
-                    const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    const isUrgent = daysUntil <= 3;
-                    const studySessionsForExam = sessions.filter(s => s.examId === exam.id);
-                    const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
-                    
-                    return (
-                      <div key={exam.id} className={`p-5 rounded-2xl border-l-4 transition-all duration-300 hover:shadow-lg ${
-                        isUrgent 
-                          ? 'bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border-red-500' 
-                          : 'bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-amber-500'
-                      }`}>
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-1 truncate">
-                              {exam.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                              {exam.subject}
-                            </p>
-                          </div>
-                          <div className="text-right flex-shrink-0 ml-4">
-                            <span className={`text-sm font-bold px-3 py-2 rounded-xl ${
-                              isUrgent ? 'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40' : 'text-amber-700 bg-amber-100 dark:text-amber-400 dark:bg-amber-900/40'
-                            }`}>
-                              {daysUntil === 0 ? 'Today!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days`}
-                            </span>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            {formatMinutes(totalStudyTime)} studied
-                          </span>
-                          <span className={`font-bold px-3 py-1 rounded-full text-xs ${
-                            totalStudyTime >= 300 ? 'text-emerald-700 bg-emerald-100 dark:text-emerald-400 dark:bg-emerald-900/40' : 
-                            totalStudyTime >= 120 ? 'text-blue-700 bg-blue-100 dark:text-blue-400 dark:bg-blue-900/40' : 
-                            'text-red-700 bg-red-100 dark:text-red-400 dark:bg-red-900/40'
-                          }`}>
-                            {totalStudyTime >= 300 ? 'Well Prepared' : 
-                             totalStudyTime >= 120 ? 'Good Progress' : 'Need More Time'}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <div className="p-6 bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 rounded-3xl mb-4 inline-block">
-                    <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
+            <ModernCard className="p-0 h-full overflow-hidden">
+              {/* Enhanced Header */}
+              <div className="relative bg-gradient-to-br from-red-600 via-pink-600 to-rose-700 p-6">
+                <div className="absolute inset-0 bg-black/10"></div>
+                <div className="absolute top-4 right-4 w-24 h-24 bg-white/10 rounded-full blur-2xl"></div>
+                <div className="absolute bottom-2 left-6 w-16 h-16 bg-white/5 rounded-full blur-xl"></div>
+                
+                <div className="relative flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-4 bg-white/20 backdrop-blur-lg rounded-3xl shadow-xl border border-white/30">
+                      <AlertCircle className="w-7 h-7 text-white drop-shadow-lg" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-black text-white mb-1 drop-shadow-sm">Deadlines</h2>
+                      <p className="text-white/80 font-medium text-sm">Upcoming this week</p>
+                    </div>
                   </div>
-                  <h3 className="font-bold text-gray-900 dark:text-gray-100 text-lg mb-2">
-                    No Upcoming Deadlines
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Great! You're all caught up 🎉
-                  </p>
+                  
+                  {upcomingDeadlines.length > 0 && (
+                    <div className="flex items-center gap-2 bg-white/20 backdrop-blur-lg rounded-2xl px-4 py-2 border border-white/30">
+                      <div className="w-2 h-2 bg-red-300 rounded-full animate-pulse"></div>
+                      <span className="text-white font-bold text-sm">{upcomingDeadlines.length} urgent</span>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
+
+              {/* Enhanced Content */}
+              <div className="p-6">
+                {upcomingDeadlines.length > 0 ? (
+                  <div className="space-y-4">
+                    {upcomingDeadlines.slice(0, 4).map((exam, index) => {
+                      const daysUntil = Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                      const isUrgent = daysUntil <= 3;
+                      const isToday = daysUntil === 0;
+                      const studySessionsForExam = sessions.filter(s => s.examId === exam.id);
+                      const totalStudyTime = studySessionsForExam.reduce((total, session) => total + session.duration, 0);
+                      
+                      return (
+                        <div 
+                          key={exam.id} 
+                          className="group relative overflow-hidden rounded-2xl transition-all duration-500 hover:scale-[1.02] hover:shadow-xl"
+                          style={{ animationDelay: `${index * 100}ms` }}
+                        >
+                          {/* Deadline Card */}
+                          <div className={`relative p-5 border-2 transition-all duration-300 ${
+                            isToday 
+                              ? 'bg-gradient-to-br from-red-50 via-pink-50 to-rose-50 dark:from-red-900/30 dark:via-pink-900/30 dark:to-rose-900/30 border-red-400 shadow-lg shadow-red-200/50 dark:shadow-red-900/30' 
+                              : isUrgent 
+                              ? 'bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 dark:from-orange-900/20 dark:via-amber-900/20 dark:to-yellow-900/20 border-orange-400 shadow-lg shadow-orange-200/30 dark:shadow-orange-900/20' 
+                              : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 border-blue-300 shadow-lg shadow-blue-200/30 dark:shadow-blue-900/20'
+                          } rounded-2xl`}>
+                            
+                            {/* Priority indicator line */}
+                            <div className={`absolute top-0 left-0 right-0 h-1 ${
+                              isToday 
+                                ? 'bg-gradient-to-r from-red-500 to-pink-500' 
+                                : isUrgent 
+                                ? 'bg-gradient-to-r from-orange-500 to-amber-500' 
+                                : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                            } rounded-t-2xl`}></div>
+
+                            <div className="flex items-start justify-between mb-4">
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-3 mb-2">
+                                  <h3 className="font-black text-gray-900 dark:text-gray-100 text-xl truncate">
+                                    {exam.name}
+                                  </h3>
+                                  {isToday && (
+                                    <div className="flex items-center gap-1 bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+                                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                                      LIVE
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
+                                  {exam.subject}
+                                </p>
+                                
+                                {/* Enhanced countdown display */}
+                                <div className="flex items-center gap-3">
+                                  <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm ${
+                                    isToday 
+                                      ? 'bg-red-500 text-white shadow-lg' 
+                                      : isUrgent 
+                                      ? 'bg-orange-500 text-white shadow-lg' 
+                                      : 'bg-blue-500 text-white shadow-lg'
+                                  }`}>
+                                    <Clock className="w-4 h-4" />
+                                    <span>
+                                      {isToday ? 'TODAY!' : daysUntil === 1 ? 'Tomorrow' : `${daysUntil} days left`}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right flex-shrink-0 ml-4">
+                                <div className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                                  {new Date(exam.date).toLocaleDateString()}
+                                </div>
+                                <div className={`text-xs font-bold px-3 py-1 rounded-full ${
+                                  totalStudyTime >= 300 ? 'text-emerald-700 bg-emerald-200 dark:text-emerald-300 dark:bg-emerald-800/40' : 
+                                  totalStudyTime >= 120 ? 'text-blue-700 bg-blue-200 dark:text-blue-300 dark:bg-blue-800/40' : 
+                                  'text-red-700 bg-red-200 dark:text-red-300 dark:bg-red-800/40'
+                                }`}>
+                                  {totalStudyTime >= 300 ? '✅ Ready' : 
+                                   totalStudyTime >= 120 ? '⚡ Good' : '🚨 Study More'}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Progress bar and study time */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between text-sm">
+                                <span className="font-semibold text-gray-700 dark:text-gray-300">
+                                  Study Progress
+                                </span>
+                                <span className="font-bold text-gray-900 dark:text-gray-100">
+                                  {formatMinutes(totalStudyTime)} / 5h goal
+                                </span>
+                              </div>
+                              
+                              {/* Enhanced progress bar */}
+                              <div className="relative h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                                <div className="absolute inset-0 bg-gradient-to-r from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-500 rounded-full"></div>
+                                <div 
+                                  className={`absolute top-0 left-0 h-full transition-all duration-1000 ease-out rounded-full ${
+                                    totalStudyTime >= 300 
+                                      ? 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 shadow-lg shadow-emerald-200/50' 
+                                      : totalStudyTime >= 120 
+                                      ? 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 shadow-lg shadow-blue-200/50' 
+                                      : 'bg-gradient-to-r from-red-500 via-pink-500 to-rose-500 shadow-lg shadow-red-200/50'
+                                  }`}
+                                  style={{ width: `${Math.min((totalStudyTime / 300) * 100, 100)}%` }}
+                                >
+                                  <div className="absolute inset-0 bg-white/20 rounded-full animate-pulse"></div>
+                                </div>
+                                
+                                {/* Sparkle effect for completed goals */}
+                                {totalStudyTime >= 300 && (
+                                  <div className="absolute right-1 top-1/2 transform -translate-y-1/2">
+                                    <Sparkles className="w-4 h-4 text-white animate-pulse" />
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Study milestones */}
+                              <div className="flex justify-between text-xs">
+                                <span className={`font-semibold ${totalStudyTime >= 60 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
+                                  1h
+                                </span>
+                                <span className={`font-semibold ${totalStudyTime >= 180 ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400'}`}>
+                                  3h
+                                </span>
+                                <span className={`font-semibold ${totalStudyTime >= 300 ? 'text-emerald-600 dark:text-emerald-400' : 'text-gray-400'}`}>
+                                  5h Goal
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Action button */}
+                            <div className="mt-6 pt-4 border-t border-gray-200/50 dark:border-gray-700/50">
+                              <button className={`w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition-all duration-300 hover:scale-105 hover:shadow-lg ${
+                                isUrgent 
+                                  ? 'bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white shadow-lg' 
+                                  : 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg'
+                              }`}>
+                                <Rocket className="w-4 h-4" />
+                                {isUrgent ? 'Study Now!' : 'Start Studying'}
+                                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* View all deadlines link */}
+                    {upcomingDeadlines.length > 4 && (
+                      <div className="text-center pt-4">
+                        <button className="inline-flex items-center gap-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold bg-red-50 dark:bg-red-900/30 px-6 py-3 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/50 transition-all duration-300 group">
+                          View All Deadlines
+                          <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <div className="relative mb-6">
+                      <div className="p-8 bg-gradient-to-br from-emerald-100 via-green-100 to-teal-100 dark:from-emerald-900/30 dark:via-green-900/30 dark:to-teal-900/30 rounded-full mb-4 inline-block shadow-xl">
+                        <CheckCircle2 className="w-16 h-16 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                      </div>
+                      <div className="absolute -top-2 -right-2 w-6 h-6 bg-yellow-400 rounded-full animate-bounce">
+                        ✨
+                      </div>
+                    </div>
+                    <h3 className="font-black text-gray-900 dark:text-gray-100 text-2xl mb-3">
+                      All Clear!
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-lg leading-relaxed mb-6">
+                      No deadlines this week.<br />
+                      Perfect time to get ahead! 🚀
+                    </p>
+                    <button className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 group">
+                      <Plus className="w-5 h-5" />
+                      Plan Ahead
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </button>
+                  </div>
+                )}
+              </div>
             </ModernCard>
           </div>
         </div>
