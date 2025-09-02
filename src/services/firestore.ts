@@ -10,7 +10,8 @@ import {
   where,
   orderBy,
   onSnapshot,
-  Timestamp
+  Timestamp,
+  limit
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Exam, StudySession, UserStats } from '../types';
@@ -86,6 +87,45 @@ export const getUserSessions = (userId: string, callback: (sessions: StudySessio
     
     callback(sessions);
   });
+};
+
+// Leaderboard Functions
+export const getAllUserSessions = (callback: (sessions: StudySession[]) => void) => {
+  const q = query(collection(db, 'sessions'));
+  
+  return onSnapshot(q, (snapshot) => {
+    const sessions = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      date: doc.data().date.toDate()
+    })) as StudySession[];
+    
+    callback(sessions);
+  });
+};
+
+export const getUserProfile = async (userId: string) => {
+  try {
+    const userRef = doc(db, 'users', userId);
+    const snapshot = await getDoc(userRef);
+    return snapshot.exists() ? snapshot.data() : null;
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    return null;
+  }
+};
+
+export const getAllUserProfiles = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, 'users'));
+    return snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error('Error fetching user profiles:', error);
+    return [];
+  }
 };
 
 // User Stats
