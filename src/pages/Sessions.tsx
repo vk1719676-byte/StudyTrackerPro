@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Clock, Calendar, BookOpen, Star, Filter, TrendingUp, BarChart3, Target, Award, Search, SortDesc, Eye } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
+import { Leaderboard } from '../components/Leaderboard';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
@@ -15,6 +16,7 @@ export const Sessions: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'duration' | 'efficiency'>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [showLeaderboard, setShowLeaderboard] = useState(true);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
 
@@ -139,283 +141,327 @@ export const Sessions: React.FC = () => {
                 Track and analyze your learning journey
               </p>
             </div>
-            <div className="hidden md:flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Button
-                variant={viewMode === 'grid' ? 'primary' : 'outline'}
+                variant={showLeaderboard ? 'primary' : 'outline'}
                 size="sm"
-                onClick={() => setViewMode('grid')}
+                onClick={() => setShowLeaderboard(!showLeaderboard)}
+                className="hidden lg:flex"
               >
-                <BarChart3 className="w-4 h-4 mr-1" />
-                Grid
+                <Award className="w-4 h-4 mr-1" />
+                {showLeaderboard ? 'Hide' : 'Show'} Leaderboard
               </Button>
-              <Button
-                variant={viewMode === 'list' ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                List
-              </Button>
+              <div className="hidden md:flex items-center gap-2">
+                <Button
+                  variant={viewMode === 'grid' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                >
+                  <BarChart3 className="w-4 h-4 mr-1" />
+                  Grid
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                >
+                  <Eye className="w-4 h-4 mr-1" />
+                  List
+                </Button>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="p-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white" hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-purple-100 text-sm mb-1">Total Study Time</p>
-                <p className="text-3xl font-bold">{formatDuration(totalStudyTime)}</p>
-                <p className="text-purple-200 text-xs mt-1">
-                  {totalSessions} sessions
-                </p>
-              </div>
-              <div className="p-3 bg-white/20 rounded-lg">
-                <Clock className="w-8 h-8" />
-              </div>
-            </div>
-          </Card>
+        {/* Main Content Layout */}
+        <div className={showLeaderboard ? 'lg:grid lg:grid-cols-3 lg:gap-8' : ''}>
+          {/* Left Column - Stats and Sessions */}
+          <div className={showLeaderboard ? 'lg:col-span-2' : ''}>
+            {/* Enhanced Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
+              <Card className="p-6 bg-gradient-to-r from-purple-500 to-purple-600 text-white" hover>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-purple-100 text-sm mb-1">Total Study Time</p>
+                    <p className="text-3xl font-bold">{formatDuration(totalStudyTime)}</p>
+                    <p className="text-purple-200 text-xs mt-1">
+                      {totalSessions} sessions
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <Clock className="w-8 h-8" />
+                  </div>
+                </div>
+              </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white" hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-blue-100 text-sm mb-1">Avg. Session</p>
-                <p className="text-3xl font-bold">{formatDuration(Math.round(averageSession))}</p>
-                <p className="text-blue-200 text-xs mt-1">
-                  {thisWeekSessions} this week
-                </p>
-              </div>
-              <div className="p-3 bg-white/20 rounded-lg">
-                <BookOpen className="w-8 h-8" />
-              </div>
-            </div>
-          </Card>
+              <Card className="p-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white" hover>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-blue-100 text-sm mb-1">Avg. Session</p>
+                    <p className="text-3xl font-bold">{formatDuration(Math.round(averageSession))}</p>
+                    <p className="text-blue-200 text-xs mt-1">
+                      {thisWeekSessions} this week
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <BookOpen className="w-8 h-8" />
+                  </div>
+                </div>
+              </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-white" hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-yellow-100 text-sm mb-1">Avg. Efficiency</p>
-                <p className="text-3xl font-bold">{averageEfficiency.toFixed(1)}/5</p>
-                <div className="flex items-center mt-1">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <Star
-                      key={star}
-                      className={`w-3 h-3 mr-1 ${
-                        star <= Math.round(averageEfficiency)
-                          ? 'text-yellow-200 fill-current'
-                          : 'text-yellow-300/30'
-                      }`}
+              <Card className="p-6 bg-gradient-to-r from-yellow-500 to-orange-500 text-white" hover>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-yellow-100 text-sm mb-1">Avg. Efficiency</p>
+                    <p className="text-3xl font-bold">{averageEfficiency.toFixed(1)}/5</p>
+                    <div className="flex items-center mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star
+                          key={star}
+                          className={`w-3 h-3 mr-1 ${
+                            star <= Math.round(averageEfficiency)
+                              ? 'text-yellow-200 fill-current'
+                              : 'text-yellow-300/30'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <TrendingUp className="w-8 h-8" />
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white" hover>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-green-100 text-sm mb-1">High Quality</p>
+                    <p className="text-3xl font-bold">{highEfficiencySessions}</p>
+                    <p className="text-green-200 text-xs mt-1">
+                      {totalSessions > 0 ? Math.round((highEfficiencySessions / totalSessions) * 100) : 0}% of sessions
+                    </p>
+                  </div>
+                  <div className="p-3 bg-white/20 rounded-lg">
+                    <Award className="w-8 h-8" />
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Enhanced Filters and Search */}
+            <Card className="p-6 mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+              <div className="flex flex-col lg:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <input
+                      type="text"
+                      placeholder="Search sessions, topics, or notes..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                     />
-                  ))}
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-3">
+                  <select
+                    value={filterExam}
+                    onChange={(e) => setFilterExam(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">All Exams</option>
+                    {exams.map(exam => (
+                      <option key={exam.id} value={exam.id}>{exam.name}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={filterSubject}
+                    onChange={(e) => setFilterSubject(e.target.value)}
+                    className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">All Subjects</option>
+                    {uniqueSubjects.map(subject => (
+                      <option key={subject} value={subject}>{subject}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={`${sortBy}-${sortOrder}`}
+                    onChange={(e) => {
+                      const [field, order] = e.target.value.split('-');
+                      setSortBy(field as 'date' | 'duration' | 'efficiency');
+                      setSortOrder(order as 'asc' | 'desc');
+                    }}
+                    className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="date-desc">Latest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="duration-desc">Longest First</option>
+                    <option value="duration-asc">Shortest First</option>
+                    <option value="efficiency-desc">Best Efficiency</option>
+                    <option value="efficiency-asc">Lowest Efficiency</option>
+                  </select>
+
+                  {(filterExam || filterSubject || searchTerm) && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setFilterExam('');
+                        setFilterSubject('');
+                        setSearchTerm('');
+                      }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
                 </div>
               </div>
-              <div className="p-3 bg-white/20 rounded-lg">
-                <TrendingUp className="w-8 h-8" />
-              </div>
-            </div>
-          </Card>
+            </Card>
 
-          <Card className="p-6 bg-gradient-to-r from-green-500 to-emerald-600 text-white" hover>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm mb-1">High Quality</p>
-                <p className="text-3xl font-bold">{highEfficiencySessions}</p>
-                <p className="text-green-200 text-xs mt-1">
-                  {totalSessions > 0 ? Math.round((highEfficiencySessions / totalSessions) * 100) : 0}% of sessions
-                </p>
-              </div>
-              <div className="p-3 bg-white/20 rounded-lg">
-                <Award className="w-8 h-8" />
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Enhanced Filters and Search */}
-        <Card className="p-6 mb-8 bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search sessions, topics, or notes..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-500 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                />
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-3">
-              <select
-                value={filterExam}
-                onChange={(e) => setFilterExam(e.target.value)}
-                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="">All Exams</option>
-                {exams.map(exam => (
-                  <option key={exam.id} value={exam.id}>{exam.name}</option>
-                ))}
-              </select>
-
-              <select
-                value={filterSubject}
-                onChange={(e) => setFilterSubject(e.target.value)}
-                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="">All Subjects</option>
-                {uniqueSubjects.map(subject => (
-                  <option key={subject} value={subject}>{subject}</option>
-                ))}
-              </select>
-
-              <select
-                value={`${sortBy}-${sortOrder}`}
-                onChange={(e) => {
-                  const [field, order] = e.target.value.split('-');
-                  setSortBy(field as 'date' | 'duration' | 'efficiency');
-                  setSortOrder(order as 'asc' | 'desc');
-                }}
-                className="px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              >
-                <option value="date-desc">Latest First</option>
-                <option value="date-asc">Oldest First</option>
-                <option value="duration-desc">Longest First</option>
-                <option value="duration-asc">Shortest First</option>
-                <option value="efficiency-desc">Best Efficiency</option>
-                <option value="efficiency-asc">Lowest Efficiency</option>
-              </select>
-
-              {(filterExam || filterSubject || searchTerm) && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setFilterExam('');
-                    setFilterSubject('');
-                    setSearchTerm('');
-                  }}
-                >
-                  Clear All
-                </Button>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Sessions Display */}
-        {filteredAndSortedSessions.length === 0 ? (
-          <Card className="p-12 text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
-            <div className="max-w-md mx-auto">
-              <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-full flex items-center justify-center">
-                <Clock className="w-12 h-12 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-                {sessions.length === 0 ? 'No study sessions yet' : 'No sessions match your filters'}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-6">
-                {sessions.length === 0 
-                  ? 'Start your learning journey by creating your first study session'
-                  : 'Try adjusting your filters to see more results'
-                }
-              </p>
-              {(filterExam || filterSubject || searchTerm) && (
-                <Button
-                  variant="primary"
-                  onClick={() => {
-                    setFilterExam('');
-                    setFilterSubject('');
-                    setSearchTerm('');
-                  }}
-                >
-                  Clear Filters
-                </Button>
-              )}
-            </div>
-          </Card>
-        ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-2 gap-6' : 'space-y-4'}>
-            {filteredAndSortedSessions.map((session) => (
-              <Card key={session.id} className="overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm" hover>
-                <div className="p-6">
-                  {/* Header */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-3 h-3 rounded-full ${getSubjectColor(session.subject)}`}></div>
-                      <div>
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-                          {session.subject}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {session.topic}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-800 dark:text-purple-400 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-700">
-                      {getExamName(session.examId)}
-                    </span>
+            {/* Sessions Display */}
+            {filteredAndSortedSessions.length === 0 ? (
+              <Card className="p-12 text-center bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm">
+                <div className="max-w-md mx-auto">
+                  <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-full flex items-center justify-center">
+                    <Clock className="w-12 h-12 text-purple-600 dark:text-purple-400" />
                   </div>
-
-                  {/* Stats Row */}
-                  <div className="grid grid-cols-3 gap-4 mb-4">
-                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Calendar className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Date</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {new Date(session.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    
-                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Clock className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Duration</p>
-                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                        {formatDuration(session.duration)}
-                      </p>
-                    </div>
-                    
-                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                      <Target className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Efficiency</p>
-                      <div className="flex items-center justify-center gap-1">
-                        <span className={`text-sm font-bold ${getEfficiencyColor(session.efficiency)}`}>
-                          {session.efficiency}/5
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Efficiency Stars */}
-                  <div className="flex items-center justify-center mb-4">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className={`w-5 h-5 mx-0.5 transition-colors duration-200 ${
-                          star <= session.efficiency
-                            ? 'text-yellow-400 fill-current'
-                            : 'text-gray-300 dark:text-gray-600'
-                        }`}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Notes */}
-                  {session.notes && (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-lg border-l-4 border-blue-500">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        <span className="font-semibold text-blue-800 dark:text-blue-400">Notes:</span> {session.notes}
-                      </p>
-                    </div>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    {sessions.length === 0 ? 'No study sessions yet' : 'No sessions match your filters'}
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">
+                    {sessions.length === 0 
+                      ? 'Start your learning journey by creating your first study session'
+                      : 'Try adjusting your filters to see more results'
+                    }
+                  </p>
+                  {(filterExam || filterSubject || searchTerm) && (
+                    <Button
+                      variant="primary"
+                      onClick={() => {
+                        setFilterExam('');
+                        setFilterSubject('');
+                        setSearchTerm('');
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
                   )}
                 </div>
               </Card>
-            ))}
+            ) : (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 lg:grid-cols-1 gap-6' : 'space-y-4'}>
+                {filteredAndSortedSessions.map((session) => (
+                  <Card key={session.id} className="overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm" hover>
+                    <div className="p-6">
+                      {/* Header */}
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full ${getSubjectColor(session.subject)}`}></div>
+                          <div>
+                            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                              {session.subject}
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                              {session.topic}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 text-purple-800 dark:text-purple-400 rounded-full text-xs font-semibold border border-purple-200 dark:border-purple-700">
+                          {getExamName(session.examId)}
+                        </span>
+                      </div>
+
+                      {/* Stats Row */}
+                      <div className="grid grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <Calendar className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Date</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {new Date(session.date).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
+                        
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <Clock className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Duration</p>
+                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                            {formatDuration(session.duration)}
+                          </p>
+                        </div>
+                        
+                        <div className="text-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                          <Target className="w-5 h-5 mx-auto mb-1 text-gray-600 dark:text-gray-400" />
+                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-1">Efficiency</p>
+                          <div className="flex items-center justify-center gap-1">
+                            <span className={`text-sm font-bold ${getEfficiencyColor(session.efficiency)}`}>
+                              {session.efficiency}/5
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Efficiency Stars */}
+                      <div className="flex items-center justify-center mb-4">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-5 h-5 mx-0.5 transition-colors duration-200 ${
+                              star <= session.efficiency
+                                ? 'text-yellow-400 fill-current'
+                                : 'text-gray-300 dark:text-gray-600'
+                            }`}
+                          />
+                        ))}
+                      </div>
+
+                      {/* Notes */}
+                      {session.notes && (
+                        <div className="mt-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-lg border-l-4 border-blue-500">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            <span className="font-semibold text-blue-800 dark:text-blue-400">Notes:</span> {session.notes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Right Column - Leaderboard */}
+          {showLeaderboard && (
+            <div className="lg:col-span-1 mt-8 lg:mt-0">
+              <div className="sticky top-8">
+                <Leaderboard currentUserId={user?.uid} />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile Leaderboard Toggle */}
+        <div className="lg:hidden mt-8">
+          <Button
+            variant={showLeaderboard ? 'primary' : 'outline'}
+            onClick={() => setShowLeaderboard(!showLeaderboard)}
+            className="w-full"
+          >
+            <Award className="w-4 h-4 mr-2" />
+            {showLeaderboard ? 'Hide Leaderboard' : 'Show Leaderboard'}
+          </Button>
+          
+          {showLeaderboard && (
+            <div className="mt-6">
+              <Leaderboard currentUserId={user?.uid} />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
