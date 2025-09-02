@@ -171,12 +171,6 @@ export const Analytics: React.FC = () => {
     }
   };
 
-  // Calculate growth percentages for enhanced UI
-  const getGrowthPercentage = (current: number, previous: number) => {
-    if (previous === 0) return 0;
-    return Math.round(((current - previous) / previous) * 100);
-  };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-violet-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
