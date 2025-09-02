@@ -10,8 +10,7 @@ import {
   where,
   orderBy,
   onSnapshot,
-  Timestamp,
-  setDoc
+  Timestamp
 } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { Exam, StudySession, UserStats } from '../types';
@@ -92,7 +91,7 @@ export const getUserSessions = (userId: string, callback: (sessions: StudySessio
 // User Stats
 export const updateUserStats = async (userId: string, stats: UserStats) => {
   const userRef = doc(db, 'userStats', userId);
-  await setDoc(userRef, stats, { merge: true });
+  await updateDoc(userRef, stats);
 };
 
 export const getUserStats = async (userId: string): Promise<UserStats | null> => {
@@ -101,34 +100,8 @@ export const getUserStats = async (userId: string): Promise<UserStats | null> =>
   return snapshot.exists() ? snapshot.data() as UserStats : null;
 };
 
-// Leaderboard functions
-export const getAllUserStats = async () => {
-  const snapshot = await getDocs(collection(db, 'userStats'));
-  return snapshot.docs.map(doc => ({
-    id: doc.id,
-    ...doc.data()
-  }));
-};
-
-export const getLeaderboardData = (callback: (leaderboard: any[]) => void) => {
-  return onSnapshot(collection(db, 'userStats'), (snapshot) => {
-    const users = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    
-    // Sort by total study time (in minutes) descending
-    const sortedUsers = users
-      .filter(user => user.totalStudyTime > 0) // Only include users with study time
-      .sort((a, b) => (b.totalStudyTime || 0) - (a.totalStudyTime || 0))
-      .slice(0, 10); // Top 10 users
-    
-    callback(sortedUsers);
-  });
-};
-
-// Study Materials (keeping the interface for any existing StudyMaterial type)
-export const addStudyMaterial = async (material: any) => {
+// Study Materials
+export const addStudyMaterial = async (material: Omit<StudyMaterial, 'id'>) => {
   const docRef = await addDoc(collection(db, 'studyMaterials'), {
     ...material,
     uploadedAt: Timestamp.fromDate(material.uploadedAt)
@@ -136,7 +109,7 @@ export const addStudyMaterial = async (material: any) => {
   return docRef.id;
 };
 
-export const getUserStudyMaterials = (userId: string, callback: (materials: any[]) => void) => {
+export const getUserStudyMaterials = (userId: string, callback: (materials: StudyMaterial[]) => void) => {
   const q = query(
     collection(db, 'studyMaterials'),
     where('userId', '==', userId)
@@ -147,7 +120,7 @@ export const getUserStudyMaterials = (userId: string, callback: (materials: any[
       id: doc.id,
       ...doc.data(),
       uploadedAt: doc.data().uploadedAt.toDate()
-    }));
+    })) as StudyMaterial[];
     
     // Sort by upload date on the client side
     materials.sort((a, b) => b.uploadedAt.getTime() - a.uploadedAt.getTime());
