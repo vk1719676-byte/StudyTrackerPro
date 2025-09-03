@@ -729,7 +729,7 @@ export const StudyTimer: React.FC<StudyTimerProps> = ({ exams, onSessionAdded })
                   <div className="absolute inset-0 bg-gradient-to-r from-green-400/20 to-emerald-400/20 animate-pulse"></div>
                 )}
                 <Play className="h-6 w-6 group-hover:animate-pulse" />
-                <span className="text-lg relative z-10">Start AI Study</span>
+                <span className="text-lg relative z-10">Start AI Timer </span>
                 {!isFormComplete && <Target className="h-5 w-5 opacity-50" />}
               </button>
             ) : (
