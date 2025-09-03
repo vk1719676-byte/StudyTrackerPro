@@ -75,6 +75,21 @@ export const EnhancedTextBanner: React.FC = () => {
       actionColor: 'bg-amber-600 hover:bg-amber-700 text-white',
       metric: '25K+ members',
       onClick: () => window.open('https://t.me/+_fkSUEqyukFiMjI1', '_blank')
+    },
+    {
+      id: 5,
+      type: 'premium',
+      message: 'For Better Experience Download Our Android App Now',
+      shortMessage: 'Download Our Official Android App For Better Experience If You Are Using Web version Now.',
+      action: 'Download App Now',
+      link: 'https://apkfilelinkcreator.cloud/uploads/1754827794_9b05fddf.apk',
+      icon: Android,
+      gradient: 'from-green-500 to-green-600',
+      bgColor: 'bg-green-50 dark:bg-green-950/30',
+      textColor: 'text-green-900 dark:text-green-100',
+      actionColor: 'bg-green-600 hover:bg-green-700 text-white',
+      metric: '300+ members',
+      onClick: () => window.open('https://apkfilelinkcreator.cloud/uploads/1754827794_9b05fddf.apk', '_blank')
     }
   ];
 
