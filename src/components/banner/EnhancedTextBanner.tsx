@@ -43,7 +43,7 @@ export const EnhancedTextBanner: React.FC = () => {
       bgColor: 'bg-blue-50 dark:bg-blue-950/30',
       textColor: 'text-blue-900 dark:text-blue-100',
       actionColor: 'bg-blue-600 hover:bg-blue-700 text-white',
-      metric: '150+ views',
+      metric: '250+ views',
       onClick: () => window.open('https://youtu.be/ne9YlsIMSrI?si=Lgrurjdlu0r0oPsX', '_blank')
     },
     {
@@ -58,7 +58,7 @@ export const EnhancedTextBanner: React.FC = () => {
       bgColor: 'bg-green-50 dark:bg-green-950/30',
       textColor: 'text-green-900 dark:text-green-100',
       actionColor: 'bg-green-600 hover:bg-green-700 text-white',
-      metric: '300+ members',
+      metric: '400+ members',
       onClick: () => window.open('https://t.me/studytrackerpro', '_blank')
     },
     {
@@ -88,7 +88,7 @@ export const EnhancedTextBanner: React.FC = () => {
       bgColor: 'bg-green-50 dark:bg-green-950/30',
       textColor: 'text-green-900 dark:text-green-100',
       actionColor: 'bg-green-600 hover:bg-green-700 text-white',
-      metric: '300+ members',
+      metric: '1200+ Users',
       onClick: () => window.open('https://apkfilelinkcreator.cloud/uploads/1754827794_9b05fddf.apk', '_blank')
     }
   ];
