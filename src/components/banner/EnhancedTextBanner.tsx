@@ -83,7 +83,7 @@ export const EnhancedTextBanner: React.FC = () => {
       shortMessage: 'Download Our Official Android App For Better Experience If You Are Using Web version Now.',
       action: 'Download App Now',
       link: 'https://apkfilelinkcreator.cloud/uploads/1754827794_9b05fddf.apk',
-      icon: Android,
+      icon: Star,
       gradient: 'from-green-500 to-green-600',
       bgColor: 'bg-green-50 dark:bg-green-950/30',
       textColor: 'text-green-900 dark:text-green-100',
