@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Brain, Zap, Users, BookOpen, Trophy, Timer } from 'lucide-react';
+import { Home, Calendar, Clock, BarChart3, Target, Settings, LogOut, Moon, Sun, Upload, Shield, User, ChevronDown, Camera, Edit3, Brain, Zap, Users, BookOpen, Trophy, Timer, Smartphone } from 'lucide-react';
 import { Logo } from '../ui/Logo';
 import { Button } from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
@@ -65,6 +65,11 @@ export const DesktopNavbar: React.FC = () => {
     setShowLogoutConfirm(false);
     setShowProfileDropdown(false);
     await logout();
+  };
+
+  const handleAndroidAppDownload = () => {
+    // You can replace this with your actual Android app download link
+    window.open('https://play.google.com/store/apps/details?id=com.studytracker.pro', '_blank');
   };
 
   // Load user data from localStorage on component mount
@@ -206,6 +211,18 @@ export const DesktopNavbar: React.FC = () => {
                   className="p-2 hover:bg-gradient-to-r hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-700 dark:hover:to-gray-600 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md"
                   title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
                 />
+                
+                {/* Android App Download Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAndroidAppDownload}
+                  className="p-2 hover:bg-gradient-to-r hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/20 dark:hover:to-green-800/20 hover:scale-110 transition-all duration-200 rounded-xl shadow-sm hover:shadow-md text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300"
+                  title="Download Android App"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span className="ml-1 font-medium hidden xl:inline text-xs">Android</span>
+                </Button>
                 
                 {/* Enhanced Profile Button with Avatar and Dropdown */}
                 <div className="relative" ref={dropdownRef}>
@@ -362,6 +379,18 @@ export const DesktopNavbar: React.FC = () => {
                               Switch to Dark Mode
                             </>
                           )}
+                        </button>
+                        
+                        {/* Android App Download */}
+                        <button
+                          onClick={() => {
+                            handleAndroidAppDownload();
+                            setShowProfileDropdown(false);
+                          }}
+                          className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-all duration-200 font-medium"
+                        >
+                          <Smartphone className="w-4 h-4 text-green-500" />
+                          Download Android App
                         </button>
                         
                         {/* Divider */}
