@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Download, Share2, Sparkles, Gift, Mail, Camera, Flower, Apple } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [stats, setStats] = useState({
@@ -19,7 +19,6 @@ export const Footer: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
-  const [showTeacherHub, setShowTeacherHub] = useState(false);
 
   // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -40,94 +39,6 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Teacher Hub States
-  const [teacherHubTab, setTeacherHubTab] = useState('cards');
-  const [thankYouCard, setThankYouCard] = useState({
-    teacherName: '',
-    subject: '',
-    message: '',
-    cardStyle: 'classic',
-    studentName: ''
-  });
-  const [teacherFeedback, setTeacherFeedback] = useState([
-    { subject: '', teacherName: '', rating: 5, feedback: '' }
-  ]);
-  const [selectedQuote, setSelectedQuote] = useState(0);
-
-  // Teacher Quotes for Teacher's Day
-  const teacherQuotes = [
-    {
-      quote: "A teacher affects eternity; they can never tell where their influence stops.",
-      author: "Henry Adams"
-    },
-    {
-      quote: "Teaching is the one profession that creates all other professions.",
-      author: "Unknown"
-    },
-    {
-      quote: "The influence of a good teacher can never be erased.",
-      author: "Unknown"
-    },
-    {
-      quote: "Teachers plant the seeds of knowledge that last a lifetime.",
-      author: "Unknown"
-    },
-    {
-      quote: "A good teacher is like a candle – it consumes itself to light the way for others.",
-      author: "Mustafa Kemal Atatürk"
-    },
-    {
-      quote: "Education is the most powerful weapon which you can use to change the world.",
-      author: "Nelson Mandela"
-    }
-  ];
-
-  // Thank you card templates
-  const cardTemplates = [
-    {
-      id: 'classic',
-      name: 'Classic',
-      gradient: 'from-blue-400 via-blue-500 to-blue-600',
-      textColor: 'text-white',
-      icon: '📚'
-    },
-    {
-      id: 'floral',
-      name: 'Floral',
-      gradient: 'from-pink-400 via-rose-500 to-pink-600',
-      textColor: 'text-white',
-      icon: '🌸'
-    },
-    {
-      id: 'modern',
-      name: 'Modern',
-      gradient: 'from-purple-400 via-purple-500 to-indigo-600',
-      textColor: 'text-white',
-      icon: '✨'
-    },
-    {
-      id: 'nature',
-      name: 'Nature',
-      gradient: 'from-green-400 via-emerald-500 to-green-600',
-      textColor: 'text-white',
-      icon: '🍃'
-    },
-    {
-      id: 'elegant',
-      name: 'Elegant',
-      gradient: 'from-gray-600 via-gray-700 to-gray-800',
-      textColor: 'text-white',
-      icon: '🎓'
-    },
-    {
-      id: 'golden',
-      name: 'Golden',
-      gradient: 'from-yellow-400 via-yellow-500 to-orange-500',
-      textColor: 'text-white',
-      icon: '🏆'
-    }
-  ];
-
   // Simulate real-time stats updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -141,15 +52,6 @@ export const Footer: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Rotate quotes every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setSelectedQuote(prev => (prev + 1) % teacherQuotes.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [teacherQuotes.length]);
 
   const handleFeatureClick = (featureName: string) => {
     if (featureName === 'Advanced Calculator') {
@@ -166,10 +68,6 @@ export const Footer: React.FC = () => {
     }
     if (featureName === 'Math Solver') {
       setShowMathSolver(true);
-      return;
-    }
-    if (featureName === 'Teacher Appreciation Hub') {
-      setShowTeacherHub(true);
       return;
     }
     setSelectedFeature(featureName);
@@ -235,14 +133,6 @@ export const Footer: React.FC = () => {
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
       category: "Math Tools"
-    },
-    {
-      icon: Gift,
-      title: "Teacher Appreciation Hub",
-      description: "Special Teacher's Day tools: appreciation cards, feedback forms, quotes, and celebration features for honoring educators.",
-      gradient: "from-amber-500 to-orange-600",
-      category: "Teacher's Day Special",
-      special: true
     }
   ];
 
@@ -480,54 +370,6 @@ export const Footer: React.FC = () => {
   useEffect(() => {
     calculateGPA();
   }, [grades]);
-
-  // Teacher Hub Functions
-  const addTeacherFeedback = () => {
-    setTeacherFeedback([...teacherFeedback, { subject: '', teacherName: '', rating: 5, feedback: '' }]);
-  };
-
-  const removeTeacherFeedback = (index: number) => {
-    if (teacherFeedback.length > 1) {
-      setTeacherFeedback(teacherFeedback.filter((_, i) => i !== index));
-    }
-  };
-
-  const updateTeacherFeedback = (index: number, field: string, value: string | number) => {
-    const newFeedback = [...teacherFeedback];
-    newFeedback[index] = { ...newFeedback[index], [field]: value };
-    setTeacherFeedback(newFeedback);
-  };
-
-  const generateThankYouMessage = () => {
-    const messages = [
-      `Dear ${thankYouCard.teacherName}, thank you for making ${thankYouCard.subject} so engaging and inspiring!`,
-      `Your dedication in teaching ${thankYouCard.subject} has truly made a difference in my learning journey. Thank you, ${thankYouCard.teacherName}!`,
-      `${thankYouCard.teacherName}, your passion for ${thankYouCard.subject} is contagious. Thank you for being such an amazing teacher!`,
-      `Thank you ${thankYouCard.teacherName} for your patience, wisdom, and for making ${thankYouCard.subject} come alive in the classroom.`,
-      `Your teaching methods in ${thankYouCard.subject} have opened my mind to new possibilities. Thank you, ${thankYouCard.teacherName}!`
-    ];
-    
-    const randomMessage = messages[Math.floor(Math.random() * messages.length)];
-    setThankYouCard(prev => ({ ...prev, message: randomMessage }));
-  };
-
-  const downloadCard = () => {
-    // This would implement card download functionality
-    alert('Card download feature coming soon!');
-  };
-
-  const shareCard = () => {
-    // This would implement card sharing functionality
-    if (navigator.share) {
-      navigator.share({
-        title: 'Teacher Appreciation Card',
-        text: `A special thank you card for ${thankYouCard.teacherName}`,
-        url: window.location.href,
-      });
-    } else {
-      alert('Card shared successfully!');
-    }
-  };
 
   // Improved Math Solver with API Integration
   const solveMathProblem = async () => {
@@ -1403,527 +1245,6 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* Teacher Appreciation Hub Modal */}
-      {showTeacherHub && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              {/* Header with Teacher's Day Decoration */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center animate-pulse">
-                      <Gift className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                      <span className="text-xs">🎉</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      Teacher Appreciation Hub
-                    </h3>
-                    <p className="text-sm text-amber-600 dark:text-amber-400 font-semibold">
-                      🌟 Happy Teacher's Day Special! 🌟
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowTeacherHub(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              {/* Teacher's Day Special Banner */}
-              <div className="bg-gradient-to-r from-amber-400 via-orange-500 to-red-500 rounded-2xl p-6 mb-6 text-center text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-red-600/20 animate-pulse"></div>
-                <div className="relative">
-                  <h3 className="text-2xl font-bold mb-2">🍎 Teacher's Day Special 🍎</h3>
-                  <p className="text-lg opacity-95 mb-3">Celebrating the heroes who shape our future</p>
-                  <div className="text-4xl mb-2">👩‍🏫 👨‍🏫 📚 ✨</div>
-                  <p className="text-sm opacity-90">Thank you to all the amazing teachers worldwide!</p>
-                </div>
-              </div>
-
-              {/* Tab Navigation */}
-              <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-700">
-                {[
-                  { key: 'cards', label: 'Thank You Cards', icon: Gift },
-                  { key: 'quotes', label: 'Inspirational Quotes', icon: Sparkles },
-                  { key: 'feedback', label: 'Teacher Feedback', icon: Star },
-                  { key: 'celebration', label: 'Celebration Hub', icon: Award }
-                ].map(tab => (
-                  <button
-                    key={tab.key}
-                    onClick={() => setTeacherHubTab(tab.key)}
-                    className={`flex items-center gap-2 px-4 py-3 rounded-t-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                      teacherHubTab === tab.key
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-lg border-b-2 border-transparent'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 border-b-2 border-transparent'
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4" />
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Tab Content */}
-              {teacherHubTab === 'cards' && (
-                <div className="space-y-6">
-                  {/* Card Creation Form */}
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                      <Gift className="w-5 h-5 text-amber-600" />
-                      Create Your Thank You Card
-                    </h4>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Form Inputs */}
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Your Name
-                          </label>
-                          <input
-                            type="text"
-                            value={thankYouCard.studentName}
-                            onChange={(e) => setThankYouCard(prev => ({ ...prev, studentName: e.target.value }))}
-                            placeholder="Enter your name"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                          />
-                        </div>
-                        
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Teacher's Name
-                          </label>
-                          <input
-                            type="text"
-                            value={thankYouCard.teacherName}
-                            onChange={(e) => setThankYouCard(prev => ({ ...prev, teacherName: e.target.value }))}
-                            placeholder="e.g., Ms. Johnson"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Subject
-                          </label>
-                          <input
-                            type="text"
-                            value={thankYouCard.subject}
-                            onChange={(e) => setThankYouCard(prev => ({ ...prev, subject: e.target.value }))}
-                            placeholder="e.g., Mathematics"
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Personal Message
-                          </label>
-                          <textarea
-                            value={thankYouCard.message}
-                            onChange={(e) => setThankYouCard(prev => ({ ...prev, message: e.target.value }))}
-                            placeholder="Write your heartfelt message here..."
-                            rows={4}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
-                          />
-                        </div>
-
-                        <button
-                          onClick={generateThankYouMessage}
-                          className="w-full px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                        >
-                          <Sparkles className="w-4 h-4" />
-                          Generate AI Message
-                        </button>
-                      </div>
-
-                      {/* Card Preview */}
-                      <div className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Card Style
-                          </label>
-                          <div className="grid grid-cols-3 gap-2">
-                            {cardTemplates.map(template => (
-                              <button
-                                key={template.id}
-                                onClick={() => setThankYouCard(prev => ({ ...prev, cardStyle: template.id }))}
-                                className={`p-3 rounded-lg border-2 transition-all duration-200 ${
-                                  thankYouCard.cardStyle === template.id
-                                    ? 'border-amber-500 shadow-lg transform scale-105'
-                                    : 'border-gray-200 dark:border-gray-600 hover:border-amber-300'
-                                }`}
-                              >
-                                <div className={`w-full h-8 bg-gradient-to-r ${template.gradient} rounded mb-2 flex items-center justify-center text-lg`}>
-                                  {template.icon}
-                                </div>
-                                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">{template.name}</p>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Card Preview */}
-                        <div className="border border-gray-200 dark:border-gray-600 rounded-xl p-1 bg-gray-50 dark:bg-gray-700">
-                          <div className={`bg-gradient-to-br ${cardTemplates.find(t => t.id === thankYouCard.cardStyle)?.gradient} rounded-lg p-6 text-center ${cardTemplates.find(t => t.id === thankYouCard.cardStyle)?.textColor} min-h-[200px] relative overflow-hidden`}>
-                            {/* Decorative elements */}
-                            <div className="absolute top-2 left-2 text-2xl opacity-50">📚</div>
-                            <div className="absolute top-2 right-2 text-2xl opacity-50">✨</div>
-                            <div className="absolute bottom-2 left-2 text-2xl opacity-50">🍎</div>
-                            <div className="absolute bottom-2 right-2 text-2xl opacity-50">🌟</div>
-                            
-                            <div className="relative z-10">
-                              <h4 className="text-xl font-bold mb-3">Happy Teacher's Day!</h4>
-                              <div className="text-3xl mb-3">{cardTemplates.find(t => t.id === thankYouCard.cardStyle)?.icon}</div>
-                              
-                              {thankYouCard.teacherName && (
-                                <p className="text-lg font-semibold mb-2">Dear {thankYouCard.teacherName}</p>
-                              )}
-                              
-                              {thankYouCard.subject && (
-                                <p className="text-sm opacity-90 mb-3">Subject: {thankYouCard.subject}</p>
-                              )}
-                              
-                              {thankYouCard.message && (
-                                <p className="text-sm leading-relaxed mb-3 opacity-95">{thankYouCard.message}</p>
-                              )}
-                              
-                              {thankYouCard.studentName && (
-                                <p className="text-sm font-medium opacity-90">- {thankYouCard.studentName}</p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Card Actions */}
-                        <div className="flex gap-2">
-                          <button
-                            onClick={downloadCard}
-                            className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                          >
-                            <Download className="w-4 h-4" />
-                            Download
-                          </button>
-                          <button
-                            onClick={shareCard}
-                            className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                          >
-                            <Share2 className="w-4 h-4" />
-                            Share
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {teacherHubTab === 'quotes' && (
-                <div className="space-y-6">
-                  {/* Daily Quote Display */}
-                  <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-8 text-center border border-purple-200 dark:border-purple-700">
-                    <div className="text-6xl mb-4">📖</div>
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                      Daily Teacher Quote
-                    </h4>
-                    
-                    <div className="max-w-2xl mx-auto">
-                      <blockquote className="text-lg italic text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
-                        "{teacherQuotes[selectedQuote].quote}"
-                      </blockquote>
-                      <cite className="text-sm font-semibold text-purple-600 dark:text-purple-400">
-                        — {teacherQuotes[selectedQuote].author}
-                      </cite>
-                    </div>
-
-                    <div className="flex items-center justify-center gap-2 mt-6">
-                      {teacherQuotes.map((_, index) => (
-                        <div
-                          key={index}
-                          className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                            index === selectedQuote ? 'bg-purple-500 w-8' : 'bg-purple-300'
-                          }`}
-                        />
-                      ))}
-                    </div>
-
-                    <div className="flex gap-3 mt-6 justify-center">
-                      <button
-                        onClick={() => setSelectedQuote((selectedQuote - 1 + teacherQuotes.length) % teacherQuotes.length)}
-                        className="px-4 py-2 bg-white dark:bg-gray-800 text-purple-600 dark:text-purple-400 rounded-lg hover:shadow-md transition-all duration-200 border border-purple-200 dark:border-purple-600"
-                      >
-                        Previous Quote
-                      </button>
-                      <button
-                        onClick={() => setSelectedQuote((selectedQuote + 1) % teacherQuotes.length)}
-                        className="px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                      >
-                        Next Quote
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Quote Gallery */}
-                  <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                      Quote Collection
-                    </h4>
-                    <div className="grid gap-4">
-                      {teacherQuotes.map((quote, index) => (
-                        <div
-                          key={index}
-                          onClick={() => setSelectedQuote(index)}
-                          className={`p-4 rounded-lg border cursor-pointer transition-all duration-200 hover:shadow-md ${
-                            index === selectedQuote
-                              ? 'border-amber-500 bg-amber-50 dark:bg-amber-900/20'
-                              : 'border-gray-200 dark:border-gray-600 hover:border-amber-300'
-                          }`}
-                        >
-                          <p className="text-sm italic text-gray-700 dark:text-gray-300 mb-2">
-                            "{quote.quote}"
-                          </p>
-                          <p className="text-xs font-medium text-amber-600 dark:text-amber-400">
-                            — {quote.author}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {teacherHubTab === 'feedback' && (
-                <div className="space-y-6">
-                  {/* Teacher Feedback Form */}
-                  <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                        <Star className="w-5 h-5 text-blue-600" />
-                        Teacher Feedback & Appreciation
-                      </h4>
-                      <button
-                        onClick={addTeacherFeedback}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                      >
-                        <Plus className="w-4 h-4" />
-                        Add Teacher
-                      </button>
-                    </div>
-
-                    {teacherFeedback.map((feedback, index) => (
-                      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-gray-200 dark:border-gray-600">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Teacher's Name
-                            </label>
-                            <input
-                              type="text"
-                              value={feedback.teacherName}
-                              onChange={(e) => updateTeacherFeedback(index, 'teacherName', e.target.value)}
-                              placeholder="e.g., Dr. Smith"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                              Subject
-                            </label>
-                            <input
-                              type="text"
-                              value={feedback.subject}
-                              onChange={(e) => updateTeacherFeedback(index, 'subject', e.target.value)}
-                              placeholder="e.g., Biology"
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Rating: {feedback.rating}/5 Stars
-                          </label>
-                          <div className="flex items-center gap-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                onClick={() => updateTeacherFeedback(index, 'rating', star)}
-                                className={`text-2xl transition-all duration-200 hover:scale-110 ${
-                                  star <= feedback.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
-                                }`}
-                              >
-                                ⭐
-                              </button>
-                            ))}
-                            <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                              ({feedback.rating === 5 ? 'Outstanding' : feedback.rating === 4 ? 'Great' : feedback.rating === 3 ? 'Good' : feedback.rating === 2 ? 'Fair' : 'Poor'})
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="mb-4">
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Feedback & Appreciation
-                          </label>
-                          <textarea
-                            value={feedback.feedback}
-                            onChange={(e) => updateTeacherFeedback(index, 'feedback', e.target.value)}
-                            placeholder="Share what you appreciate about this teacher..."
-                            rows={3}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                          />
-                        </div>
-
-                        {teacherFeedback.length > 1 && (
-                          <button
-                            onClick={() => removeTeacherFeedback(index)}
-                            className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 flex items-center gap-2"
-                          >
-                            <Minus className="w-4 h-4" />
-                            Remove
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {teacherHubTab === 'celebration' && (
-                <div className="space-y-6">
-                  {/* Teacher's Day Celebration */}
-                  <div className="bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-yellow-900/20 dark:via-orange-900/20 dark:to-red-900/20 rounded-2xl p-8 text-center border border-yellow-200 dark:border-yellow-700">
-                    <div className="text-6xl mb-4 animate-bounce">🏆</div>
-                    <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                      Celebrating Our Amazing Teachers!
-                    </h3>
-                    <p className="text-lg text-gray-700 dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-                      Today we honor the educators who inspire, guide, and shape the minds of tomorrow. 
-                      Their dedication and passion light the path to knowledge for millions of students worldwide.
-                    </p>
-
-                    {/* Teacher Statistics */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-yellow-200 dark:border-yellow-600">
-                        <div className="text-2xl mb-2">👩‍🏫</div>
-                        <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">5M+</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Teachers Worldwide</div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-orange-200 dark:border-orange-600">
-                        <div className="text-2xl mb-2">🌍</div>
-                        <div className="text-lg font-bold text-orange-600 dark:text-orange-400">195</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Countries Celebrating</div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-red-200 dark:border-red-600">
-                        <div className="text-2xl mb-2">🎓</div>
-                        <div className="text-lg font-bold text-red-600 dark:text-red-400">1B+</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Students Impacted</div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-purple-200 dark:border-purple-600">
-                        <div className="text-2xl mb-2">💝</div>
-                        <div className="text-lg font-bold text-purple-600 dark:text-purple-400">∞</div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400">Gratitude</div>
-                      </div>
-                    </div>
-
-                    {/* Special Teacher's Day Message */}
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-amber-200 dark:border-amber-600 shadow-lg">
-                      <div className="flex items-center justify-center gap-2 mb-3">
-                        <Flower className="w-6 h-6 text-pink-500" />
-                        <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Teacher's Day Message</h4>
-                        <Flower className="w-6 h-6 text-pink-500" />
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-lg">
-                        <strong>Dear Teachers,</strong> Your unwavering dedication to education has shaped countless minds and 
-                        transformed lives. Today, we celebrate not just your profession, but your calling to nurture, 
-                        inspire, and empower the next generation. Thank you for believing in every student, 
-                        for your patience, creativity, and for making learning an adventure. You are the 
-                        architects of the future, and we are forever grateful! 
-                        <span className="text-red-500">❤️</span>
-                      </p>
-                      
-                      <div className="mt-6 flex items-center justify-center gap-4 text-2xl">
-                        🌟 🍎 📚 ✏️ 🌟
-                      </div>
-                    </div>
-
-                    {/* Virtual Applause */}
-                    <div className="mt-6">
-                      <button
-                        onClick={() => {
-                          // Add a simple applause animation
-                          const applause = document.createElement('div');
-                          applause.innerHTML = '👏';
-                          applause.style.cssText = `
-                            position: fixed;
-                            top: 50%;
-                            left: 50%;
-                            transform: translate(-50%, -50%);
-                            font-size: 4rem;
-                            z-index: 9999;
-                            pointer-events: none;
-                            animation: applause 2s ease-out forwards;
-                          `;
-                          document.body.appendChild(applause);
-                          setTimeout(() => applause.remove(), 2000);
-                        }}
-                        className="px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center gap-3 mx-auto text-lg font-bold"
-                      >
-                        👏 Give a Virtual Applause 👏
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Teacher Appreciation Activities */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                      <div className="text-center mb-4">
-                        <div className="text-4xl mb-2">📝</div>
-                        <h5 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Write a Letter</h5>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Craft a heartfelt letter to your teacher</p>
-                      </div>
-                      <button 
-                        onClick={() => setTeacherHubTab('cards')}
-                        className="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                      >
-                        Start Writing
-                      </button>
-                    </div>
-
-                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                      <div className="text-center mb-4">
-                        <div className="text-4xl mb-2">⭐</div>
-                        <h5 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Rate Your Teacher</h5>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">Share your appreciation and feedback</p>
-                      </div>
-                      <button 
-                        onClick={() => setTeacherHubTab('feedback')}
-                        className="w-full px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
-                      >
-                        Rate Now
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <div className="mt-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-600">
-                <p className="text-sm text-center text-amber-700 dark:text-amber-300">
-                  🎊 <strong>Special Teacher's Day Edition</strong> - Celebrating educators who make a difference! 🎊
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Compact Footer */}
       <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
         {/* Success Analytics Banner - More Compact */}
@@ -1996,18 +1317,18 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* Compact Study Tools Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {studyTools.map((tool, index) => (
                 <div
                   key={index}
-                  className={`group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300 ${tool.special ? 'ring-2 ring-amber-400 ring-opacity-50 animate-pulse' : ''}`}
+                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => handleFeatureClick(tool.title)}
                 >
                   <div className={`h-1 bg-gradient-to-r ${tool.gradient}`}></div>
                   
                   <div className="p-4">
                     <div className="flex items-start gap-3 mb-3">
-                      <div className={`w-10 h-10 bg-gradient-to-br ${tool.gradient} rounded-lg flex items-center justify-center flex-shrink-0 ${tool.special ? 'animate-bounce' : ''}`}>
+                      <div className={`w-10 h-10 bg-gradient-to-br ${tool.gradient} rounded-lg flex items-center justify-center flex-shrink-0`}>
                         <tool.icon className="w-5 h-5 text-white" />
                       </div>
                       
@@ -2015,18 +1336,9 @@ export const Footer: React.FC = () => {
                         <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1 truncate">
                           {tool.title}
                         </h3>
-                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                          tool.special 
-                            ? 'text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-600' 
-                            : 'text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700'
-                        }`}>
+                        <span className="inline-block px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-full">
                           {tool.category}
                         </span>
-                        {tool.special && (
-                          <div className="text-xs text-amber-600 dark:text-amber-400 font-semibold mt-1 animate-pulse">
-                            🎉 NEW! 🎉
-                          </div>
-                        )}
                       </div>
                     </div>
 
@@ -2034,8 +1346,8 @@ export const Footer: React.FC = () => {
                       {tool.description}
                     </p>
 
-                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1 touch-manipulation ${tool.special ? 'animate-pulse' : ''}`}>
-                      {tool.special ? '🎊 Explore Special! 🎊' : 'Open Tool'}
+                    <button className={`w-full px-3 py-2 bg-gradient-to-r ${tool.gradient} text-white font-medium rounded-lg text-xs hover:shadow-md transform transition-all duration-300 hover:scale-105 flex items-center justify-center gap-1 touch-manipulation`}>
+                      Open Tool
                       <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -2048,17 +1360,12 @@ export const Footer: React.FC = () => {
               <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-1">
                   <Calculator className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">5 Tools</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4 Tools</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
                 <div className="flex items-center gap-1">
                   <Zap className="w-4 h-4 text-yellow-500" />
                   <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Ready Now</span>
-                </div>
-                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center gap-1">
-                  <Gift className="w-4 h-4 text-amber-500" />
-                  <span className="text-xs font-semibold text-amber-600 dark:text-amber-400">Teacher's Day Special!</span>
                 </div>
               </div>
             </div>
@@ -2135,17 +1442,6 @@ export const Footer: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Add CSS for applause animation */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes applause {
-              0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-              50% { transform: translate(-50%, -60%) scale(1.5); opacity: 0.8; }
-              100% { transform: translate(-50%, -70%) scale(2); opacity: 0; }
-            }
-          `
-        }} />
       </footer>
     </>
   );
