@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Sparkles, Download, Copy, Volume2, Languages, Layers, CheckCircle, Mic, Play, Pause, UploadCloud, RefreshCw } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [stats, setStats] = useState({
@@ -19,7 +19,6 @@ export const Footer: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
-  const [showNoteSummarizer, setShowNoteSummarizer] = useState(false);
 
   // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -40,25 +39,6 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // AI Note Summarizer States
-  const [noteContent, setNoteContent] = useState('');
-  const [summaryMode, setSummaryMode] = useState('bullet');
-  const [summaryResult, setSummaryResult] = useState('');
-  const [extractedTopics, setExtractedTopics] = useState<string[]>([]);
-  const [generatedQuestions, setGeneratedQuestions] = useState<string[]>([]);
-  const [flashcards, setFlashcards] = useState<{question: string, answer: string}[]>([]);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [noteLanguage, setNoteLanguage] = useState('english');
-  const [targetLanguage, setTargetLanguage] = useState('english');
-  const [wordCount, setWordCount] = useState(0);
-  const [readingTime, setReadingTime] = useState(0);
-  const [summaryLength, setSummaryLength] = useState('medium');
-  const [noteDifficulty, setNoteDifficulty] = useState('intermediate');
-  const [savedNotes, setSavedNotes] = useState<any[]>([]);
-  const [isRecording, setIsRecording] = useState(false);
-  const [voiceNote, setVoiceNote] = useState('');
-  const [showTeachersDay, setShowTeachersDay] = useState(true);
-
   // Simulate real-time stats updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,13 +52,6 @@ export const Footer: React.FC = () => {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Update word count and reading time when note content changes
-  useEffect(() => {
-    const words = noteContent.trim().split(/\s+/).filter(word => word.length > 0);
-    setWordCount(words.length);
-    setReadingTime(Math.ceil(words.length / 200)); // Average reading speed: 200 words per minute
-  }, [noteContent]);
 
   const handleFeatureClick = (featureName: string) => {
     if (featureName === 'Advanced Calculator') {
@@ -95,10 +68,6 @@ export const Footer: React.FC = () => {
     }
     if (featureName === 'Math Solver') {
       setShowMathSolver(true);
-      return;
-    }
-    if (featureName === 'AI Note Summarizer') {
-      setShowNoteSummarizer(true);
       return;
     }
     setSelectedFeature(featureName);
@@ -142,40 +111,28 @@ export const Footer: React.FC = () => {
       title: "Advanced Calculator",
       description: "Scientific calculator with graphing capabilities, equation solver, and mathematical functions for all your study needs.",
       gradient: "from-blue-500 to-indigo-600",
-      category: "Math Tools",
-      teachersTag: "📐 Teachers Choice"
+      category: "Math Tools"
     },
     {
       icon: FlaskConical,
       title: "Periodic Table",
       description: "Interactive periodic table with element details, electron configurations, and chemical properties.",
       gradient: "from-teal-500 to-green-600",
-      category: "Science",
-      teachersTag: "🧪 Lab Approved"
+      category: "Science"
     },
     {
       icon: GraduationCap,
       title: "Grade Calculator",
       description: "Calculate your current grades, required scores for target grades, and track academic performance.",
       gradient: "from-orange-500 to-red-500",
-      category: "Academic",
-      teachersTag: "📊 Grade Master"
+      category: "Academic"
     },
     {
       icon: Brain,
       title: "Math Solver",
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
-      category: "Math Tools",
-      teachersTag: "🔢 Exam Ready"
-    },
-    {
-      icon: Sparkles,
-      title: "AI Note Summarizer",
-      description: "Advanced AI-powered tool to summarize notes, extract key concepts, generate questions, and create study materials.",
-      gradient: "from-purple-500 to-violet-600",
-      category: "AI Tools",
-      teachersTag: "🤖 AI Powered"
+      category: "Math Tools"
     }
   ];
 
@@ -615,165 +572,8 @@ export const Footer: React.FC = () => {
     setMathSteps([]);
   };
 
-  // AI Note Summarizer Functions
-  const processNotes = async () => {
-    if (!noteContent.trim()) return;
-    
-    setIsProcessing(true);
-    
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    try {
-      // Extract topics using keyword analysis
-      const words = noteContent.toLowerCase().split(/\s+/);
-      const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'should', 'could', 'can', 'may', 'might', 'must', 'shall']);
-      
-      const keyWords = words
-        .filter(word => word.length > 3 && !commonWords.has(word))
-        .reduce((acc: {[key: string]: number}, word) => {
-          acc[word] = (acc[word] || 0) + 1;
-          return acc;
-        }, {});
-      
-      const topics = Object.entries(keyWords)
-        .sort(([,a], [,b]) => b - a)
-        .slice(0, 6)
-        .map(([word]) => word.charAt(0).toUpperCase() + word.slice(1));
-      
-      setExtractedTopics(topics);
-
-      // Generate summary based on mode
-      let summary = '';
-      const sentences = noteContent.split(/[.!?]+/).filter(s => s.trim().length > 0);
-      
-      switch (summaryMode) {
-        case 'bullet':
-          const keyPoints = sentences
-            .filter(s => s.trim().length > 20)
-            .slice(0, summaryLength === 'short' ? 3 : summaryLength === 'medium' ? 5 : 8)
-            .map(s => s.trim());
-          summary = keyPoints.map(point => `• ${point}`).join('\n');
-          break;
-        
-        case 'paragraph':
-          const importantSentences = sentences
-            .filter(s => s.trim().length > 20)
-            .slice(0, summaryLength === 'short' ? 2 : summaryLength === 'medium' ? 4 : 6);
-          summary = importantSentences.join('. ') + '.';
-          break;
-        
-        case 'concepts':
-          const concepts = topics.slice(0, 5);
-          summary = concepts.map(concept => 
-            `🔍 ${concept}: ${sentences.find(s => s.toLowerCase().includes(concept.toLowerCase()))?.trim() || 'Key concept from your notes'}`
-          ).join('\n\n');
-          break;
-        
-        case 'studyguide':
-          summary = `📚 STUDY GUIDE\n\n`;
-          summary += `📖 Main Topics:\n${topics.slice(0, 4).map(t => `• ${t}`).join('\n')}\n\n`;
-          summary += `🎯 Key Points:\n${sentences.slice(0, 3).map(s => `• ${s.trim()}`).join('\n')}\n\n`;
-          summary += `💡 Remember: Focus on understanding the connections between ${topics[0]} and ${topics[1] || 'other concepts'}`;
-          break;
-      }
-      
-      setSummaryResult(summary);
-
-      // Generate questions
-      const questionTemplates = [
-        `What is the main concept behind ${topics[0]}?`,
-        `How does ${topics[1] || topics[0]} relate to the overall topic?`,
-        `Explain the importance of ${topics[2] || topics[0]} in this context.`,
-        `What are the key characteristics of ${topics[0]}?`,
-        `Compare and contrast ${topics[0]} with ${topics[1] || 'related concepts'}.`
-      ];
-      
-      setGeneratedQuestions(questionTemplates.slice(0, 4));
-
-      // Generate flashcards
-      const cards = topics.slice(0, 4).map(topic => ({
-        question: `What is ${topic}?`,
-        answer: sentences.find(s => s.toLowerCase().includes(topic.toLowerCase()))?.trim() || `Key information about ${topic} from your notes.`
-      }));
-      
-      setFlashcards(cards);
-
-    } catch (error) {
-      setSummaryResult('Error processing notes. Please try again.');
-      setExtractedTopics([]);
-      setGeneratedQuestions([]);
-      setFlashcards([]);
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const clearNoteSummarizer = () => {
-    setNoteContent('');
-    setSummaryResult('');
-    setExtractedTopics([]);
-    setGeneratedQuestions([]);
-    setFlashcards([]);
-  };
-
-  const exportSummary = () => {
-    const exportContent = `Study Summary\n\n${summaryResult}\n\nTopics: ${extractedTopics.join(', ')}\n\nGenerated Questions:\n${generatedQuestions.map(q => `• ${q}`).join('\n')}`;
-    
-    const blob = new Blob([exportContent], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'study-summary.txt';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const copySummary = () => {
-    navigator.clipboard.writeText(summaryResult);
-    // Could add a toast notification here
-  };
-
-  const simulateVoiceRecording = () => {
-    setIsRecording(!isRecording);
-    
-    if (!isRecording) {
-      // Simulate recording
-      setTimeout(() => {
-        setIsRecording(false);
-        setVoiceNote('Transcribed: This is a sample voice note that has been converted to text using advanced AI speech recognition.');
-        setNoteContent(prev => prev + (prev ? '\n\n' : '') + 'Voice Note: This is a sample voice note that has been converted to text using advanced AI speech recognition. You can speak your notes and they will be automatically transcribed and added to your study materials.');
-      }, 3000);
-    }
-  };
-
   return (
     <>
-      {/* Teachers Day Special Banner */}
-      {showTeachersDay && (
-        <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-purple-500 text-white py-3 px-4 relative overflow-hidden">
-          <div className="absolute inset-0 bg-black opacity-10"></div>
-          <div className="relative max-w-7xl mx-auto text-center">
-            <div className="flex items-center justify-center gap-2 mb-1">
-              <Award className="w-5 h-5 animate-bounce" />
-              <span className="text-lg font-bold">🎉 Happy Teachers' Day Special! 🎉</span>
-              <Award className="w-5 h-5 animate-bounce" />
-            </div>
-            <p className="text-sm opacity-90">
-              Honoring our amazing educators who shape minds and inspire futures! ✨👩‍🏫👨‍🏫
-            </p>
-            <button
-              onClick={() => setShowTeachersDay(false)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-white/20 transition-colors touch-manipulation"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Coming Soon Modal */}
       {showComingSoon && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -841,9 +641,8 @@ export const Footer: React.FC = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       Advanced Calculator
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize flex items-center gap-1">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 capitalize">
                       {calculatorMode} Mode
-                      <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-full">📐 Teachers Choice</span>
                     </p>
                   </div>
                 </div>
@@ -970,9 +769,8 @@ export const Footer: React.FC = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       Interactive Periodic Table
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Click on elements to view details
-                      <span className="text-xs bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-1 rounded-full">🧪 Lab Approved</span>
                     </p>
                   </div>
                 </div>
@@ -1163,9 +961,8 @@ export const Footer: React.FC = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       Grade Calculator
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Calculate GPA and track academic performance
-                      <span className="text-xs bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-full">📊 Grade Master</span>
                     </p>
                   </div>
                 </div>
@@ -1303,9 +1100,8 @@ export const Footer: React.FC = () => {
                     <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
                       Math Solver
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       Step-by-step mathematical solutions
-                      <span className="text-xs bg-pink-100 dark:bg-pink-900 text-pink-600 dark:text-pink-400 px-2 py-1 rounded-full">🔢 Exam Ready</span>
                     </p>
                   </div>
                 </div>
@@ -1449,355 +1245,6 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* AI Note Summarizer Modal */}
-      {showNoteSummarizer && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
-            <div className="relative p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-                    <Sparkles className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      AI Note Summarizer
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                      Advanced AI-powered note processing
-                      <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-1 rounded-full">🤖 AI Powered</span>
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setShowNoteSummarizer(false)}
-                  className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
-                >
-                  <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Input Section */}
-                <div className="lg:col-span-2 space-y-4">
-                  {/* Note Input */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Your Notes
-                      </label>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span>{wordCount} words</span>
-                        <span>{readingTime} min read</span>
-                      </div>
-                    </div>
-                    <textarea
-                      value={noteContent}
-                      onChange={(e) => setNoteContent(e.target.value)}
-                      placeholder="Paste or type your study notes here. The AI will analyze your content and generate summaries, key concepts, practice questions, and flashcards..."
-                      rows={8}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-vertical touch-manipulation"
-                    />
-                    
-                    {/* Voice Input */}
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        onClick={simulateVoiceRecording}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                          isRecording 
-                            ? 'bg-red-500 text-white animate-pulse' 
-                            : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                        }`}
-                      >
-                        <Mic className="w-4 h-4" />
-                        {isRecording ? 'Recording...' : 'Voice Input'}
-                      </button>
-                      
-                      <button
-                        onClick={() => setNoteContent('')}
-                        className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 text-sm font-medium touch-manipulation"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                        Clear
-                      </button>
-                    </div>
-
-                    {voiceNote && (
-                      <div className="mt-2 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-700">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Volume2 className="w-4 h-4 text-green-600 dark:text-green-400" />
-                          <span className="text-sm font-medium text-green-700 dark:text-green-300">Voice Note Transcribed</span>
-                        </div>
-                        <p className="text-sm text-gray-700 dark:text-gray-300">{voiceNote}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Processing Controls */}
-                  <div className="space-y-4">
-                    {/* Summary Mode Selection */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Summary Format
-                      </label>
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                        {[
-                          { key: 'bullet', label: 'Bullet Points', icon: FileText },
-                          { key: 'paragraph', label: 'Paragraph', icon: BookOpen },
-                          { key: 'concepts', label: 'Key Concepts', icon: Lightbulb },
-                          { key: 'studyguide', label: 'Study Guide', icon: BookMarked }
-                        ].map(mode => (
-                          <button
-                            key={mode.key}
-                            onClick={() => setSummaryMode(mode.key)}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 touch-manipulation ${
-                              summaryMode === mode.key
-                                ? 'bg-gradient-to-r from-purple-500 to-violet-600 text-white shadow-lg'
-                                : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                            }`}
-                          >
-                            <mode.icon className="w-4 h-4" />
-                            {mode.label}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Advanced Options */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Summary Length
-                        </label>
-                        <select
-                          value={summaryLength}
-                          onChange={(e) => setSummaryLength(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 text-sm touch-manipulation"
-                        >
-                          <option value="short">Short</option>
-                          <option value="medium">Medium</option>
-                          <option value="detailed">Detailed</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Difficulty Level
-                        </label>
-                        <select
-                          value={noteDifficulty}
-                          onChange={(e) => setNoteDifficulty(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 text-sm touch-manipulation"
-                        >
-                          <option value="beginner">Beginner</option>
-                          <option value="intermediate">Intermediate</option>
-                          <option value="advanced">Advanced</option>
-                        </select>
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                          Target Language
-                        </label>
-                        <select
-                          value={targetLanguage}
-                          onChange={(e) => setTargetLanguage(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 text-sm touch-manipulation"
-                        >
-                          <option value="english">English</option>
-                          <option value="spanish">Spanish</option>
-                          <option value="french">French</option>
-                          <option value="german">German</option>
-                          <option value="hindi">Hindi</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <button
-                        onClick={processNotes}
-                        disabled={!noteContent.trim() || isProcessing}
-                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-violet-600 text-white rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:transform-none font-medium touch-manipulation"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="w-4 h-4" />
-                            Analyze Notes
-                          </>
-                        )}
-                      </button>
-                      
-                      <button
-                        onClick={clearNoteSummarizer}
-                        className="px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200 font-medium touch-manipulation"
-                      >
-                        <RotateCcw className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Results Section */}
-                <div className="space-y-4">
-                  {/* Quick Stats */}
-                  {noteContent && (
-                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm">Quick Analysis</h4>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-purple-500" />
-                          <span className="text-gray-600 dark:text-gray-400">{wordCount} words</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-purple-500" />
-                          <span className="text-gray-600 dark:text-gray-400">{readingTime} min read</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Extracted Topics */}
-                  {extractedTopics.length > 0 && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm flex items-center gap-2">
-                        <Target className="w-4 h-4 text-blue-500" />
-                        Key Topics Identified
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {extractedTopics.map((topic, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-full text-xs font-medium"
-                          >
-                            {topic}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Generated Questions */}
-                  {generatedQuestions.length > 0 && (
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-4 border border-green-200 dark:border-green-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm flex items-center gap-2">
-                        <HelpCircle className="w-4 h-4 text-green-500" />
-                        Study Questions
-                      </h4>
-                      <div className="space-y-2">
-                        {generatedQuestions.map((question, index) => (
-                          <div key={index} className="flex items-start gap-2 p-2 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-600">
-                            <div className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                              {index + 1}
-                            </div>
-                            <span className="text-sm text-gray-800 dark:text-gray-200">{question}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Flashcards Preview */}
-                  {flashcards.length > 0 && (
-                    <div className="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 text-sm flex items-center gap-2">
-                        <Layers className="w-4 h-4 text-yellow-500" />
-                        Generated Flashcards ({flashcards.length})
-                      </h4>
-                      <div className="space-y-2">
-                        {flashcards.slice(0, 2).map((card, index) => (
-                          <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-yellow-200 dark:border-yellow-600">
-                            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                              Q: {card.question}
-                            </div>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                              A: {card.answer.substring(0, 80)}...
-                            </div>
-                          </div>
-                        ))}
-                        {flashcards.length > 2 && (
-                          <div className="text-center">
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                              +{flashcards.length - 2} more flashcards
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Summary Output */}
-                <div className="space-y-4">
-                  {summaryResult && (
-                    <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm flex items-center gap-2">
-                          <Sparkles className="w-4 h-4 text-purple-500" />
-                          AI Summary
-                        </h4>
-                        <div className="flex gap-1">
-                          <button
-                            onClick={copySummary}
-                            className="p-1.5 bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors duration-200 touch-manipulation"
-                            title="Copy Summary"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={exportSummary}
-                            className="p-1.5 bg-purple-100 dark:bg-purple-800 text-purple-600 dark:text-purple-400 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-700 transition-colors duration-200 touch-manipulation"
-                            title="Export Summary"
-                          >
-                            <Download className="w-3 h-3" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-purple-200 dark:border-purple-600 max-h-80 overflow-y-auto">
-                        <pre className="text-sm text-gray-800 dark:text-gray-200 whitespace-pre-wrap font-sans leading-relaxed">
-                          {summaryResult}
-                        </pre>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* AI Features Grid */}
-                  <div className="grid grid-cols-1 gap-3">
-                    {[
-                      { icon: Languages, title: 'Translation', desc: 'Multi-language support' },
-                      { icon: Bookmark, title: 'Save Notes', desc: 'Organize & bookmark' },
-                      { icon: BarChart3, title: 'Analytics', desc: 'Learning insights' },
-                      { icon: Share, title: 'Export', desc: 'Share study materials' }
-                    ].map((feature, index) => (
-                      <div key={index} className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600 transition-colors duration-200">
-                        <div className="flex items-center gap-2">
-                          <feature.icon className="w-4 h-4 text-purple-500" />
-                          <div>
-                            <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">{feature.title}</div>
-                            <div className="text-xs text-gray-500 dark:text-gray-400">{feature.desc}</div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <p className="text-xs text-purple-600 dark:text-purple-400 text-center">
-                  🤖 AI-powered note analysis with smart summarization, concept extraction, and study material generation
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Compact Footer */}
       <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 mt-12">
         {/* Success Analytics Banner - More Compact */}
@@ -1854,7 +1301,7 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Study Tools Section - Enhanced with Teachers Day Tags */}
+        {/* Study Tools Section - More Compact */}
         <section className="bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900/20 py-6 sm:py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-6">
@@ -1863,30 +1310,20 @@ export const Footer: React.FC = () => {
                 <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                   Essential Study Tools
                 </h2>
-                <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-bounce">
-                  👩‍🏫 Teachers Day Special
-                </span>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-                Powerful AI-enhanced tools designed for competitive exam preparation
+                Powerful tools to enhance your learning experience
               </p>
             </div>
 
-            {/* Enhanced Study Tools Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+            {/* Compact Study Tools Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {studyTools.map((tool, index) => (
                 <div
                   key={index}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300 relative"
+                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden cursor-pointer transform hover:-translate-y-1 transition-all duration-300"
                   onClick={() => handleFeatureClick(tool.title)}
                 >
-                  {/* Teachers Day Special Badge */}
-                  <div className="absolute top-2 right-2 z-10">
-                    <span className="bg-gradient-to-r from-rose-400 to-pink-500 text-white px-2 py-1 rounded-full text-[10px] font-bold shadow-lg">
-                      {tool.teachersTag}
-                    </span>
-                  </div>
-                  
                   <div className={`h-1 bg-gradient-to-r ${tool.gradient}`}></div>
                   
                   <div className="p-4">
@@ -1923,12 +1360,7 @@ export const Footer: React.FC = () => {
               <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-1">
                   <Calculator className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">5 Tools</span>
-                </div>
-                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
-                <div className="flex items-center gap-1">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">AI Powered</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4 Tools</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
                 <div className="flex items-center gap-1">
@@ -1940,9 +1372,9 @@ export const Footer: React.FC = () => {
           </div>
         </section>
 
-        {/* Main Footer Content - Enhanced with Teachers Day Theme */}
+        {/* Main Footer Content - Compact */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
-          {/* Brand Section with Teachers Day Enhancement */}
+          {/* Brand Section */}
           <div className="text-center mb-6">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-7 h-7 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg flex items-center justify-center">
@@ -1951,24 +1383,13 @@ export const Footer: React.FC = () => {
               <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Study Tracker Pro
               </h2>
-              <div className="flex items-center gap-1 bg-gradient-to-r from-rose-100 to-pink-100 dark:from-rose-900/30 dark:to-pink-900/30 px-2 py-1 rounded-full">
-                <Award className="w-3 h-3 text-rose-600 dark:text-rose-400" />
-                <span className="text-xs font-bold text-rose-600 dark:text-rose-400">Teachers Day 2024</span>
-              </div>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Your ultimate study companion with advanced AI tools and analytics
+              Your ultimate study companion with advanced tools and analytics
             </p>
             <div className="flex items-center justify-center gap-1 text-xs text-purple-600 dark:text-purple-400">
               <TrendingUp className="w-3 h-3" />
               <span>Trusted by {Math.floor(stats.totalStudents / 1000)}K+ students worldwide</span>
-            </div>
-            
-            {/* Teachers Day Special Message */}
-            <div className="mt-3 inline-block bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/30 dark:to-pink-900/30 px-4 py-2 rounded-xl border border-rose-200 dark:border-rose-700">
-              <p className="text-sm text-rose-700 dark:text-rose-300 font-medium">
-                🙏 Dedicated to all the amazing teachers who inspire and guide us every day!
-              </p>
             </div>
           </div>
 
@@ -1991,10 +1412,10 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Bottom Section - Enhanced */}
+          {/* Bottom Section - Compact */}
           <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
             <div className="flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
-              {/* Creator Credit with Teachers Day Enhancement */}
+              {/* Creator Credit */}
               <div className="flex flex-col items-center md:items-start gap-1">
                 <div className="flex items-center gap-1">
                   <span className="text-gray-600 dark:text-gray-400">Created with</span>
@@ -2008,22 +1429,15 @@ export const Footer: React.FC = () => {
                   >
                     Vinay Kumar
                   </a>
-                  <span className="text-rose-500 text-xs">👨‍🎓</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-500 dark:text-gray-500">
-                    Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">TRMS</span>
-                  </span>
-                  <span className="bg-gradient-to-r from-rose-500 to-pink-500 text-white px-2 py-0.5 rounded-full text-xs font-bold">
-                    🎓 Edu Special
-                  </span>
-                </div>
+                <span className="text-gray-500 dark:text-gray-500">
+                  Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">TRMS</span>
+                </span>
               </div>
 
-              {/* Copyright with Teachers Day Enhancement */}
-              <div className="text-gray-500 dark:text-gray-500 font-medium flex items-center gap-2">
-                <span>© {new Date().getFullYear()} Study Tracker Pro</span>
-                <Award className="w-3 h-3 text-rose-500 animate-pulse" />
+              {/* Copyright */}
+              <div className="text-gray-500 dark:text-gray-500 font-medium">
+                © {new Date().getFullYear()} Study Tracker Pro
               </div>
             </div>
           </div>
