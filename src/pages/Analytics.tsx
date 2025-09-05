@@ -16,6 +16,7 @@ export const Analytics: React.FC = () => {
   const [activeTimeframe, setActiveTimeframe] = useState<'week' | 'month' | 'year'>('week');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const { user, isPremium } = useAuth();
 
   useEffect(() => {
@@ -36,6 +37,107 @@ export const Analytics: React.FC = () => {
     };
   }, [user]);
 
+  // PDF Export Function
+  const handlePdfExport = async () => {
+    setIsExporting(true);
+    
+    try {
+      // Create a new window for PDF generation
+      const printWindow = window.open('', '_blank');
+      if (!printWindow) {
+        alert('Please allow popups to export PDF');
+        setIsExporting(false);
+        return;
+      }
+
+      // Get the analytics content
+      const analyticsContent = document.getElementById('analytics-content');
+      if (!analyticsContent) {
+        setIsExporting(false);
+        return;
+      }
+
+      // Create PDF-optimized HTML
+      const pdfHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Study Analytics Report</title>
+          <style>
+            * {
+              margin: 0;
+              padding: 0;
+              box-sizing: border-box;
+            }
+            
+            body {
+              font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+              background: white;
+              color: #1f2937;
+              line-height: 1.6;
+              position: relative;
+            }
+            
+            /* Simple Full Page Watermark */
+            body::before {
+              content: "STUDY ANALYTICS REPORT";
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%) rotate(-45deg);
+              font-size: 48px;
+              font-weight: 900;
+              color: rgba(139, 92, 246, 0.08);
+              z-index: -1;
+              white-space: nowrap;
+              letter-spacing: 8px;
+              pointer-events: none;
+            }
+            
+            .pdf-container {
+              max-width: 1200px;
+              margin: 0 auto;
+              padding: 40px 20px;
+              position: relative;
+              z-index: 1;
+            }
+            
+            .pdf-header {
+              text-align: center;
+              margin-bottom: 40px;
+              padding-bottom: 20px;
+              border-bottom: 3px solid #8b5cf6;
+            }
+            
+            .pdf-title {
+              font-size: 36px;
+              font-weight: bold;
+              background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+              -webkit-background-clip: text;
+              -webkit-text-fill-color: transparent;
+              margin-bottom: 10px;
+            }
+            
+            .pdf-subtitle {
+              font-size: 16px;
+              color: #6b7280;
+              margin-bottom: 20px;
+            }
+            
+            .pdf-timestamp {
+              font-size: 14px;
+              color: #9ca3af;
+            }
+            
+            .stats-grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+              gap: 20px;
+              margin-bottom: 40px;
+            }
+            
+            .stat-card {
+              background: #f9fafb;
   // PDF Export Function
   const handlePdfExport = async () => {
     setIsExporting(true);
