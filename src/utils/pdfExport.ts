@@ -72,126 +72,127 @@ export class PDFExportService {
   }
 
   private addWatermarkToCurrentPage(): void {
-    // Save current graphics state
     const currentPage = this.pdf.internal.getCurrentPageInfo().pageNumber;
     
-    // Create subtle diagonal watermark
     this.pdf.saveGraphicsState();
     
     try {
-      // Set very low opacity for watermark
-      this.pdf.setGState(this.pdf.GState({ opacity: 0.03 }));
+      // Premium diagonal watermark with multiple layers
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.02 }));
       
-      // Main diagonal watermark
-      this.pdf.setFontSize(40);
-      this.pdf.setTextColor(139, 92, 246);
+      // Large background watermark
+      this.pdf.setFontSize(60);
+      this.pdf.setTextColor(99, 102, 241);
       this.pdf.setFont('helvetica', 'bold');
       
       const centerX = this.pageWidth / 2;
       const centerY = this.pageHeight / 2;
       
-      // Add rotated text watermark
-      this.pdf.text('STUDY TRACKER PRO', centerX, centerY, {
-        angle: -30,
+      // Main diagonal watermark
+      this.pdf.text('STUDYFLOW', centerX, centerY, {
+        angle: -35,
         align: 'center'
       });
       
-      // Add smaller secondary watermark
-      this.pdf.setFontSize(12);
-      this.pdf.setGState(this.pdf.GState({ opacity: 0.05 }));
-      this.pdf.text(this.telegramChannel, centerX, centerY + 20, {
-        angle: -30,
+      // Secondary watermark layer
+      this.pdf.setFontSize(20);
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.015 }));
+      this.pdf.text('PREMIUM ANALYTICS', centerX, centerY + 25, {
+        angle: -35,
+        align: 'center'
+      });
+      
+      // Tertiary watermark layer
+      this.pdf.setFontSize(14);
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.02 }));
+      this.pdf.text(this.telegramChannel, centerX, centerY + 45, {
+        angle: -35,
         align: 'center'
       });
       
     } catch (error) {
       console.warn('Watermark rendering failed:', error);
     } finally {
-      // Always restore graphics state
       this.pdf.restoreGraphicsState();
     }
     
-    // Add subtle corner marks with higher opacity
-    this.pdf.setFontSize(7);
-    this.pdf.setTextColor(139, 92, 246, 0.2);
+    // Premium corner branding
+    this.pdf.setFontSize(6);
+    this.pdf.setTextColor(99, 102, 241, 0.15);
     this.pdf.setFont('helvetica', 'normal');
     
-    // Corner watermarks - ensure they don't overlap with content
-    this.pdf.text('StudyFlow', 5, 8);
-    this.pdf.text(this.telegramChannel, this.pageWidth - 35, 8);
-    this.pdf.text(`Page ${currentPage}`, this.pageWidth - 20, this.pageHeight - 5);
+    // Elegant corner marks
+    this.pdf.text('StudyFlow Pro', 3, 6);
+    this.pdf.text('Premium Report', this.pageWidth - 25, 6);
   }
 
   private addHeader(): void {
-    // Reset position for header
     const savedY = this.currentY;
     this.currentY = 0;
     
-    // Clean gradient background
-    const steps = 25;
+    // Premium gradient background - lighter and more elegant
+    const steps = 30;
     for (let i = 0; i < steps; i++) {
-      const opacity = 0.8 - (i / steps) * 0.4;
+      const opacity = 0.12 - (i / steps) * 0.08;
       const y = i * (this.headerHeight / steps);
-      this.pdf.setFillColor(139, 92, 246, opacity);
+      this.pdf.setFillColor(99, 102, 241, opacity);
       this.pdf.rect(0, y, this.pageWidth, this.headerHeight / steps + 1, 'F');
     }
     
-    // Add clean bottom border
-    this.pdf.setDrawColor(255, 255, 255, 0.3);
-    this.pdf.setLineWidth(1);
-    this.pdf.line(0, this.headerHeight - 1, this.pageWidth, this.headerHeight - 1);
+    // Elegant bottom accent line
+    this.pdf.setDrawColor(99, 102, 241, 0.3);
+    this.pdf.setLineWidth(0.8);
+    this.pdf.line(0, this.headerHeight - 0.5, this.pageWidth, this.headerHeight - 0.5);
     
-    // Main title with proper spacing
-    this.pdf.setFontSize(24);
-    this.pdf.setTextColor(255, 255, 255);
+    // Clean, professional title without icons
+    this.pdf.setFontSize(26);
+    this.pdf.setTextColor(31, 41, 55);
     this.pdf.setFont('helvetica', 'bold');
+    this.pdf.text('STUDY ANALYTICS REPORT', this.margin, 24);
     
-    // Use Unicode symbols instead of emojis for better PDF compatibility
-    this.pdf.text('STUDY ANALYTICS REPORT', this.margin, 22);
-    
-    // Add clean subtitle
-    this.pdf.setFontSize(11);
+    // Professional subtitle
+    this.pdf.setFontSize(12);
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.setTextColor(255, 255, 255, 0.9);
-    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 32);
+    this.pdf.setTextColor(75, 85, 99);
+    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 34);
     
-    // Right-aligned info
+    // Clean right-aligned information
     this.pdf.setFontSize(10);
-    this.pdf.setTextColor(255, 255, 255, 0.8);
+    this.pdf.setTextColor(107, 114, 128);
     const dateText = `Generated: ${format(new Date(), 'PPP')}`;
-    const channelText = this.telegramChannel;
+    const channelText = `Community: ${this.telegramChannel}`;
     
-    this.pdf.text(dateText, this.pageWidth - this.margin - 80, 22);
-    this.pdf.text(channelText, this.pageWidth - this.margin - 80, 32);
+    this.pdf.text(dateText, this.pageWidth - this.margin - 85, 24);
+    this.pdf.text(channelText, this.pageWidth - this.margin - 85, 34);
     
-    // Restore Y position
     this.currentY = this.headerHeight + this.margin;
   }
 
   private addSummarySection(data: AnalyticsData): void {
     this.addNewPageIfNeeded(80);
     
-    // Section header with clean design
+    // Clean section header without icons
     this.pdf.setFontSize(18);
-    this.pdf.setTextColor(139, 92, 246);
+    this.pdf.setTextColor(99, 102, 241);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Subtle section header background
-    this.pdf.setFillColor(139, 92, 246, 0.08);
-    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 160, 16, 2, 2, 'F');
+    // Premium section header with accent line
+    this.pdf.setDrawColor(99, 102, 241, 0.4);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY + 2, this.margin + 50, this.currentY + 2);
     
     this.pdf.text('PERFORMANCE OVERVIEW', this.margin, this.currentY);
     this.currentY += 20;
 
-    // Clean card layout
+    // Premium card layout
     const cardWidth = (this.pageWidth - 3 * this.margin) / 2;
     const cardHeight = 22;
     
     const summaryData = [
-      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), symbol: '•' },
-      { title: 'Total Sessions', value: data.totalSessions.toString(), symbol: '•' },
-      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), symbol: '•' },
-      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5.0`, symbol: '★' }
+      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), symbol: '◆' },
+      { title: 'Total Sessions', value: data.totalSessions.toString(), symbol: '◇' },
+      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), symbol: '◈' },
+      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5.0`, symbol: '◉' }
     ];
 
     summaryData.forEach((item, index) => {
@@ -200,21 +201,21 @@ export class PDFExportService {
       const x = this.margin + (index % 2) * (cardWidth + this.margin);
       const y = this.currentY + Math.floor(index / 2) * (cardHeight + 8);
       
-      // Clean card design
-      this.pdf.setFillColor(248, 250, 252);
+      // Premium card design with subtle gradient
+      this.pdf.setFillColor(249, 250, 251);
       this.pdf.roundedRect(x, y, cardWidth, cardHeight, 2, 2, 'F');
       
-      // Subtle border
-      this.pdf.setDrawColor(226, 232, 240);
+      // Premium border
+      this.pdf.setDrawColor(209, 213, 219);
       this.pdf.setLineWidth(0.3);
       this.pdf.roundedRect(x, y, cardWidth, cardHeight, 2, 2, 'S');
       
-      // Symbol
+      // Clean symbol
       this.pdf.setFontSize(12);
-      this.pdf.setTextColor(139, 92, 246);
+      this.pdf.setTextColor(99, 102, 241);
       this.pdf.text(item.symbol, x + 4, y + 8);
       
-      // Title
+      // Professional title
       this.pdf.setFontSize(9);
       this.pdf.setTextColor(107, 114, 128);
       this.pdf.setFont('helvetica', 'normal');
@@ -239,13 +240,14 @@ export class PDFExportService {
 
     this.addNewPageIfNeeded(100);
     
-    // Clean section header
+    // Professional section header without icons
     this.pdf.setFontSize(16);
-    this.pdf.setTextColor(59, 130, 246);
+    this.pdf.setTextColor(37, 99, 235);
     this.pdf.setFont('helvetica', 'bold');
     
-    this.pdf.setFillColor(59, 130, 246, 0.06);
-    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 180, 16, 2, 2, 'F');
+    this.pdf.setDrawColor(37, 99, 235, 0.4);
+    this.pdf.setLineWidth(1.5);
+    this.pdf.line(this.margin, this.currentY + 2, this.margin + 40, this.currentY + 2);
     
     this.pdf.text(title.toUpperCase(), this.margin, this.currentY);
     this.currentY += 20;
@@ -281,12 +283,12 @@ export class PDFExportService {
     } catch (error) {
       console.error(`Failed to capture ${title}:`, error);
       
-      // Clean error placeholder
-      this.pdf.setFillColor(254, 242, 242);
+      // Premium error placeholder
+      this.pdf.setFillColor(254, 242, 242, 0.5);
       this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 25, 2, 2, 'F');
       
-      this.pdf.setDrawColor(252, 165, 165);
-      this.pdf.setLineWidth(0.5);
+      this.pdf.setDrawColor(248, 113, 113, 0.3);
+      this.pdf.setLineWidth(0.3);
       this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 25, 2, 2, 'S');
       
       this.pdf.setTextColor(185, 28, 28);
@@ -301,13 +303,14 @@ export class PDFExportService {
   private addSubjectBreakdown(data: AnalyticsData): void {
     this.addNewPageIfNeeded(120);
     
-    // Clean section header
+    // Professional section header without icons
     this.pdf.setFontSize(16);
-    this.pdf.setTextColor(16, 185, 129);
+    this.pdf.setTextColor(5, 150, 105);
     this.pdf.setFont('helvetica', 'bold');
     
-    this.pdf.setFillColor(16, 185, 129, 0.06);
-    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 140, 16, 2, 2, 'F');
+    this.pdf.setDrawColor(5, 150, 105, 0.4);
+    this.pdf.setLineWidth(1.5);
+    this.pdf.line(this.margin, this.currentY + 2, this.margin + 45, this.currentY + 2);
     
     this.pdf.text('SUBJECT BREAKDOWN', this.margin, this.currentY);
     this.currentY += 20;
@@ -348,16 +351,16 @@ export class PDFExportService {
       return;
     }
 
-    // Clean table design
+    // Premium table design
     const colWidths = [65, 25, 25, 25, 40];
     const rowHeight = 10;
     const tableWidth = colWidths.reduce((sum, w) => sum + w, 0);
     
-    // Table header
-    this.pdf.setFillColor(139, 92, 246, 0.1);
+    // Premium table header
+    this.pdf.setFillColor(99, 102, 241, 0.08);
     this.pdf.roundedRect(this.margin, this.currentY, tableWidth, rowHeight, 1, 1, 'F');
     
-    this.pdf.setTextColor(139, 92, 246);
+    this.pdf.setTextColor(99, 102, 241);
     this.pdf.setFontSize(9);
     this.pdf.setFont('helvetica', 'bold');
     
@@ -371,15 +374,15 @@ export class PDFExportService {
     
     this.currentY += rowHeight + 3;
 
-    // Table rows
+    // Premium table rows
     const maxHours = Math.max(...subjectData.map(s => s.hours));
     
     subjectData.forEach((subject, index) => {
       this.addNewPageIfNeeded(rowHeight + 2);
       
-      // Alternate row background
+      // Premium alternate row background
       if (index % 2 === 0) {
-        this.pdf.setFillColor(248, 250, 252);
+        this.pdf.setFillColor(249, 250, 251);
         this.pdf.rect(this.margin, this.currentY - 1, tableWidth, rowHeight, 'F');
       }
       
@@ -412,13 +415,13 @@ export class PDFExportService {
       const barHeight = 3;
       const percentage = maxHours > 0 ? (subject.hours / maxHours) : 0;
       
-      // Background bar
-      this.pdf.setFillColor(229, 231, 235);
+      // Premium background bar
+      this.pdf.setFillColor(229, 231, 235, 0.6);
       this.pdf.roundedRect(currentX, this.currentY + 4, barWidth, barHeight, 0.5, 0.5, 'F');
       
-      // Progress bar
+      // Premium progress bar
       if (percentage > 0) {
-        this.pdf.setFillColor(139, 92, 246);
+        this.pdf.setFillColor(99, 102, 241);
         this.pdf.roundedRect(currentX, this.currentY + 4, barWidth * percentage, barHeight, 0.5, 0.5, 'F');
       }
       
@@ -431,32 +434,33 @@ export class PDFExportService {
   private addInsightsSection(data: AnalyticsData): void {
     this.addNewPageIfNeeded(100);
     
-    // Clean section header
+    // Professional section header without icons
     this.pdf.setFontSize(16);
-    this.pdf.setTextColor(245, 158, 11);
+    this.pdf.setTextColor(217, 119, 6);
     this.pdf.setFont('helvetica', 'bold');
     
-    this.pdf.setFillColor(245, 158, 11, 0.06);
-    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 200, 16, 2, 2, 'F');
+    this.pdf.setDrawColor(217, 119, 6, 0.4);
+    this.pdf.setLineWidth(1.5);
+    this.pdf.line(this.margin, this.currentY + 2, this.margin + 60, this.currentY + 2);
     
     this.pdf.text('KEY INSIGHTS & RECOMMENDATIONS', this.margin, this.currentY);
     this.currentY += 20;
 
     const insights = [
       {
-        symbol: '♦',
+        symbol: '◆',
         title: 'Study Consistency',
         description: `You have maintained ${data.sessions.length} study sessions with an average of ${(data.sessions.length / 7).toFixed(1)} sessions per week.`,
         recommendation: data.sessions.length >= 14 ? 'Excellent consistency! Continue this steady pace for optimal learning retention.' : 'Try to maintain more regular study sessions for better knowledge retention.'
       },
       {
-        symbol: '★',
+        symbol: '◉',
         title: 'Efficiency Analysis',
         description: `Your average efficiency rating is ${data.averageEfficiency.toFixed(1)}/5.0 across all sessions.`,
         recommendation: data.averageEfficiency >= 4 ? 'Outstanding efficiency! Your focused approach is paying off.' : 'Consider implementing the Pomodoro technique or finding a quieter study environment to boost efficiency.'
       },
       {
-        symbol: '◆',
+        symbol: '◈',
         title: 'Session Optimization',
         description: `Your average session duration is ${this.formatTime(data.averageSessionTime)}.`,
         recommendation: data.averageSessionTime > 120 ? 'Consider incorporating 5-10 minute breaks during longer sessions to maintain focus.' : 'Your session length is optimal. You might benefit from slightly longer sessions as your stamina builds.'
@@ -466,20 +470,20 @@ export class PDFExportService {
     insights.forEach(insight => {
       this.addNewPageIfNeeded(28);
       
-      // Clean insight card
-      this.pdf.setFillColor(249, 250, 251);
+      // Premium insight card
+      this.pdf.setFillColor(250, 251, 252);
       this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'F');
       
-      this.pdf.setDrawColor(229, 231, 235);
+      this.pdf.setDrawColor(209, 213, 219, 0.5);
       this.pdf.setLineWidth(0.3);
       this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'S');
       
-      // Symbol
+      // Premium symbol
       this.pdf.setFontSize(12);
-      this.pdf.setTextColor(245, 158, 11);
+      this.pdf.setTextColor(217, 119, 6);
       this.pdf.text(insight.symbol, this.margin + 4, this.currentY + 8);
       
-      // Title
+      // Professional title
       this.pdf.setFontSize(11);
       this.pdf.setTextColor(31, 41, 55);
       this.pdf.setFont('helvetica', 'bold');
@@ -500,10 +504,10 @@ export class PDFExportService {
         textY += 4;
       });
       
-      // Recommendation
-      this.pdf.setTextColor(16, 185, 129);
+      // Premium recommendation
+      this.pdf.setTextColor(5, 150, 105);
       this.pdf.setFont('helvetica', 'italic');
-      const recLines = this.pdf.splitTextToSize(`► ${insight.recommendation}`, maxWidth);
+      const recLines = this.pdf.splitTextToSize(`▶ ${insight.recommendation}`, maxWidth);
       
       recLines.slice(0, 1).forEach((line: string) => {
         this.pdf.text(line, this.margin + 4, textY);
@@ -515,32 +519,39 @@ export class PDFExportService {
   }
 
   private addFooterToCurrentPage(): void {
-    const footerY = this.pageHeight - this.footerHeight + 5;
+    const footerY = this.pageHeight - this.footerHeight + 3;
     const currentPage = this.pdf.internal.getCurrentPageInfo().pageNumber;
     
-    // Clean footer background
-    this.pdf.setFillColor(248, 250, 252);
-    this.pdf.rect(0, footerY - 2, this.pageWidth, this.footerHeight, 'F');
+    // Premium footer with subtle gradient
+    const footerSteps = 8;
+    for (let i = 0; i < footerSteps; i++) {
+      const opacity = 0.02 + (i / footerSteps) * 0.04;
+      const y = footerY - 2 + i * (this.footerHeight / footerSteps);
+      this.pdf.setFillColor(99, 102, 241, opacity);
+      this.pdf.rect(0, y, this.pageWidth, this.footerHeight / footerSteps + 1, 'F');
+    }
     
-    // Top border line
-    this.pdf.setDrawColor(226, 232, 240);
-    this.pdf.setLineWidth(0.3);
-    this.pdf.line(this.margin, footerY, this.pageWidth - this.margin, footerY);
+    // Premium top accent line
+    this.pdf.setDrawColor(99, 102, 241, 0.2);
+    this.pdf.setLineWidth(0.5);
+    this.pdf.line(this.margin, footerY - 1, this.pageWidth - this.margin, footerY - 1);
     
-    // Footer content
-    this.pdf.setFontSize(7);
-    this.pdf.setTextColor(139, 92, 246);
+    // Premium footer content
+    this.pdf.setFontSize(8);
+    this.pdf.setTextColor(99, 102, 241);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('StudyFlow Analytics Report', this.margin, footerY + 6);
+    this.pdf.text('StudyFlow Premium Analytics', this.margin, footerY + 6);
     
-    // Channel info
+    // Community info
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.setFontSize(7);
+    this.pdf.setFontSize(8);
     this.pdf.setTextColor(107, 114, 128);
-    this.pdf.text(`Join our community: ${this.telegramChannel}`, this.margin, footerY + 11);
+    this.pdf.text(`Community: ${this.telegramChannel}`, this.margin, footerY + 12);
     
-    // Page number
-    this.pdf.text(`Page ${currentPage}`, this.pageWidth - this.margin - 15, footerY + 8);
+    // Premium page number
+    this.pdf.setTextColor(99, 102, 241);
+    this.pdf.setFont('helvetica', 'normal');
+    this.pdf.text(`${currentPage}`, this.pageWidth - this.margin - 8, footerY + 9);
   }
 
   async generateReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
