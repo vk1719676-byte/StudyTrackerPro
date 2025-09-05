@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Download, Copy, Wand2, Sparkles, FileDown, CheckCircle, AlertCircle, Info, Upload, Eye, Clock3, Hash, BookText, Lightbulb as LightbulbIcon, Save } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [stats, setStats] = useState({
@@ -19,6 +19,7 @@ export const Footer: React.FC = () => {
   const [selectedElement, setSelectedElement] = useState<any>(null);
   const [showGradeCalculator, setShowGradeCalculator] = useState(false);
   const [showMathSolver, setShowMathSolver] = useState(false);
+  const [showAINotesSummarizer, setShowAINotesSummarizer] = useState(false);
 
   // Calculator state
   const [previousValue, setPreviousValue] = useState<number | null>(null);
@@ -39,6 +40,31 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
+  // AI Notes Summarizer States
+  const [noteText, setNoteText] = useState('');
+  const [summaryType, setSummaryType] = useState('bullet-points');
+  const [summaryLength, setSummaryLength] = useState('medium');
+  const [aiSummary, setAiSummary] = useState('');
+  const [keyPoints, setKeyPoints] = useState<string[]>([]);
+  const [aiAnalysis, setAiAnalysis] = useState<{
+    wordCount: number;
+    readingTime: number;
+    complexity: string;
+    topics: string[];
+  }>({ wordCount: 0, readingTime: 0, complexity: 'Low', topics: [] });
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [summaryHistory, setSummaryHistory] = useState<Array<{
+    id: string;
+    title: string;
+    summary: string;
+    timestamp: string;
+    type: string;
+  }>>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [savedApiKey, setSavedApiKey] = useState('');
+
   // Simulate real-time stats updates
   useEffect(() => {
     const interval = setInterval(() => {
@@ -51,6 +77,15 @@ export const Footer: React.FC = () => {
     }, 30000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  // Load saved API key from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('openai_api_key');
+    if (saved) {
+      setSavedApiKey(saved);
+      setApiKey(saved);
+    }
   }, []);
 
   const handleFeatureClick = (featureName: string) => {
@@ -68,6 +103,10 @@ export const Footer: React.FC = () => {
     }
     if (featureName === 'Math Solver') {
       setShowMathSolver(true);
+      return;
+    }
+    if (featureName === 'AI Notes Summarizer') {
+      setShowAINotesSummarizer(true);
       return;
     }
     setSelectedFeature(featureName);
@@ -133,8 +172,230 @@ export const Footer: React.FC = () => {
       description: "Step-by-step solutions for algebra, calculus, trigonometry, and other mathematical problems.",
       gradient: "from-pink-500 to-rose-600",
       category: "Math Tools"
+    },
+    {
+      icon: Wand2,
+      title: "AI Notes Summarizer",
+      description: "Transform lengthy notes into concise summaries with AI-powered analysis, key points extraction, and smart insights.",
+      gradient: "from-violet-500 to-purple-600",
+      category: "AI Tools"
     }
   ];
+
+  // AI Notes Summarizer Functions
+  const analyzeText = (text: string) => {
+    const words = text.trim().split(/\s+/).filter(word => word.length > 0);
+    const wordCount = words.length;
+    const readingTime = Math.ceil(wordCount / 200); // Average reading speed: 200 WPM
+    
+    // Simple complexity analysis
+    const avgWordLength = words.reduce((acc, word) => acc + word.length, 0) / words.length;
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const avgSentenceLength = wordCount / sentences.length;
+    
+    let complexity = 'Low';
+    if (avgWordLength > 5 && avgSentenceLength > 20) {
+      complexity = 'High';
+    } else if (avgWordLength > 4 || avgSentenceLength > 15) {
+      complexity = 'Medium';
+    }
+
+    // Extract potential topics (simplified - looks for capitalized words and common academic terms)
+    const topics = Array.from(new Set(
+      words.filter(word => 
+        (word.length > 4 && /^[A-Z]/.test(word)) || 
+        ['theory', 'concept', 'principle', 'method', 'analysis', 'research'].some(term => 
+          word.toLowerCase().includes(term)
+        )
+      ).slice(0, 5)
+    ));
+
+    setAiAnalysis({ wordCount, readingTime, complexity, topics });
+  };
+
+  const saveApiKey = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('openai_api_key', apiKey.trim());
+      setSavedApiKey(apiKey.trim());
+      setShowApiKeyInput(false);
+    }
+  };
+
+  const callOpenAIAPI = async (prompt: string): Promise<string> => {
+    if (!savedApiKey) {
+      throw new Error('OpenAI API key not configured');
+    }
+
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${savedApiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert academic assistant that helps students create clear, concise summaries of their study materials. Focus on extracting key concepts, main ideas, and important details.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: summaryLength === 'short' ? 300 : summaryLength === 'medium' ? 600 : 1000,
+          temperature: 0.3,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Invalid API key. Please check your OpenAI API key.');
+        } else if (response.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again later.');
+        } else {
+          throw new Error(`API error: ${response.status}`);
+        }
+      }
+
+      const data = await response.json();
+      return data.choices[0]?.message?.content || 'No summary generated';
+    } catch (error) {
+      console.error('OpenAI API Error:', error);
+      throw error;
+    }
+  };
+
+  const generateAISummary = async () => {
+    if (!noteText.trim()) {
+      alert('Please enter some text to summarize');
+      return;
+    }
+
+    if (!savedApiKey) {
+      setShowApiKeyInput(true);
+      return;
+    }
+
+    setIsAiProcessing(true);
+    try {
+      analyzeText(noteText);
+
+      let prompt = '';
+      const lengthInstruction = summaryLength === 'short' ? 'very concise (2-3 sentences)' : 
+                               summaryLength === 'medium' ? 'moderate length (1-2 paragraphs)' : 
+                               'detailed (3-4 paragraphs)';
+
+      switch (summaryType) {
+        case 'bullet-points':
+          prompt = `Please create a ${lengthInstruction} bullet-point summary of the following text. Focus on the main ideas and key points:\n\n${noteText}`;
+          break;
+        case 'paragraph':
+          prompt = `Please create a ${lengthInstruction} paragraph summary of the following text. Capture the main themes and important details:\n\n${noteText}`;
+          break;
+        case 'key-insights':
+          prompt = `Please extract the key insights and main learning points from the following text in a ${lengthInstruction} format. Focus on the most important concepts:\n\n${noteText}`;
+          break;
+        case 'study-guide':
+          prompt = `Please create a ${lengthInstruction} study guide from the following text. Include main topics, key concepts, and important details that would help someone study this material:\n\n${noteText}`;
+          break;
+        default:
+          prompt = `Please summarize the following text in a ${lengthInstruction} format:\n\n${noteText}`;
+      }
+
+      const summary = await callOpenAIAPI(prompt);
+      setAiSummary(summary);
+
+      // Extract key points using a separate API call
+      try {
+        const keyPointsPrompt = `Extract 3-5 key points from this text as a simple list (one point per line, no bullets or numbers):\n\n${noteText}`;
+        const keyPointsResponse = await callOpenAIAPI(keyPointsPrompt);
+        const extractedPoints = keyPointsResponse.split('\n').filter(point => point.trim().length > 0).slice(0, 5);
+        setKeyPoints(extractedPoints);
+      } catch (error) {
+        console.error('Error extracting key points:', error);
+        setKeyPoints(['Unable to extract key points']);
+      }
+
+      // Save to history
+      const summaryEntry = {
+        id: Date.now().toString(),
+        title: noteText.slice(0, 50) + (noteText.length > 50 ? '...' : ''),
+        summary,
+        timestamp: new Date().toLocaleString(),
+        type: summaryType
+      };
+      setSummaryHistory(prev => [summaryEntry, ...prev.slice(0, 9)]); // Keep last 10 summaries
+
+    } catch (error) {
+      console.error('Error generating summary:', error);
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert('An error occurred while generating the summary. Please try again.');
+      }
+    } finally {
+      setIsAiProcessing(false);
+    }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && file.type === 'text/plain') {
+      setSelectedFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        setNoteText(content);
+      };
+      reader.readAsText(file);
+    } else {
+      alert('Please select a text file (.txt)');
+    }
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Copied to clipboard!');
+    }).catch(() => {
+      alert('Failed to copy to clipboard');
+    });
+  };
+
+  const exportSummary = () => {
+    if (!aiSummary) return;
+    
+    const content = `Summary (${summaryType}, ${summaryLength})\n` +
+                   `Generated: ${new Date().toLocaleString()}\n\n` +
+                   `Original Text:\n${noteText}\n\n` +
+                   `Summary:\n${aiSummary}\n\n` +
+                   `Key Points:\n${keyPoints.map(point => `• ${point}`).join('\n')}\n\n` +
+                   `Analysis:\n` +
+                   `Word Count: ${aiAnalysis.wordCount}\n` +
+                   `Reading Time: ${aiAnalysis.readingTime} min\n` +
+                   `Complexity: ${aiAnalysis.complexity}\n` +
+                   `Topics: ${aiAnalysis.topics.join(', ')}`;
+
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `summary-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const clearNotesSummarizer = () => {
+    setNoteText('');
+    setAiSummary('');
+    setKeyPoints([]);
+    setSelectedFile(null);
+    setAiAnalysis({ wordCount: 0, readingTime: 0, complexity: 'Low', topics: [] });
+  };
 
   // Improved Calculator Functions
   const performCalculation = (firstValue: number, operator: string, secondValue: number): number => {
@@ -621,6 +882,426 @@ export const Footer: React.FC = () => {
                 >
                   Close
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* API Key Input Modal */}
+      {showApiKeyInput && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+            <div className="relative p-6">
+              <button
+                onClick={() => setShowApiKeyInput(false)}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+              >
+                <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              </button>
+
+              <div className="w-16 h-16 bg-gradient-to-br from-violet-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Brain className="w-8 h-8 text-white" />
+              </div>
+
+              <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 text-center">
+                OpenAI API Key Required
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">
+                Enter your OpenAI API key to enable AI-powered summarization
+              </p>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    API Key
+                  </label>
+                  <input
+                    type="password"
+                    value={apiKey}
+                    onChange={(e) => setApiKey(e.target.value)}
+                    placeholder="sk-..."
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-700 dark:text-blue-300">
+                      <p className="font-medium mb-1">How to get your API key:</p>
+                      <p>1. Visit platform.openai.com</p>
+                      <p>2. Sign in or create an account</p>
+                      <p>3. Go to API Keys section</p>
+                      <p>4. Create a new API key</p>
+                      <p className="mt-2 font-medium">Your key will be stored locally and securely.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowApiKeyInput(false)}
+                    className="flex-1 px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={saveApiKey}
+                    disabled={!apiKey.trim()}
+                    className="flex-1 px-4 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    Save Key
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Notes Summarizer Modal */}
+      {showAINotesSummarizer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+            <div className="relative p-4 sm:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <Wand2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                      AI Notes Summarizer
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Transform lengthy notes into concise summaries with AI
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {savedApiKey && (
+                    <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                      <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
+                      <span className="text-xs text-green-700 dark:text-green-300 font-medium">API Connected</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => setShowAINotesSummarizer(false)}
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 touch-manipulation"
+                  >
+                    <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Input Section */}
+                <div className="space-y-6">
+                  {/* Configuration */}
+                  <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-violet-200 dark:border-violet-700">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Summary Settings
+                    </h4>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Summary Type
+                        </label>
+                        <select
+                          value={summaryType}
+                          onChange={(e) => setSummaryType(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                        >
+                          <option value="bullet-points">Bullet Points</option>
+                          <option value="paragraph">Paragraph</option>
+                          <option value="key-insights">Key Insights</option>
+                          <option value="study-guide">Study Guide</option>
+                        </select>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Length
+                        </label>
+                        <select
+                          value={summaryLength}
+                          onChange={(e) => setSummaryLength(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                        >
+                          <option value="short">Short</option>
+                          <option value="medium">Medium</option>
+                          <option value="long">Detailed</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Input Methods */}
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                      <BookText className="w-4 h-4" />
+                      Input Your Notes
+                    </h4>
+                    
+                    {/* File Upload */}
+                    <div className="mb-4">
+                      <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-violet-500 dark:hover:border-violet-400 transition-colors group">
+                        <div className="text-center">
+                          <Upload className="w-8 h-8 text-gray-400 group-hover:text-violet-500 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-400">
+                            <span className="font-medium">Click to upload</span> or drag & drop
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                            Text files (.txt) supported
+                          </p>
+                        </div>
+                        <input
+                          type="file"
+                          accept=".txt"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                      </label>
+                      {selectedFile && (
+                        <div className="mt-2 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                          <CheckCircle className="w-4 h-4" />
+                          <span>{selectedFile.name}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Text Area */}
+                    <div>
+                      <textarea
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Paste your notes here or upload a text file above..."
+                        rows={12}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                      />
+                      
+                      {noteText && (
+                        <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center gap-4">
+                            <span className="flex items-center gap-1">
+                              <Hash className="w-3 h-3" />
+                              {noteText.trim().split(/\s+/).length} words
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Clock3 className="w-3 h-3" />
+                              ~{Math.ceil(noteText.trim().split(/\s+/).length / 200)} min read
+                            </span>
+                          </div>
+                          <button
+                            onClick={clearNotesSummarizer}
+                            className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                            Clear
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Generate Button */}
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={generateAISummary}
+                        disabled={!noteText.trim() || isAiProcessing}
+                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 touch-manipulation"
+                      >
+                        {isAiProcessing ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" />
+                            Generate Summary
+                          </>
+                        )}
+                      </button>
+                      
+                      {!savedApiKey && (
+                        <button
+                          onClick={() => setShowApiKeyInput(true)}
+                          className="px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex items-center gap-2 touch-manipulation"
+                        >
+                          <Settings className="w-4 h-4" />
+                          Setup API
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Output Section */}
+                <div className="space-y-6">
+                  {/* AI Summary */}
+                  {aiSummary && (
+                    <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-violet-200 dark:border-violet-700">
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <Brain className="w-4 h-4" />
+                          AI Summary
+                        </h4>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => copyToClipboard(aiSummary)}
+                            className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors touch-manipulation"
+                            title="Copy summary"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={exportSummary}
+                            className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors touch-manipulation"
+                            title="Export summary"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-violet-200 dark:border-violet-600">
+                        <div className="prose prose-sm dark:prose-invert max-w-none">
+                          <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
+                            {aiSummary}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400">
+                        <Sparkles className="w-3 h-3" />
+                        <span>Generated with AI • {summaryType} • {summaryLength}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Key Points */}
+                  {keyPoints.length > 0 && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-700">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <LightbulbIcon className="w-4 h-4" />
+                        Key Points
+                      </h4>
+                      
+                      <div className="space-y-2">
+                        {keyPoints.map((point, index) => (
+                          <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-600">
+                            <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                              {index + 1}
+                            </div>
+                            <span className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                              {point}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Text Analysis */}
+                  {aiAnalysis.wordCount > 0 && (
+                    <div className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-xl p-4 sm:p-6 border border-green-200 dark:border-green-700">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        Text Analysis
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-green-600 dark:text-green-400">
+                            {aiAnalysis.wordCount}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Words</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                            {aiAnalysis.readingTime}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Min Read</div>
+                        </div>
+                        <div className="text-center">
+                          <div className={`text-lg font-bold ${
+                            aiAnalysis.complexity === 'High' ? 'text-red-600 dark:text-red-400' :
+                            aiAnalysis.complexity === 'Medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                            'text-green-600 dark:text-green-400'
+                          }`}>
+                            {aiAnalysis.complexity}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Complexity</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            {aiAnalysis.topics.length}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">Topics</div>
+                        </div>
+                      </div>
+
+                      {aiAnalysis.topics.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Topics:</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {aiAnalysis.topics.map((topic, index) => (
+                              <span
+                                key={index}
+                                className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full text-xs font-medium"
+                              >
+                                {topic}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* History */}
+                  {summaryHistory.length > 0 && (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Recent Summaries
+                      </h4>
+                      
+                      <div className="space-y-2 max-h-40 overflow-y-auto">
+                        {summaryHistory.slice(0, 5).map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 transition-colors cursor-pointer"
+                            onClick={() => {
+                              setAiSummary(item.summary);
+                              setSummaryType(item.type);
+                            }}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                                {item.title}
+                              </p>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {item.timestamp} • {item.type}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
+                <p className="text-xs text-violet-600 dark:text-violet-400 text-center">
+                  🤖 Powered by OpenAI GPT • Transform your study notes into clear, actionable summaries
+                </p>
               </div>
             </div>
           </div>
@@ -1312,12 +1993,12 @@ export const Footer: React.FC = () => {
                 </h2>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-                Powerful tools to enhance your learning experience
+                Powerful tools to enhance your learning experience with AI
               </p>
             </div>
 
             {/* Compact Study Tools Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
               {studyTools.map((tool, index) => (
                 <div
                   key={index}
@@ -1360,7 +2041,12 @@ export const Footer: React.FC = () => {
               <div className="inline-flex flex-wrap items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-1">
                   <Calculator className="w-4 h-4 text-blue-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">4 Tools</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">5 Tools</span>
+                </div>
+                <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
+                <div className="flex items-center gap-1">
+                  <Brain className="w-4 h-4 text-violet-500" />
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">AI Powered</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
                 <div className="flex items-center gap-1">
@@ -1385,7 +2071,7 @@ export const Footer: React.FC = () => {
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2">
-              Your ultimate study companion with advanced tools and analytics
+              Your ultimate study companion with advanced AI-powered tools and analytics
             </p>
             <div className="flex items-center justify-center gap-1 text-xs text-purple-600 dark:text-purple-400">
               <TrendingUp className="w-3 h-3" />
