@@ -14,6 +14,8 @@ export const Analytics: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [hoveredStreakCard, setHoveredStreakCard] = useState<string | null>(null);
+  const [hoveredCalendarDay, setHoveredCalendarDay] = useState<string | null>(null);
   const { user, isPremium } = useAuth();
 
   useEffect(() => {
@@ -198,15 +200,15 @@ export const Analytics: React.FC = () => {
   const getStreakMotivation = () => {
     const { currentStreak } = streakData;
     if (currentStreak === 0) {
-      return { message: "Start your study journey today!", color: "text-blue-600 dark:text-blue-400", icon: "🚀" };
+      return { message: "Start your journey!", color: "text-blue-600 dark:text-blue-400", icon: "🚀" };
     } else if (currentStreak < 3) {
-      return { message: "Great start! Keep building momentum", color: "text-green-600 dark:text-green-400", icon: "🌱" };
+      return { message: "Building momentum", color: "text-green-600 dark:text-green-400", icon: "🌱" };
     } else if (currentStreak < 7) {
-      return { message: "You're on fire! Don't break the chain", color: "text-orange-600 dark:text-orange-400", icon: "🔥" };
+      return { message: "On fire!", color: "text-orange-600 dark:text-orange-400", icon: "🔥" };
     } else if (currentStreak < 14) {
-      return { message: "Incredible consistency! You're unstoppable", color: "text-purple-600 dark:text-purple-400", icon: "⚡" };
+      return { message: "Unstoppable!", color: "text-purple-600 dark:text-purple-400", icon: "⚡" };
     } else {
-      return { message: "Study legend in the making!", color: "text-pink-600 dark:text-pink-400", icon: "👑" };
+      return { message: "Legend!", color: "text-pink-600 dark:text-pink-400", icon: "👑" };
     }
   };
 
@@ -263,80 +265,98 @@ export const Analytics: React.FC = () => {
           </div>
         </div>
 
-        {/* Study Streak Section */}
-        <div className="mb-12">
-          <Card className="p-8 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/20 dark:via-red-900/20 dark:to-pink-900/20 border-0 shadow-2xl backdrop-blur-sm">
-            <div className="text-center mb-8">
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl shadow-lg">
-                  <Flame className="w-8 h-8 text-white" />
+        {/* Compact Study Streak Section */}
+        <div className="mb-8">
+          <Card className="p-6 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/20 dark:via-red-900/20 dark:to-pink-900/20 border-0 shadow-2xl backdrop-blur-sm">
+            <div className="text-center mb-6">
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl shadow-lg transform hover:scale-110 transition-all duration-300">
+                  <Flame className="w-6 h-6 text-white" />
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                   Study Streak
                 </h2>
               </div>
-              <p className="text-lg text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Track your consistency and build lasting study habits
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               {/* Current Streak */}
-              <div className="text-center">
-                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-orange-200/30 dark:border-orange-700/30">
-                  <div className="text-6xl mb-4">🔥</div>
-                  <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+              <div 
+                className={`text-center transform transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  hoveredStreakCard === 'current' ? 'scale-105' : ''
+                }`}
+                onMouseEnter={() => setHoveredStreakCard('current')}
+                onMouseLeave={() => setHoveredStreakCard(null)}
+              >
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-5 shadow-xl backdrop-blur-sm border border-orange-200/30 dark:border-orange-700/30 hover:shadow-2xl transition-all duration-300">
+                  <div className="text-4xl mb-2 animate-bounce">🔥</div>
+                  <div className="text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">
                     {streakData.currentStreak}
                   </div>
-                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
                     Current Streak
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
                     {streakData.currentStreak === 1 ? 'day' : 'days'}
                   </div>
                 </div>
               </div>
 
               {/* Longest Streak */}
-              <div className="text-center">
-                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-purple-200/30 dark:border-purple-700/30">
-                  <div className="text-6xl mb-4">🏆</div>
-                  <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+              <div 
+                className={`text-center transform transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  hoveredStreakCard === 'longest' ? 'scale-105' : ''
+                }`}
+                onMouseEnter={() => setHoveredStreakCard('longest')}
+                onMouseLeave={() => setHoveredStreakCard(null)}
+              >
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-5 shadow-xl backdrop-blur-sm border border-purple-200/30 dark:border-purple-700/30 hover:shadow-2xl transition-all duration-300">
+                  <div className="text-4xl mb-2">🏆</div>
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
                     {streakData.longestStreak}
                   </div>
-                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                    Longest Streak
+                  <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Best Streak
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    personal best
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    personal record
                   </div>
                 </div>
               </div>
 
               {/* Motivation */}
-              <div className="text-center">
-                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-blue-200/30 dark:border-blue-700/30">
-                  <div className="text-6xl mb-4">{motivation.icon}</div>
-                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+              <div 
+                className={`text-center transform transition-all duration-300 hover:scale-105 cursor-pointer ${
+                  hoveredStreakCard === 'motivation' ? 'scale-105' : ''
+                }`}
+                onMouseEnter={() => setHoveredStreakCard('motivation')}
+                onMouseLeave={() => setHoveredStreakCard(null)}
+              >
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-5 shadow-xl backdrop-blur-sm border border-blue-200/30 dark:border-blue-700/30 hover:shadow-2xl transition-all duration-300">
+                  <div className="text-4xl mb-2 animate-pulse">{motivation.icon}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
                     Keep Going!
                   </div>
-                  <div className={`text-sm font-semibold ${motivation.color} mb-2`}>
+                  <div className={`text-xs font-semibold ${motivation.color} mb-1`}>
                     {motivation.message}
                   </div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Every day counts
+                    every day counts
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Streak Calendar */}
-            <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-6 shadow-lg backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30">
-              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                <Calendar className="w-5 h-5" />
+            {/* Compact Streak Calendar */}
+            <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-4 shadow-lg backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30">
+              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2 text-sm">
+                <Calendar className="w-4 h-4" />
                 Recent Activity
               </h4>
-              <div className="grid grid-cols-7 gap-2">
+              <div className="flex gap-1 justify-center mb-3">
                 {Array.from({ length: 14 }, (_, i) => {
                   const date = subDays(new Date(), 13 - i);
                   const dateStr = format(date, 'yyyy-MM-dd');
@@ -347,25 +367,29 @@ export const Analytics: React.FC = () => {
                   return (
                     <div
                       key={dateStr}
-                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium transition-all duration-200 ${
+                      className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-medium transition-all duration-300 cursor-pointer transform hover:scale-110 ${
                         hasSession
-                          ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
-                      } ${isToday(date) ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                          ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-md hover:shadow-lg'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      } ${isToday(date) ? 'ring-2 ring-blue-500 ring-offset-1' : ''} ${
+                        hoveredCalendarDay === dateStr ? 'scale-110 z-10' : ''
+                      }`}
                       title={format(date, 'MMM dd, yyyy')}
+                      onMouseEnter={() => setHoveredCalendarDay(dateStr)}
+                      onMouseLeave={() => setHoveredCalendarDay(null)}
                     >
                       {format(date, 'd')}
                     </div>
                   );
                 })}
               </div>
-              <div className="flex justify-between items-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+              <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                 <span>Less</span>
                 <div className="flex gap-1">
-                  <div className="w-3 h-3 bg-gray-100 dark:bg-gray-700 rounded"></div>
-                  <div className="w-3 h-3 bg-orange-200 dark:bg-orange-800 rounded"></div>
-                  <div className="w-3 h-3 bg-orange-400 dark:bg-orange-600 rounded"></div>
-                  <div className="w-3 h-3 bg-orange-600 dark:bg-orange-500 rounded"></div>
+                  <div className="w-2 h-2 bg-gray-100 dark:bg-gray-700 rounded transition-all hover:scale-125"></div>
+                  <div className="w-2 h-2 bg-orange-200 dark:bg-orange-800 rounded transition-all hover:scale-125"></div>
+                  <div className="w-2 h-2 bg-orange-400 dark:bg-orange-600 rounded transition-all hover:scale-125"></div>
+                  <div className="w-2 h-2 bg-orange-600 dark:bg-orange-500 rounded transition-all hover:scale-125"></div>
                 </div>
                 <span>More</span>
               </div>
