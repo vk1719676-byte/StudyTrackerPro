@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity } from 'lucide-react';
+import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Download, FileText } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
+import { PDFExportDialog } from '../components/PDFExportDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
@@ -13,8 +14,8 @@ export const Analytics: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTimeframe, setActiveTimeframe] = useState<'week' | 'month' | 'year'>('week');
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+  const [showExportDialog, setShowExportDialog] = useState(false);
   const { user, isPremium } = useAuth();
 
   useEffect(() => {
@@ -137,6 +138,16 @@ export const Analytics: React.FC = () => {
     return `${mins}m`;
   };
 
+  // Prepare analytics data for PDF export
+  const analyticsData = {
+    sessions,
+    exams,
+    totalStudyTime,
+    averageSessionTime,
+    averageEfficiency,
+    totalSessions
+  };
+
   // Calculate growth percentages for enhanced UI
   const getGrowthPercentage = (current: number, previous: number) => {
     if (previous === 0) return 0;
@@ -182,30 +193,31 @@ export const Analytics: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-20 md:pb-8 pt-4 md:pt-8">
         {/* Header with improved design */}
         <div className="mb-12 text-center">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
-            Study Analytics
-          </h1>
-          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            Discover insights, track progress, and optimize your learning journey with data-driven analytics
-          </p>
-        </div>
-
-        {/* Time frame selector */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-2xl p-2 shadow-lg border border-gray-200/50 dark:border-gray-700/50">
-            {(['week', 'month', 'year'] as const).map((timeframe) => (
-              <button
-                key={timeframe}
-                onClick={() => setActiveTimeframe(timeframe)}
-                className={`px-6 py-2 rounded-xl font-medium transition-all duration-300 ${
-                  activeTimeframe === timeframe
-                    ? 'bg-gradient-to-r from-violet-500 to-cyan-500 text-white shadow-lg transform scale-105'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100/50 dark:hover:bg-gray-700/50'
-                }`}
-              >
-                {timeframe.charAt(0).toUpperCase() + timeframe.slice(1)}
-              </button>
-            ))}
+          <div className="flex items-center justify-center gap-6 mb-6">
+            <div>
+              <h1 className="text-5xl font-bold bg-gradient-to-r from-violet-600 to-cyan-600 bg-clip-text text-transparent mb-4">
+                Study Analytics
+              </h1>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+                Discover insights, track progress, and optimize your learning journey with data-driven analytics
+              </p>
+            </div>
+            
+            {/* Advanced PDF Export Button */}
+            <button
+              onClick={() => setShowExportDialog(true)}
+              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3"
+            >
+              <div className="relative">
+                <FileText className="w-6 h-6 transition-transform group-hover:rotate-12" />
+                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              </div>
+              <div className="text-left">
+                <div className="text-sm font-bold">Export PDF</div>
+                <div className="text-xs opacity-90">Advanced Report</div>
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
+            </button>
           </div>
         </div>
 
@@ -317,7 +329,7 @@ export const Analytics: React.FC = () => {
           {/* Basic Analytics - Always Available */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
             {/* Weekly Progress */}
-            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl" id="weekly-chart">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Weekly Study Hours
@@ -367,7 +379,7 @@ export const Analytics: React.FC = () => {
             </Card>
 
             {/* Daily Efficiency */}
-            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+            <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl" id="daily-chart">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                   Daily Performance Trend
@@ -625,7 +637,7 @@ export const Analytics: React.FC = () => {
           </div>
 
           {/* Efficiency Distribution with enhanced design */}
-          <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+          <Card className="p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl" id="efficiency-chart">
             <div className="flex items-center justify-between mb-8">
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 Efficiency Ratings Distribution
@@ -698,6 +710,13 @@ export const Analytics: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* PDF Export Dialog */}
+      <PDFExportDialog
+        isOpen={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        analyticsData={analyticsData}
+      />
     </div>
   );
 };
