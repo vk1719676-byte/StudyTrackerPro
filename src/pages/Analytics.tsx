@@ -1,21 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Download, FileText } from 'lucide-react';
+import { TrendingUp, Target, Clock, Star, Brain, Zap, Crown, Calendar, Award, BookOpen, ArrowUp, ArrowDown, Activity, Flame, Trophy, Gift } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PremiumFeatureGate } from '../components/premium/PremiumFeatureGate';
 import { PremiumBadge } from '../components/premium/PremiumBadge';
-import { PDFExportDialog } from '../components/PDFExportDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { getUserSessions, getUserExams } from '../services/firestore';
 import { StudySession, Exam } from '../types';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, subWeeks, differenceInDays, isToday, isYesterday, subDays } from 'date-fns';
 
 export const Analytics: React.FC = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [exams, setExams] = useState<Exam[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [showExportDialog, setShowExportDialog] = useState(false);
   const { user, isPremium } = useAuth();
 
   useEffect(() => {
@@ -35,6 +33,63 @@ export const Analytics: React.FC = () => {
       unsubscribeExams();
     };
   }, [user]);
+
+  // Study Streak Calculation
+  const calculateStudyStreak = () => {
+    if (sessions.length === 0) {
+      return { currentStreak: 0, longestStreak: 0, streakDates: [] };
+    }
+
+    // Get unique study dates and sort them
+    const studyDates = [...new Set(sessions.map(session => format(new Date(session.date), 'yyyy-MM-dd')))]
+      .sort((a, b) => new Date(a).getTime() - new Date(b).getTime());
+
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 1;
+    let streakDates = [];
+
+    // Check if today or yesterday has a study session
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
+    
+    const hasStudiedToday = studyDates.includes(today);
+    const hasStudiedYesterday = studyDates.includes(yesterday);
+
+    // Calculate current streak
+    if (hasStudiedToday || hasStudiedYesterday) {
+      let checkDate = hasStudiedToday ? new Date() : subDays(new Date(), 1);
+      currentStreak = 0;
+      
+      while (true) {
+        const checkDateStr = format(checkDate, 'yyyy-MM-dd');
+        if (studyDates.includes(checkDateStr)) {
+          currentStreak++;
+          streakDates.unshift(checkDateStr);
+          checkDate = subDays(checkDate, 1);
+        } else {
+          break;
+        }
+      }
+    }
+
+    // Calculate longest streak
+    for (let i = 1; i < studyDates.length; i++) {
+      const prevDate = new Date(studyDates[i - 1]);
+      const currDate = new Date(studyDates[i]);
+      const daysDiff = differenceInDays(currDate, prevDate);
+
+      if (daysDiff === 1) {
+        tempStreak++;
+      } else {
+        longestStreak = Math.max(longestStreak, tempStreak);
+        tempStreak = 1;
+      }
+    }
+    longestStreak = Math.max(longestStreak, tempStreak);
+
+    return { currentStreak, longestStreak, streakDates };
+  };
 
   // Prepare data for charts
   const getWeeklyData = () => {
@@ -121,6 +176,7 @@ export const Analytics: React.FC = () => {
   const dailyData = getDailyData();
   const subjectData = getSubjectData();
   const efficiencyData = getEfficiencyData();
+  const streakData = calculateStudyStreak();
 
   const totalStudyTime = sessions.reduce((sum, session) => sum + session.duration, 0);
   const averageSessionTime = sessions.length > 0 ? totalStudyTime / sessions.length : 0;
@@ -138,21 +194,23 @@ export const Analytics: React.FC = () => {
     return `${mins}m`;
   };
 
-  // Prepare analytics data for PDF export
-  const analyticsData = {
-    sessions,
-    exams,
-    totalStudyTime,
-    averageSessionTime,
-    averageEfficiency,
-    totalSessions
+  // Get streak motivation message
+  const getStreakMotivation = () => {
+    const { currentStreak } = streakData;
+    if (currentStreak === 0) {
+      return { message: "Start your study journey today!", color: "text-blue-600 dark:text-blue-400", icon: "🚀" };
+    } else if (currentStreak < 3) {
+      return { message: "Great start! Keep building momentum", color: "text-green-600 dark:text-green-400", icon: "🌱" };
+    } else if (currentStreak < 7) {
+      return { message: "You're on fire! Don't break the chain", color: "text-orange-600 dark:text-orange-400", icon: "🔥" };
+    } else if (currentStreak < 14) {
+      return { message: "Incredible consistency! You're unstoppable", color: "text-purple-600 dark:text-purple-400", icon: "⚡" };
+    } else {
+      return { message: "Study legend in the making!", color: "text-pink-600 dark:text-pink-400", icon: "👑" };
+    }
   };
 
-  // Calculate growth percentages for enhanced UI
-  const getGrowthPercentage = (current: number, previous: number) => {
-    if (previous === 0) return 0;
-    return Math.round(((current - previous) / previous) * 100);
-  };
+  const motivation = getStreakMotivation();
 
   if (loading) {
     return (
@@ -202,23 +260,117 @@ export const Analytics: React.FC = () => {
                 Discover insights, track progress, and optimize your learning journey with data-driven analytics
               </p>
             </div>
-            
-            {/* Advanced PDF Export Button */}
-            <button
-              onClick={() => setShowExportDialog(true)}
-              className="group relative px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl font-semibold shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-3"
-            >
-              <div className="relative">
-                <FileText className="w-6 h-6 transition-transform group-hover:rotate-12" />
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-              </div>
-              <div className="text-left">
-                <div className="text-sm font-bold">Export PDF</div>
-                <div className="text-xs opacity-90">Advanced Report</div>
-              </div>
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10"></div>
-            </button>
           </div>
+        </div>
+
+        {/* Study Streak Section */}
+        <div className="mb-12">
+          <Card className="p-8 bg-gradient-to-br from-orange-50 via-red-50 to-pink-50 dark:from-orange-900/20 dark:via-red-900/20 dark:to-pink-900/20 border-0 shadow-2xl backdrop-blur-sm">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl shadow-lg">
+                  <Flame className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                  Study Streak
+                </h2>
+              </div>
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Track your consistency and build lasting study habits
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+              {/* Current Streak */}
+              <div className="text-center">
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-orange-200/30 dark:border-orange-700/30">
+                  <div className="text-6xl mb-4">🔥</div>
+                  <div className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                    {streakData.currentStreak}
+                  </div>
+                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Current Streak
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    {streakData.currentStreak === 1 ? 'day' : 'days'}
+                  </div>
+                </div>
+              </div>
+
+              {/* Longest Streak */}
+              <div className="text-center">
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-purple-200/30 dark:border-purple-700/30">
+                  <div className="text-6xl mb-4">🏆</div>
+                  <div className="text-4xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                    {streakData.longestStreak}
+                  </div>
+                  <div className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                    Longest Streak
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
+                    personal best
+                  </div>
+                </div>
+              </div>
+
+              {/* Motivation */}
+              <div className="text-center">
+                <div className="bg-white/80 dark:bg-gray-800/80 rounded-3xl p-8 shadow-xl backdrop-blur-sm border border-blue-200/30 dark:border-blue-700/30">
+                  <div className="text-6xl mb-4">{motivation.icon}</div>
+                  <div className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">
+                    Keep Going!
+                  </div>
+                  <div className={`text-sm font-semibold ${motivation.color} mb-2`}>
+                    {motivation.message}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Every day counts
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Streak Calendar */}
+            <div className="bg-white/80 dark:bg-gray-800/80 rounded-2xl p-6 shadow-lg backdrop-blur-sm border border-gray-200/30 dark:border-gray-700/30">
+              <h4 className="font-bold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
+                Recent Activity
+              </h4>
+              <div className="grid grid-cols-7 gap-2">
+                {Array.from({ length: 14 }, (_, i) => {
+                  const date = subDays(new Date(), 13 - i);
+                  const dateStr = format(date, 'yyyy-MM-dd');
+                  const hasSession = sessions.some(session => 
+                    format(new Date(session.date), 'yyyy-MM-dd') === dateStr
+                  );
+                  
+                  return (
+                    <div
+                      key={dateStr}
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium transition-all duration-200 ${
+                        hasSession
+                          ? 'bg-gradient-to-br from-orange-400 to-red-500 text-white shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
+                      } ${isToday(date) ? 'ring-2 ring-blue-500 ring-offset-2' : ''}`}
+                      title={format(date, 'MMM dd, yyyy')}
+                    >
+                      {format(date, 'd')}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="flex justify-between items-center mt-4 text-xs text-gray-500 dark:text-gray-400">
+                <span>Less</span>
+                <div className="flex gap-1">
+                  <div className="w-3 h-3 bg-gray-100 dark:bg-gray-700 rounded"></div>
+                  <div className="w-3 h-3 bg-orange-200 dark:bg-orange-800 rounded"></div>
+                  <div className="w-3 h-3 bg-orange-400 dark:bg-orange-600 rounded"></div>
+                  <div className="w-3 h-3 bg-orange-600 dark:bg-orange-500 rounded"></div>
+                </div>
+                <span>More</span>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Enhanced Summary Stats */}
@@ -710,13 +862,6 @@ export const Analytics: React.FC = () => {
           </Card>
         </div>
       </div>
-
-      {/* PDF Export Dialog */}
-      <PDFExportDialog
-        isOpen={showExportDialog}
-        onClose={() => setShowExportDialog(false)}
-        analyticsData={analyticsData}
-      />
     </div>
   );
 };
