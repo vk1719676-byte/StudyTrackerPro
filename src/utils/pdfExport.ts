@@ -29,7 +29,10 @@ export class PDFExportService {
   private pageHeight: number;
   private pageWidth: number;
   private margin: number = 20;
-  private telegramChannel: string = '@studytrackerpro'; // Replace with your actual channel
+  private telegramChannel: string = '@studytrackerpro';
+  private headerHeight: number = 50;
+  private footerHeight: number = 20;
+  private contentHeight: number;
 
   constructor(options: ExportOptions) {
     this.pdf = new jsPDF({
@@ -40,13 +43,23 @@ export class PDFExportService {
     
     this.pageWidth = this.pdf.internal.pageSize.getWidth();
     this.pageHeight = this.pdf.internal.pageSize.getHeight();
+    this.contentHeight = this.pageHeight - this.headerHeight - this.footerHeight - (2 * this.margin);
   }
 
   private addNewPageIfNeeded(requiredSpace: number): void {
-    if (this.currentY + requiredSpace > this.pageHeight - this.margin) {
+    const maxContentY = this.pageHeight - this.footerHeight - this.margin;
+    
+    if (this.currentY + requiredSpace > maxContentY) {
+      this.finalizePage();
       this.pdf.addPage();
-      this.currentY = this.margin;
+      this.addHeader();
+      this.currentY = this.headerHeight + this.margin;
     }
+  }
+
+  private finalizePage(): void {
+    this.addWatermarkToCurrentPage();
+    this.addFooterToCurrentPage();
   }
 
   private formatTime(minutes: number): string {
@@ -58,436 +71,483 @@ export class PDFExportService {
     return `${mins}m`;
   }
 
-  private addWatermark(): void {
-    const pageCount = this.pdf.getNumberOfPages();
+  private addWatermarkToCurrentPage(): void {
+    // Save current graphics state
+    const currentPage = this.pdf.internal.getCurrentPageInfo().pageNumber;
     
-    for (let i = 1; i <= pageCount; i++) {
-      this.pdf.setPage(i);
+    // Create subtle diagonal watermark
+    this.pdf.saveGraphicsState();
+    
+    try {
+      // Set very low opacity for watermark
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.03 }));
       
-      // Save current state
-      this.pdf.saveGraphicsState();
-      
-      // Set transparency for watermark
-      this.pdf.setGState(this.pdf.GState({ opacity: 0.1 }));
-      
-      // Diagonal watermark in center
-      this.pdf.setFontSize(48);
+      // Main diagonal watermark
+      this.pdf.setFontSize(40);
       this.pdf.setTextColor(139, 92, 246);
       this.pdf.setFont('helvetica', 'bold');
       
       const centerX = this.pageWidth / 2;
       const centerY = this.pageHeight / 2;
       
-      // Rotate and add main watermark
-      this.pdf.text('Study Tracker Pro Analytics', centerX, centerY, {
-        angle: -45,
+      // Add rotated text watermark
+      this.pdf.text('STUDY TRACKER PRO', centerX, centerY, {
+        angle: -30,
         align: 'center'
       });
       
-      // Add telegram channel link watermark (smaller, bottom right)
+      // Add smaller secondary watermark
       this.pdf.setFontSize(12);
-      this.pdf.setTextColor(99, 102, 241);
-      this.pdf.text(`Join us: ${this.telegramChannel}`, centerX, centerY + 30, {
-        angle: -45,
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.05 }));
+      this.pdf.text(this.telegramChannel, centerX, centerY + 20, {
+        angle: -30,
         align: 'center'
       });
       
-      // Restore state
+    } catch (error) {
+      console.warn('Watermark rendering failed:', error);
+    } finally {
+      // Always restore graphics state
       this.pdf.restoreGraphicsState();
-      
-      // Add corner watermarks with better visibility
-      this.pdf.setFontSize(8);
-      this.pdf.setTextColor(139, 92, 246, 0.3);
-      this.pdf.setFont('helvetica', 'normal');
-      
-      // Top corners
-      this.pdf.text('Study Tracker Pro', 10, 10);
-      this.pdf.text(this.telegramChannel, this.pageWidth - 40, 10);
-      
-      // Bottom corners  
-      this.pdf.text('Analytics Report', 10, this.pageHeight - 5);
-      this.pdf.text(`Page ${i}`, this.pageWidth - 20, this.pageHeight - 5);
     }
+    
+    // Add subtle corner marks with higher opacity
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(139, 92, 246, 0.2);
+    this.pdf.setFont('helvetica', 'normal');
+    
+    // Corner watermarks - ensure they don't overlap with content
+    this.pdf.text('StudyFlow', 5, 8);
+    this.pdf.text(this.telegramChannel, this.pageWidth - 35, 8);
+    this.pdf.text(`Page ${currentPage}`, this.pageWidth - 20, this.pageHeight - 5);
   }
 
   private addHeader(): void {
-    // Enhanced gradient background for header
-    const headerHeight = 50;
+    // Reset position for header
+    const savedY = this.currentY;
+    this.currentY = 0;
     
-    // Create gradient effect with multiple rectangles
-    for (let i = 0; i < headerHeight; i++) {
-      const opacity = 1 - (i / headerHeight) * 0.3;
+    // Clean gradient background
+    const steps = 25;
+    for (let i = 0; i < steps; i++) {
+      const opacity = 0.8 - (i / steps) * 0.4;
+      const y = i * (this.headerHeight / steps);
       this.pdf.setFillColor(139, 92, 246, opacity);
-      this.pdf.rect(0, i, this.pageWidth, 1, 'F');
+      this.pdf.rect(0, y, this.pageWidth, this.headerHeight / steps + 1, 'F');
     }
     
-    // Add decorative border
+    // Add clean bottom border
     this.pdf.setDrawColor(255, 255, 255, 0.3);
-    this.pdf.setLineWidth(2);
-    this.pdf.line(0, headerHeight - 2, this.pageWidth, headerHeight - 2);
+    this.pdf.setLineWidth(1);
+    this.pdf.line(0, this.headerHeight - 1, this.pageWidth, this.headerHeight - 1);
     
-    // Enhanced title with shadow effect
-    this.pdf.setFontSize(28);
+    // Main title with proper spacing
+    this.pdf.setFontSize(24);
     this.pdf.setTextColor(255, 255, 255);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Add shadow
-    this.pdf.setTextColor(0, 0, 0, 0.3);
-    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin + 1, 26);
+    // Use Unicode symbols instead of emojis for better PDF compatibility
+    this.pdf.text('STUDY ANALYTICS REPORT', this.margin, 22);
     
-    // Add main title
-    this.pdf.setTextColor(255, 255, 255);
-    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin, 25);
-    
-    // Add subtitle
-    this.pdf.setFontSize(12);
+    // Add clean subtitle
+    this.pdf.setFontSize(11);
     this.pdf.setFont('helvetica', 'normal');
     this.pdf.setTextColor(255, 255, 255, 0.9);
-    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 35);
+    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 32);
     
-    // Enhanced date with icon
-    this.pdf.setFontSize(11);
-    this.pdf.setTextColor(255, 255, 255, 0.8);
-    this.pdf.text(`📅 Generated: ${format(new Date(), 'PPP')}`, this.pageWidth - this.margin - 90, 25);
-    
-    // Add telegram channel link in header
+    // Right-aligned info
     this.pdf.setFontSize(10);
-    this.pdf.setTextColor(255, 255, 255, 0.7);
-    this.pdf.text(`💬 ${this.telegramChannel}`, this.pageWidth - this.margin - 90, 35);
+    this.pdf.setTextColor(255, 255, 255, 0.8);
+    const dateText = `Generated: ${format(new Date(), 'PPP')}`;
+    const channelText = this.telegramChannel;
     
-    this.currentY = 60;
+    this.pdf.text(dateText, this.pageWidth - this.margin - 80, 22);
+    this.pdf.text(channelText, this.pageWidth - this.margin - 80, 32);
+    
+    // Restore Y position
+    this.currentY = this.headerHeight + this.margin;
   }
 
   private addSummarySection(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(60);
+    this.addNewPageIfNeeded(80);
     
-    // Section header
-    this.pdf.setFontSize(22);
+    // Section header with clean design
+    this.pdf.setFontSize(18);
     this.pdf.setTextColor(139, 92, 246);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Add decorative line before title
-    this.pdf.setDrawColor(139, 92, 246, 0.3);
-    this.pdf.setLineWidth(3);
-    this.pdf.line(this.margin, this.currentY - 5, this.margin + 60, this.currentY - 5);
+    // Subtle section header background
+    this.pdf.setFillColor(139, 92, 246, 0.08);
+    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 160, 16, 2, 2, 'F');
     
-    // Add highlighted title with background
-    this.pdf.setFillColor(139, 92, 246, 0.1);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 180, 20, 3, 3, 'F');
-    
-    this.pdf.text('📈 PERFORMANCE SUMMARY', this.margin, this.currentY);
+    this.pdf.text('PERFORMANCE OVERVIEW', this.margin, this.currentY);
     this.currentY += 20;
 
-    // Create summary cards layout
+    // Clean card layout
     const cardWidth = (this.pageWidth - 3 * this.margin) / 2;
-    const cardHeight = 25;
+    const cardHeight = 22;
     
     const summaryData = [
-      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), icon: '⏱️' },
-      { title: 'Total Sessions', value: data.totalSessions.toString(), icon: '📊' },
-      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), icon: '📈' },
-      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5`, icon: '⭐' }
+      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), symbol: '•' },
+      { title: 'Total Sessions', value: data.totalSessions.toString(), symbol: '•' },
+      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), symbol: '•' },
+      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5.0`, symbol: '★' }
     ];
 
     summaryData.forEach((item, index) => {
+      this.addNewPageIfNeeded(cardHeight + 5);
+      
       const x = this.margin + (index % 2) * (cardWidth + this.margin);
-      const y = this.currentY + Math.floor(index / 2) * (cardHeight + 10);
+      const y = this.currentY + Math.floor(index / 2) * (cardHeight + 8);
       
-      // Card background
+      // Clean card design
       this.pdf.setFillColor(248, 250, 252);
-      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'F');
+      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 2, 2, 'F');
       
-      // Card border
+      // Subtle border
       this.pdf.setDrawColor(226, 232, 240);
-      this.pdf.setLineWidth(0.5);
-      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'S');
+      this.pdf.setLineWidth(0.3);
+      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 2, 2, 'S');
       
-      // Icon and content
-      this.pdf.setFontSize(16);
-      this.pdf.text(item.icon, x + 5, y + 8);
+      // Symbol
+      this.pdf.setFontSize(12);
+      this.pdf.setTextColor(139, 92, 246);
+      this.pdf.text(item.symbol, x + 4, y + 8);
       
-      this.pdf.setFontSize(10);
+      // Title
+      this.pdf.setFontSize(9);
       this.pdf.setTextColor(107, 114, 128);
-      this.pdf.text(item.title, x + 15, y + 8);
+      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.text(item.title, x + 12, y + 8);
       
-      this.pdf.setFontSize(14);
+      // Value
+      this.pdf.setFontSize(13);
       this.pdf.setTextColor(31, 41, 55);
       this.pdf.setFont('helvetica', 'bold');
-      this.pdf.text(item.value, x + 15, y + 18);
-      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.text(item.value, x + 12, y + 16);
     });
 
-    this.currentY += 70;
+    this.currentY += Math.ceil(summaryData.length / 2) * (cardHeight + 8) + 15;
   }
 
   private async addChartSection(elementId: string, title: string): Promise<void> {
     const element = document.getElementById(elementId);
-    if (!element) return;
+    if (!element) {
+      console.warn(`Chart element ${elementId} not found`);
+      return;
+    }
 
-    this.addNewPageIfNeeded(80);
+    this.addNewPageIfNeeded(100);
     
-    // Section header
-    this.pdf.setFontSize(20);
+    // Clean section header
+    this.pdf.setFontSize(16);
     this.pdf.setTextColor(59, 130, 246);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Add decorative elements for chart titles
-    this.pdf.setFillColor(59, 130, 246, 0.1);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 200, 18, 3, 3, 'F');
+    this.pdf.setFillColor(59, 130, 246, 0.06);
+    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 180, 16, 2, 2, 'F');
     
-    this.pdf.setDrawColor(59, 130, 246, 0.3);
-    this.pdf.setLineWidth(2);
-    this.pdf.line(this.margin, this.currentY - 10, this.margin + 50, this.currentY - 10);
-    
-    this.pdf.text(`📊 ${title.toUpperCase()}`, this.margin, this.currentY);
-    this.currentY += 18;
+    this.pdf.text(title.toUpperCase(), this.margin, this.currentY);
+    this.currentY += 20;
 
     try {
+      // Improved canvas capture settings
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: window.devicePixelRatio || 2,
         backgroundColor: '#ffffff',
         logging: false,
-        useCORS: true
+        useCORS: true,
+        allowTaint: false,
+        foreignObjectRendering: false
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      const imgData = canvas.toDataURL('image/jpeg', 0.85);
       const imgWidth = this.pageWidth - 2 * this.margin;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Check if we need a new page for the image
-      this.addNewPageIfNeeded(imgHeight + 10);
+      // Ensure chart fits on page
+      const maxHeight = this.contentHeight * 0.6; // Max 60% of content height
+      const finalHeight = Math.min(imgHeight, maxHeight);
+      const finalWidth = (finalHeight * canvas.width) / canvas.height;
       
-      this.pdf.addImage(imgData, 'JPEG', this.margin, this.currentY, imgWidth, imgHeight);
-      this.currentY += imgHeight + 15;
+      this.addNewPageIfNeeded(finalHeight + 15);
+      
+      // Center the image if it's smaller than page width
+      const imageX = finalWidth < imgWidth ? this.margin + (imgWidth - finalWidth) / 2 : this.margin;
+      
+      this.pdf.addImage(imgData, 'JPEG', imageX, this.currentY, finalWidth, finalHeight);
+      this.currentY += finalHeight + 20;
+      
     } catch (error) {
       console.error(`Failed to capture ${title}:`, error);
       
-      // Add error placeholder
+      // Clean error placeholder
       this.pdf.setFillColor(254, 242, 242);
-      this.pdf.rect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 30, 'F');
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 25, 2, 2, 'F');
+      
+      this.pdf.setDrawColor(252, 165, 165);
+      this.pdf.setLineWidth(0.5);
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 25, 2, 2, 'S');
       
       this.pdf.setTextColor(185, 28, 28);
-      this.pdf.setFontSize(12);
-      this.pdf.text(`Failed to capture ${title}`, this.margin + 10, this.currentY + 20);
+      this.pdf.setFontSize(11);
+      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.text(`Unable to capture ${title}`, this.margin + 8, this.currentY + 15);
       
-      this.currentY += 40;
+      this.currentY += 35;
     }
   }
 
   private addSubjectBreakdown(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(100);
+    this.addNewPageIfNeeded(120);
     
-    // Section header
-    this.pdf.setFontSize(20);
+    // Clean section header
+    this.pdf.setFontSize(16);
     this.pdf.setTextColor(16, 185, 129);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Enhanced subject analysis header
-    this.pdf.setFillColor(16, 185, 129, 0.1);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 160, 18, 3, 3, 'F');
+    this.pdf.setFillColor(16, 185, 129, 0.06);
+    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 140, 16, 2, 2, 'F');
     
-    this.pdf.setDrawColor(16, 185, 129, 0.3);
-    this.pdf.setLineWidth(2);
-    this.pdf.line(this.margin, this.currentY - 10, this.margin + 45, this.currentY - 10);
-    
-    this.pdf.text('📚 SUBJECT ANALYSIS', this.margin, this.currentY);
-    this.currentY += 18;
+    this.pdf.text('SUBJECT BREAKDOWN', this.margin, this.currentY);
+    this.currentY += 20;
 
-    // Create subject data
+    // Process subject data
     const subjectMap = new Map();
     data.sessions.forEach(session => {
-      const current = subjectMap.get(session.subject) || { subject: session.subject, hours: 0, sessions: 0 };
+      const current = subjectMap.get(session.subject) || { 
+        subject: session.subject, 
+        hours: 0, 
+        sessions: 0,
+        efficiency: 0,
+        efficiencyCount: 0
+      };
       current.hours += session.duration / 60;
       current.sessions += 1;
+      if (session.efficiency) {
+        current.efficiency += session.efficiency;
+        current.efficiencyCount += 1;
+      }
       subjectMap.set(session.subject, current);
     });
 
     const subjectData = Array.from(subjectMap.values())
-      .map(item => ({ ...item, hours: Math.round(item.hours * 10) / 10 }))
+      .map(item => ({
+        ...item,
+        hours: Math.round(item.hours * 10) / 10,
+        avgEfficiency: item.efficiencyCount > 0 ? (item.efficiency / item.efficiencyCount).toFixed(1) : 'N/A'
+      }))
       .sort((a, b) => b.hours - a.hours)
       .slice(0, 8);
 
     if (subjectData.length === 0) {
       this.pdf.setTextColor(107, 114, 128);
-      this.pdf.setFontSize(12);
+      this.pdf.setFontSize(11);
       this.pdf.text('No subject data available', this.margin, this.currentY);
-      this.currentY += 20;
+      this.currentY += 25;
       return;
     }
 
+    // Clean table design
+    const colWidths = [65, 25, 25, 25, 40];
+    const rowHeight = 10;
+    const tableWidth = colWidths.reduce((sum, w) => sum + w, 0);
+    
     // Table header
-    const colWidths = [60, 30, 30, 50];
-    const startX = this.margin;
+    this.pdf.setFillColor(139, 92, 246, 0.1);
+    this.pdf.roundedRect(this.margin, this.currentY, tableWidth, rowHeight, 1, 1, 'F');
     
-    this.pdf.setFillColor(139, 92, 246);
-    this.pdf.rect(startX, this.currentY, colWidths.reduce((sum, w) => sum + w, 0), 10, 'F');
-    
-    this.pdf.setTextColor(255, 255, 255);
-    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(139, 92, 246);
+    this.pdf.setFontSize(9);
     this.pdf.setFont('helvetica', 'bold');
     
-    let currentX = startX + 2;
-    ['Subject', 'Hours', 'Sessions', 'Progress'].forEach((header, index) => {
+    const headers = ['Subject', 'Hours', 'Sessions', 'Efficiency', 'Progress'];
+    let currentX = this.margin + 2;
+    
+    headers.forEach((header, index) => {
       this.pdf.text(header, currentX, this.currentY + 7);
       currentX += colWidths[index];
     });
     
-    this.currentY += 15;
+    this.currentY += rowHeight + 3;
 
     // Table rows
     const maxHours = Math.max(...subjectData.map(s => s.hours));
     
     subjectData.forEach((subject, index) => {
-      this.addNewPageIfNeeded(12);
+      this.addNewPageIfNeeded(rowHeight + 2);
       
-      // Alternate row colors
+      // Alternate row background
       if (index % 2 === 0) {
         this.pdf.setFillColor(248, 250, 252);
-        this.pdf.rect(startX, this.currentY - 2, colWidths.reduce((sum, w) => sum + w, 0), 10, 'F');
+        this.pdf.rect(this.margin, this.currentY - 1, tableWidth, rowHeight, 'F');
       }
       
       this.pdf.setTextColor(31, 41, 55);
       this.pdf.setFont('helvetica', 'normal');
-      this.pdf.setFontSize(9);
+      this.pdf.setFontSize(8);
       
-      currentX = startX + 2;
+      currentX = this.margin + 2;
       
-      // Subject name
-      this.pdf.text(subject.subject.length > 20 ? subject.subject.substring(0, 20) + '...' : subject.subject, currentX, this.currentY + 5);
+      // Subject name (truncated if too long)
+      const subjectName = subject.subject.length > 22 ? 
+        subject.subject.substring(0, 22) + '...' : subject.subject;
+      this.pdf.text(subjectName, currentX, this.currentY + 6);
       currentX += colWidths[0];
       
       // Hours
-      this.pdf.text(subject.hours.toString() + 'h', currentX, this.currentY + 5);
+      this.pdf.text(subject.hours + 'h', currentX, this.currentY + 6);
       currentX += colWidths[1];
       
       // Sessions
-      this.pdf.text(subject.sessions.toString(), currentX, this.currentY + 5);
+      this.pdf.text(subject.sessions.toString(), currentX, this.currentY + 6);
       currentX += colWidths[2];
       
+      // Efficiency
+      this.pdf.text(subject.avgEfficiency, currentX, this.currentY + 6);
+      currentX += colWidths[3];
+      
       // Progress bar
-      const barWidth = 40;
-      const barHeight = 4;
-      const percentage = (subject.hours / maxHours);
+      const barWidth = 30;
+      const barHeight = 3;
+      const percentage = maxHours > 0 ? (subject.hours / maxHours) : 0;
       
+      // Background bar
       this.pdf.setFillColor(229, 231, 235);
-      this.pdf.rect(currentX, this.currentY + 2, barWidth, barHeight, 'F');
+      this.pdf.roundedRect(currentX, this.currentY + 4, barWidth, barHeight, 0.5, 0.5, 'F');
       
-      this.pdf.setFillColor(139, 92, 246);
-      this.pdf.rect(currentX, this.currentY + 2, barWidth * percentage, barHeight, 'F');
+      // Progress bar
+      if (percentage > 0) {
+        this.pdf.setFillColor(139, 92, 246);
+        this.pdf.roundedRect(currentX, this.currentY + 4, barWidth * percentage, barHeight, 0.5, 0.5, 'F');
+      }
       
-      this.currentY += 12;
+      this.currentY += rowHeight + 1;
     });
 
-    this.currentY += 10;
+    this.currentY += 15;
   }
 
   private addInsightsSection(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(80);
+    this.addNewPageIfNeeded(100);
     
-    // Section header
-    this.pdf.setFontSize(20);
+    // Clean section header
+    this.pdf.setFontSize(16);
     this.pdf.setTextColor(245, 158, 11);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Enhanced insights header
-    this.pdf.setFillColor(245, 158, 11, 0.1);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 220, 18, 3, 3, 'F');
+    this.pdf.setFillColor(245, 158, 11, 0.06);
+    this.pdf.roundedRect(this.margin - 3, this.currentY - 6, 200, 16, 2, 2, 'F');
     
-    this.pdf.setDrawColor(245, 158, 11, 0.3);
-    this.pdf.setLineWidth(2);
-    this.pdf.line(this.margin, this.currentY - 10, this.margin + 60, this.currentY - 10);
-    
-    this.pdf.text('💡 KEY INSIGHTS & RECOMMENDATIONS', this.margin, this.currentY);
-    this.currentY += 18;
+    this.pdf.text('KEY INSIGHTS & RECOMMENDATIONS', this.margin, this.currentY);
+    this.currentY += 20;
 
     const insights = [
       {
-        icon: '📈',
+        symbol: '♦',
         title: 'Study Consistency',
-        description: `You've maintained an average of ${(data.sessions.length / 7).toFixed(1)} sessions per week.`,
-        recommendation: 'Try to maintain this consistent pace for optimal learning retention.'
+        description: `You have maintained ${data.sessions.length} study sessions with an average of ${(data.sessions.length / 7).toFixed(1)} sessions per week.`,
+        recommendation: data.sessions.length >= 14 ? 'Excellent consistency! Continue this steady pace for optimal learning retention.' : 'Try to maintain more regular study sessions for better knowledge retention.'
       },
       {
-        icon: '⭐',
-        title: 'Efficiency Trends',
-        description: `Your average efficiency rating is ${data.averageEfficiency.toFixed(1)}/5.`,
-        recommendation: data.averageEfficiency >= 4 ? 'Excellent work! Keep up the high efficiency.' : 'Consider shorter, more focused study sessions to improve efficiency.'
+        symbol: '★',
+        title: 'Efficiency Analysis',
+        description: `Your average efficiency rating is ${data.averageEfficiency.toFixed(1)}/5.0 across all sessions.`,
+        recommendation: data.averageEfficiency >= 4 ? 'Outstanding efficiency! Your focused approach is paying off.' : 'Consider implementing the Pomodoro technique or finding a quieter study environment to boost efficiency.'
       },
       {
-        icon: '🎯',
-        title: 'Session Duration',
-        description: `Average session length: ${this.formatTime(data.averageSessionTime)}.`,
-        recommendation: data.averageSessionTime > 120 ? 'Consider breaking longer sessions with short breaks.' : 'You might benefit from slightly longer focused sessions.'
+        symbol: '◆',
+        title: 'Session Optimization',
+        description: `Your average session duration is ${this.formatTime(data.averageSessionTime)}.`,
+        recommendation: data.averageSessionTime > 120 ? 'Consider incorporating 5-10 minute breaks during longer sessions to maintain focus.' : 'Your session length is optimal. You might benefit from slightly longer sessions as your stamina builds.'
       }
     ];
 
     insights.forEach(insight => {
-      this.addNewPageIfNeeded(25);
+      this.addNewPageIfNeeded(28);
       
-      // Insight box
+      // Clean insight card
       this.pdf.setFillColor(249, 250, 251);
-      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 20, 2, 2, 'F');
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'F');
       
       this.pdf.setDrawColor(229, 231, 235);
-      this.pdf.setLineWidth(0.5);
-      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 20, 2, 2, 'S');
+      this.pdf.setLineWidth(0.3);
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 24, 2, 2, 'S');
       
-      // Icon
-      this.pdf.setFontSize(14);
-      this.pdf.text(insight.icon, this.margin + 3, this.currentY + 7);
+      // Symbol
+      this.pdf.setFontSize(12);
+      this.pdf.setTextColor(245, 158, 11);
+      this.pdf.text(insight.symbol, this.margin + 4, this.currentY + 8);
       
       // Title
-      this.pdf.setFontSize(12);
+      this.pdf.setFontSize(11);
       this.pdf.setTextColor(31, 41, 55);
       this.pdf.setFont('helvetica', 'bold');
-      this.pdf.text(insight.title, this.margin + 12, this.currentY + 7);
+      this.pdf.text(insight.title, this.margin + 14, this.currentY + 8);
       
-      // Description
-      this.pdf.setFontSize(9);
+      // Description and recommendation
+      const maxWidth = this.pageWidth - 2 * this.margin - 18;
+      this.pdf.setFontSize(8);
       this.pdf.setFont('helvetica', 'normal');
       this.pdf.setTextColor(75, 85, 99);
-      const maxWidth = this.pageWidth - 2 * this.margin - 15;
-      this.pdf.text(insight.description, this.margin + 3, this.currentY + 12, { maxWidth });
+      
+      // Split long text properly
+      const descLines = this.pdf.splitTextToSize(insight.description, maxWidth);
+      let textY = this.currentY + 13;
+      
+      descLines.slice(0, 2).forEach((line: string) => {
+        this.pdf.text(line, this.margin + 4, textY);
+        textY += 4;
+      });
       
       // Recommendation
       this.pdf.setTextColor(16, 185, 129);
-      this.pdf.text(`💡 ${insight.recommendation}`, this.margin + 3, this.currentY + 17, { maxWidth });
+      this.pdf.setFont('helvetica', 'italic');
+      const recLines = this.pdf.splitTextToSize(`► ${insight.recommendation}`, maxWidth);
       
-      this.currentY += 25;
+      recLines.slice(0, 1).forEach((line: string) => {
+        this.pdf.text(line, this.margin + 4, textY);
+        textY += 4;
+      });
+      
+      this.currentY += 30;
     });
   }
 
-  private addFooter(): void {
-    const footerY = this.pageHeight - 15;
+  private addFooterToCurrentPage(): void {
+    const footerY = this.pageHeight - this.footerHeight + 5;
+    const currentPage = this.pdf.internal.getCurrentPageInfo().pageNumber;
     
-    // Enhanced footer with gradient
-    for (let i = 0; i < 10; i++) {
-      const opacity = 0.1 + (i / 10) * 0.1;
-      this.pdf.setFillColor(139, 92, 246, opacity);
-      this.pdf.rect(0, footerY - 5 + i, this.pageWidth, 1, 'F');
-    }
+    // Clean footer background
+    this.pdf.setFillColor(248, 250, 252);
+    this.pdf.rect(0, footerY - 2, this.pageWidth, this.footerHeight, 'F');
     
-    // Add decorative line
-    this.pdf.setDrawColor(139, 92, 246, 0.3);
-    this.pdf.setLineWidth(1);
-    this.pdf.line(this.margin, footerY - 3, this.pageWidth - this.margin, footerY - 3);
+    // Top border line
+    this.pdf.setDrawColor(226, 232, 240);
+    this.pdf.setLineWidth(0.3);
+    this.pdf.line(this.margin, footerY, this.pageWidth - this.margin, footerY);
     
-    this.pdf.setFontSize(8);
+    // Footer content
+    this.pdf.setFontSize(7);
     this.pdf.setTextColor(139, 92, 246);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('🚀 StudyFlow Analytics - Powered by AI', this.margin, footerY);
+    this.pdf.text('StudyFlow Analytics Report', this.margin, footerY + 6);
     
-    // Add telegram channel in footer
+    // Channel info
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.text(`💬 Join our community: ${this.telegramChannel}`, this.margin, footerY + 5);
+    this.pdf.setFontSize(7);
+    this.pdf.setTextColor(107, 114, 128);
+    this.pdf.text(`Join our community: ${this.telegramChannel}`, this.margin, footerY + 11);
     
-    this.pdf.text(`📄 Page ${this.pdf.getNumberOfPages()}`, this.pageWidth - this.margin - 25, footerY);
+    // Page number
+    this.pdf.text(`Page ${currentPage}`, this.pageWidth - this.margin - 15, footerY + 8);
   }
 
   async generateReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
     try {
-      // Add header
+      // Initialize first page
       this.addHeader();
+      this.currentY = this.headerHeight + this.margin;
 
       // Add sections based on options
       if (options.includeSummary) {
@@ -510,28 +570,24 @@ export class PDFExportService {
       // Always add insights
       this.addInsightsSection(data);
 
-      // Add watermarks to all pages
-      this.addWatermark();
-      
-      // Add footer to all pages
-      this.addFooter();
+      // Finalize the last page
+      this.finalizePage();
 
       // Convert to grayscale if requested
       if (options.colorMode === 'grayscale') {
-        // Note: jsPDF doesn't have built-in grayscale conversion
-        // This would require additional processing
+        console.log('Grayscale conversion requested (not implemented in jsPDF)');
       }
 
-      // Generate filename
+      // Generate filename with timestamp
       const timestamp = format(new Date(), 'yyyy-MM-dd-HHmm');
-      const filename = `study-analytics-report-${timestamp}.pdf`;
+      const filename = `studyflow-analytics-${timestamp}.pdf`;
 
       // Save the PDF
       this.pdf.save(filename);
       
     } catch (error) {
       console.error('Error generating PDF report:', error);
-      throw new Error('Failed to generate PDF report');
+      throw new Error(`Failed to generate PDF report: ${error.message}`);
     }
   }
 }
