@@ -29,6 +29,7 @@ export class PDFExportService {
   private pageHeight: number;
   private pageWidth: number;
   private margin: number = 20;
+  private telegramChannel: string = '@studytrackerpro'; // Replace with your actual channel
 
   constructor(options: ExportOptions) {
     this.pdf = new jsPDF({
@@ -57,34 +58,125 @@ export class PDFExportService {
     return `${mins}m`;
   }
 
-  private addHeader(): void {
-    // Add gradient background for header
-    this.pdf.setFillColor(139, 92, 246);
-    this.pdf.rect(0, 0, this.pageWidth, 40, 'F');
+  private addWatermark(): void {
+    const pageCount = this.pdf.getNumberOfPages();
     
-    // Add title
-    this.pdf.setFontSize(24);
+    for (let i = 1; i <= pageCount; i++) {
+      this.pdf.setPage(i);
+      
+      // Save current state
+      this.pdf.saveGraphicsState();
+      
+      // Set transparency for watermark
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.1 }));
+      
+      // Diagonal watermark in center
+      this.pdf.setFontSize(48);
+      this.pdf.setTextColor(139, 92, 246);
+      this.pdf.setFont('helvetica', 'bold');
+      
+      const centerX = this.pageWidth / 2;
+      const centerY = this.pageHeight / 2;
+      
+      // Rotate and add main watermark
+      this.pdf.text('Study Tracker Pro Analytics', centerX, centerY, {
+        angle: -45,
+        align: 'center'
+      });
+      
+      // Add telegram channel link watermark (smaller, bottom right)
+      this.pdf.setFontSize(12);
+      this.pdf.setTextColor(99, 102, 241);
+      this.pdf.text(`Join us: ${this.telegramChannel}`, centerX, centerY + 30, {
+        angle: -45,
+        align: 'center'
+      });
+      
+      // Restore state
+      this.pdf.restoreGraphicsState();
+      
+      // Add corner watermarks with better visibility
+      this.pdf.setFontSize(8);
+      this.pdf.setTextColor(139, 92, 246, 0.3);
+      this.pdf.setFont('helvetica', 'normal');
+      
+      // Top corners
+      this.pdf.text('Study Tracker Pro', 10, 10);
+      this.pdf.text(this.telegramChannel, this.pageWidth - 40, 10);
+      
+      // Bottom corners  
+      this.pdf.text('Analytics Report', 10, this.pageHeight - 5);
+      this.pdf.text(`Page ${i}`, this.pageWidth - 20, this.pageHeight - 5);
+    }
+  }
+
+  private addHeader(): void {
+    // Enhanced gradient background for header
+    const headerHeight = 50;
+    
+    // Create gradient effect with multiple rectangles
+    for (let i = 0; i < headerHeight; i++) {
+      const opacity = 1 - (i / headerHeight) * 0.3;
+      this.pdf.setFillColor(139, 92, 246, opacity);
+      this.pdf.rect(0, i, this.pageWidth, 1, 'F');
+    }
+    
+    // Add decorative border
+    this.pdf.setDrawColor(255, 255, 255, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(0, headerHeight - 2, this.pageWidth, headerHeight - 2);
+    
+    // Enhanced title with shadow effect
+    this.pdf.setFontSize(28);
     this.pdf.setTextColor(255, 255, 255);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('Study Analytics Report', this.margin, 25);
     
-    // Add date
+    // Add shadow
+    this.pdf.setTextColor(0, 0, 0, 0.3);
+    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin + 1, 26);
+    
+    // Add main title
+    this.pdf.setTextColor(255, 255, 255);
+    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin, 25);
+    
+    // Add subtitle
     this.pdf.setFontSize(12);
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.text(`Generated on ${format(new Date(), 'PPP')}`, this.pageWidth - this.margin - 80, 25);
+    this.pdf.setTextColor(255, 255, 255, 0.9);
+    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 35);
     
-    this.currentY = 50;
+    // Enhanced date with icon
+    this.pdf.setFontSize(11);
+    this.pdf.setTextColor(255, 255, 255, 0.8);
+    this.pdf.text(`📅 Generated: ${format(new Date(), 'PPP')}`, this.pageWidth - this.margin - 90, 25);
+    
+    // Add telegram channel link in header
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(255, 255, 255, 0.7);
+    this.pdf.text(`💬 ${this.telegramChannel}`, this.pageWidth - this.margin - 90, 35);
+    
+    this.currentY = 60;
   }
 
   private addSummarySection(data: AnalyticsData): void {
     this.addNewPageIfNeeded(60);
     
     // Section header
-    this.pdf.setFontSize(18);
-    this.pdf.setTextColor(75, 85, 99);
+    this.pdf.setFontSize(22);
+    this.pdf.setTextColor(139, 92, 246);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('Performance Summary', this.margin, this.currentY);
-    this.currentY += 15;
+    
+    // Add decorative line before title
+    this.pdf.setDrawColor(139, 92, 246, 0.3);
+    this.pdf.setLineWidth(3);
+    this.pdf.line(this.margin, this.currentY - 5, this.margin + 60, this.currentY - 5);
+    
+    // Add highlighted title with background
+    this.pdf.setFillColor(139, 92, 246, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 180, 20, 3, 3, 'F');
+    
+    this.pdf.text('📈 PERFORMANCE SUMMARY', this.margin, this.currentY);
+    this.currentY += 20;
 
     // Create summary cards layout
     const cardWidth = (this.pageWidth - 3 * this.margin) / 2;
@@ -135,11 +227,20 @@ export class PDFExportService {
     this.addNewPageIfNeeded(80);
     
     // Section header
-    this.pdf.setFontSize(16);
-    this.pdf.setTextColor(75, 85, 99);
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(59, 130, 246);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(title, this.margin, this.currentY);
-    this.currentY += 15;
+    
+    // Add decorative elements for chart titles
+    this.pdf.setFillColor(59, 130, 246, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 200, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(59, 130, 246, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 50, this.currentY - 10);
+    
+    this.pdf.text(`📊 ${title.toUpperCase()}`, this.margin, this.currentY);
+    this.currentY += 18;
 
     try {
       const canvas = await html2canvas(element, {
@@ -177,11 +278,20 @@ export class PDFExportService {
     this.addNewPageIfNeeded(100);
     
     // Section header
-    this.pdf.setFontSize(16);
-    this.pdf.setTextColor(75, 85, 99);
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(16, 185, 129);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('Subject Analysis', this.margin, this.currentY);
-    this.currentY += 15;
+    
+    // Enhanced subject analysis header
+    this.pdf.setFillColor(16, 185, 129, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 160, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(16, 185, 129, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 45, this.currentY - 10);
+    
+    this.pdf.text('📚 SUBJECT ANALYSIS', this.margin, this.currentY);
+    this.currentY += 18;
 
     // Create subject data
     const subjectMap = new Map();
@@ -275,11 +385,20 @@ export class PDFExportService {
     this.addNewPageIfNeeded(80);
     
     // Section header
-    this.pdf.setFontSize(16);
-    this.pdf.setTextColor(75, 85, 99);
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(245, 158, 11);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text('Key Insights & Recommendations', this.margin, this.currentY);
-    this.currentY += 15;
+    
+    // Enhanced insights header
+    this.pdf.setFillColor(245, 158, 11, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 220, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(245, 158, 11, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 60, this.currentY - 10);
+    
+    this.pdf.text('💡 KEY INSIGHTS & RECOMMENDATIONS', this.margin, this.currentY);
+    this.currentY += 18;
 
     const insights = [
       {
@@ -341,13 +460,28 @@ export class PDFExportService {
   private addFooter(): void {
     const footerY = this.pageHeight - 15;
     
-    this.pdf.setFillColor(248, 250, 252);
-    this.pdf.rect(0, footerY - 5, this.pageWidth, 20, 'F');
+    // Enhanced footer with gradient
+    for (let i = 0; i < 10; i++) {
+      const opacity = 0.1 + (i / 10) * 0.1;
+      this.pdf.setFillColor(139, 92, 246, opacity);
+      this.pdf.rect(0, footerY - 5 + i, this.pageWidth, 1, 'F');
+    }
+    
+    // Add decorative line
+    this.pdf.setDrawColor(139, 92, 246, 0.3);
+    this.pdf.setLineWidth(1);
+    this.pdf.line(this.margin, footerY - 3, this.pageWidth - this.margin, footerY - 3);
     
     this.pdf.setFontSize(8);
-    this.pdf.setTextColor(107, 114, 128);
-    this.pdf.text('StudyFlow Analytics - Powered by AI', this.margin, footerY);
-    this.pdf.text(`Page ${this.pdf.getNumberOfPages()}`, this.pageWidth - this.margin - 20, footerY);
+    this.pdf.setTextColor(139, 92, 246);
+    this.pdf.setFont('helvetica', 'bold');
+    this.pdf.text('🚀 StudyFlow Analytics - Powered by AI', this.margin, footerY);
+    
+    // Add telegram channel in footer
+    this.pdf.setFont('helvetica', 'normal');
+    this.pdf.text(`💬 Join our community: ${this.telegramChannel}`, this.margin, footerY + 5);
+    
+    this.pdf.text(`📄 Page ${this.pdf.getNumberOfPages()}`, this.pageWidth - this.margin - 25, footerY);
   }
 
   async generateReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
@@ -376,12 +510,11 @@ export class PDFExportService {
       // Always add insights
       this.addInsightsSection(data);
 
+      // Add watermarks to all pages
+      this.addWatermark();
+      
       // Add footer to all pages
-      const pageCount = this.pdf.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        this.pdf.setPage(i);
-        this.addFooter();
-      }
+      this.addFooter();
 
       // Convert to grayscale if requested
       if (options.colorMode === 'grayscale') {
