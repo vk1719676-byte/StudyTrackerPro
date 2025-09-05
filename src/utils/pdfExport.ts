@@ -23,26 +23,13 @@ export interface AnalyticsData {
   totalSessions: number;
 }
 
-export class AdvancedPDFExportService {
+export class PDFExportService {
   private pdf: jsPDF;
   private currentY: number = 20;
   private pageHeight: number;
   private pageWidth: number;
   private margin: number = 20;
-  private telegramChannel: string = '@studytrackerpro';
-  
-  // Advanced Design Color Palette
-  private colorPalette = {
-    primary: [139, 92, 246],
-    secondary: [59, 130, 246],
-    accent: [16, 185, 129],
-    warning: [245, 158, 11],
-    success: [34, 197, 94],
-    error: [239, 68, 68],
-    neutral: [107, 114, 128],
-    light: [248, 250, 252],
-    dark: [31, 41, 55]
-  };
+  private telegramChannel: string = '@studytrackerpro'; // Replace with your actual channel
 
   constructor(options: ExportOptions) {
     this.pdf = new jsPDF({
@@ -56,10 +43,9 @@ export class AdvancedPDFExportService {
   }
 
   private addNewPageIfNeeded(requiredSpace: number): void {
-    if (this.currentY + requiredSpace > this.pageHeight - this.margin - 30) {
+    if (this.currentY + requiredSpace > this.pageHeight - this.margin) {
       this.pdf.addPage();
       this.currentY = this.margin;
-      this.addPageWatermark();
     }
   }
 
@@ -72,209 +58,189 @@ export class AdvancedPDFExportService {
     return `${mins}m`;
   }
 
-  // Design 1: Advanced Multi-Layer Gradient Header
-  private addHeader(): void {
-    const headerHeight = 60;
+  private addWatermark(): void {
+    const pageCount = this.pdf.getNumberOfPages();
     
-    // Multi-layer gradient background with geometric patterns
+    for (let i = 1; i <= pageCount; i++) {
+      this.pdf.setPage(i);
+      
+      // Save current state
+      this.pdf.saveGraphicsState();
+      
+      // Set transparency for watermark
+      this.pdf.setGState(this.pdf.GState({ opacity: 0.1 }));
+      
+      // Diagonal watermark in center
+      this.pdf.setFontSize(48);
+      this.pdf.setTextColor(139, 92, 246);
+      this.pdf.setFont('helvetica', 'bold');
+      
+      const centerX = this.pageWidth / 2;
+      const centerY = this.pageHeight / 2;
+      
+      // Rotate and add main watermark
+      this.pdf.text('Study Tracker Pro Analytics', centerX, centerY, {
+        angle: -45,
+        align: 'center'
+      });
+      
+      // Add telegram channel link watermark (smaller, bottom right)
+      this.pdf.setFontSize(12);
+      this.pdf.setTextColor(99, 102, 241);
+      this.pdf.text(`Join us: ${this.telegramChannel}`, centerX, centerY + 30, {
+        angle: -45,
+        align: 'center'
+      });
+      
+      // Restore state
+      this.pdf.restoreGraphicsState();
+      
+      // Add corner watermarks with better visibility
+      this.pdf.setFontSize(8);
+      this.pdf.setTextColor(139, 92, 246, 0.3);
+      this.pdf.setFont('helvetica', 'normal');
+      
+      // Top corners
+      this.pdf.text('Study Tracker Pro', 10, 10);
+      this.pdf.text(this.telegramChannel, this.pageWidth - 40, 10);
+      
+      // Bottom corners  
+      this.pdf.text('Analytics Report', 10, this.pageHeight - 5);
+      this.pdf.text(`Page ${i}`, this.pageWidth - 20, this.pageHeight - 5);
+    }
+  }
+
+  private addHeader(): void {
+    // Enhanced gradient background for header
+    const headerHeight = 50;
+    
+    // Create gradient effect with multiple rectangles
     for (let i = 0; i < headerHeight; i++) {
-      const primaryOpacity = 0.9 - (i / headerHeight) * 0.4;
-      const secondaryOpacity = 0.3 - (i / headerHeight) * 0.2;
-      
-      this.pdf.setFillColor(...this.colorPalette.primary, primaryOpacity);
+      const opacity = 1 - (i / headerHeight) * 0.3;
+      this.pdf.setFillColor(139, 92, 246, opacity);
       this.pdf.rect(0, i, this.pageWidth, 1, 'F');
-      
-      if (i % 3 === 0) {
-        this.pdf.setFillColor(...this.colorPalette.secondary, secondaryOpacity);
-        this.pdf.rect(0, i, this.pageWidth, 1, 'F');
-      }
     }
     
-    // Add geometric pattern overlay
-    this.addGeometricHeaderPattern();
+    // Add decorative border
+    this.pdf.setDrawColor(255, 255, 255, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(0, headerHeight - 2, this.pageWidth, headerHeight - 2);
     
-    // Enhanced title with multiple shadow layers
-    this.pdf.setFontSize(32);
+    // Enhanced title with shadow effect
+    this.pdf.setFontSize(28);
+    this.pdf.setTextColor(255, 255, 255);
     this.pdf.setFont('helvetica', 'bold');
     
-    // Multiple shadow layers for depth effect
-    for (let i = 3; i >= 0; i--) {
-      this.pdf.setTextColor(0, 0, 0, 0.1 + (i * 0.05));
-      this.pdf.text('📊 ADVANCED STUDY ANALYTICS', this.margin + i, 30 + i);
-    }
+    // Add shadow
+    this.pdf.setTextColor(0, 0, 0, 0.3);
+    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin + 1, 26);
     
-    // Main title
+    // Add main title
     this.pdf.setTextColor(255, 255, 255);
-    this.pdf.text('📊 ADVANCED STUDY ANALYTICS', this.margin, 30);
+    this.pdf.text('📊 STUDY ANALYTICS REPORT', this.margin, 25);
     
-    // Enhanced subtitle with gradient effect
-    this.pdf.setFontSize(14);
+    // Add subtitle
+    this.pdf.setFontSize(12);
     this.pdf.setFont('helvetica', 'normal');
     this.pdf.setTextColor(255, 255, 255, 0.9);
-    this.pdf.text('🚀 AI-Powered Comprehensive Performance Analysis & Predictive Insights', this.margin, 42);
+    this.pdf.text('Comprehensive Performance Analysis & Insights', this.margin, 35);
     
-    // Professional metadata box
-    this.addMetadataBox();
-    
-    this.currentY = 70;
-  }
-
-  // Design 2: Geometric Header Pattern
-  private addGeometricHeaderPattern(): void {
-    const patternStartX = this.pageWidth - 120;
-    const patternStartY = 5;
-    
-    // Create hexagonal pattern overlay
-    for (let i = 0; i < 8; i++) {
-      for (let j = 0; j < 4; j++) {
-        const hexX = patternStartX + (i * 12) + (j % 2 * 6);
-        const hexY = patternStartY + (j * 10);
-        
-        this.pdf.setFillColor(255, 255, 255, 0.08);
-        this.pdf.setDrawColor(255, 255, 255, 0.15);
-        this.pdf.setLineWidth(0.3);
-        
-        this.drawHexagon(hexX, hexY, 4);
-      }
-    }
-  }
-
-  // Design 3: Professional Metadata Box
-  private addMetadataBox(): void {
-    const boxWidth = 150;
-    const boxHeight = 40;
-    const boxX = this.pageWidth - boxWidth - this.margin;
-    const boxY = 10;
-    
-    // Semi-transparent background with border
-    this.pdf.setFillColor(255, 255, 255, 0.12);
-    this.pdf.roundedRect(boxX, boxY, boxWidth, boxHeight, 4, 4, 'F');
-    
-    this.pdf.setDrawColor(255, 255, 255, 0.25);
-    this.pdf.setLineWidth(0.5);
-    this.pdf.roundedRect(boxX, boxY, boxWidth, boxHeight, 4, 4, 'S');
-    
-    // Content with icons
-    this.pdf.setFontSize(10);
-    this.pdf.setTextColor(255, 255, 255, 0.95);
-    this.pdf.text(`📅 Generated: ${format(new Date(), 'PPP')}`, boxX + 5, boxY + 10);
-    this.pdf.text(`⏰ Time: ${format(new Date(), 'HH:mm')}`, boxX + 5, boxY + 18);
-    this.pdf.text(`💬 Community: ${this.telegramChannel}`, boxX + 5, boxY + 26);
-    this.pdf.text('🔒 Confidential Analytics Report', boxX + 5, boxY + 34);
-  }
-
-  // Design 4: Enhanced Summary with Advanced Cards
-  private addSummarySection(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(80);
-    
-    // Advanced section header with decorative elements
-    this.addAdvancedSectionHeader('📊 EXECUTIVE PERFORMANCE DASHBOARD', this.colorPalette.primary);
-    
-    // Advanced metrics grid with enhanced visual design
-    const metrics = [
-      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), icon: '⏱️', trend: '+12%', color: this.colorPalette.success },
-      { title: 'Total Sessions', value: data.totalSessions.toString(), icon: '📊', trend: '+5', color: this.colorPalette.secondary },
-      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), icon: '📈', trend: '+8min', color: this.colorPalette.warning },
-      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5`, icon: '⭐', trend: '+0.3', color: this.colorPalette.accent }
-    ];
-    
-    this.renderAdvancedMetricsGrid(metrics);
-    this.currentY += 15;
-  }
-
-  // Design 5: Advanced Metrics Grid
-  private renderAdvancedMetricsGrid(metrics: any[]): void {
-    const cols = 2;
-    const rows = Math.ceil(metrics.length / cols);
-    const cardWidth = (this.pageWidth - 2 * this.margin - (cols - 1) * 15) / cols;
-    const cardHeight = 40;
-    
-    metrics.forEach((metric, index) => {
-      const col = index % cols;
-      const row = Math.floor(index / cols);
-      const x = this.margin + col * (cardWidth + 15);
-      const y = this.currentY + row * (cardHeight + 10);
-      
-      this.drawAdvancedMetricCard(x, y, cardWidth, cardHeight, metric);
-    });
-    
-    this.currentY += rows * (cardHeight + 10) + 10;
-  }
-
-  // Design 6: Advanced Metric Card with Visual Elements
-  private drawAdvancedMetricCard(x: number, y: number, width: number, height: number, metric: any): void {
-    // Card background with subtle gradient
-    this.pdf.setFillColor(...metric.color, 0.08);
-    this.pdf.roundedRect(x, y, width, height, 5, 5, 'F');
-    
-    // Accent border on left
-    this.pdf.setFillColor(...metric.color);
-    this.pdf.roundedRect(x, y, 4, height, 2, 2, 'F');
-    
-    // Card border
-    this.pdf.setDrawColor(...metric.color, 0.2);
-    this.pdf.setLineWidth(0.5);
-    this.pdf.roundedRect(x, y, width, height, 5, 5, 'S');
-    
-    // Icon with circular background
-    this.pdf.setFillColor(...metric.color, 0.15);
-    this.pdf.circle(x + 18, y + 15, 8, 'F');
-    this.pdf.setFontSize(14);
-    this.pdf.text(metric.icon, x + 14, y + 18);
-    
-    // Title
+    // Enhanced date with icon
     this.pdf.setFontSize(11);
-    this.pdf.setTextColor(...this.colorPalette.neutral);
-    this.pdf.text(metric.title, x + 30, y + 12);
+    this.pdf.setTextColor(255, 255, 255, 0.8);
+    this.pdf.text(`📅 Generated: ${format(new Date(), 'PPP')}`, this.pageWidth - this.margin - 90, 25);
     
-    // Value
-    this.pdf.setFontSize(18);
-    this.pdf.setTextColor(...this.colorPalette.dark);
-    this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(metric.value, x + 30, y + 24);
+    // Add telegram channel link in header
+    this.pdf.setFontSize(10);
+    this.pdf.setTextColor(255, 255, 255, 0.7);
+    this.pdf.text(`💬 ${this.telegramChannel}`, this.pageWidth - this.margin - 90, 35);
     
-    // Trend indicator
-    this.pdf.setFontSize(9);
-    this.pdf.setTextColor(...metric.color);
-    this.pdf.setFont('helvetica', 'normal');
-    this.pdf.text(`📈 ${metric.trend}`, x + 30, y + 32);
+    this.currentY = 60;
   }
 
-  // Design 7: Advanced Section Header
-  private addAdvancedSectionHeader(title: string, color: number[]): void {
-    const headerHeight = 30;
+  private addSummarySection(data: AnalyticsData): void {
+    this.addNewPageIfNeeded(60);
     
-    // Background with gradient
-    this.pdf.setFillColor(...color, 0.08);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 5, this.pageWidth - 2 * this.margin + 10, headerHeight, 4, 4, 'F');
-    
-    // Left accent bar
-    this.pdf.setFillColor(...color);
-    this.pdf.roundedRect(this.margin - 5, this.currentY - 5, 5, headerHeight, 2, 2, 'F');
-    
-    // Title
-    this.pdf.setFontSize(20);
-    this.pdf.setTextColor(...color);
+    // Section header
+    this.pdf.setFontSize(22);
+    this.pdf.setTextColor(139, 92, 246);
     this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(title, this.margin + 8, this.currentY + 8);
     
-    // Decorative underline
-    this.pdf.setDrawColor(...color, 0.3);
-    this.pdf.setLineWidth(1.5);
-    this.pdf.line(this.margin + 8, this.currentY + 12, this.pageWidth - this.margin - 8, this.currentY + 12);
+    // Add decorative line before title
+    this.pdf.setDrawColor(139, 92, 246, 0.3);
+    this.pdf.setLineWidth(3);
+    this.pdf.line(this.margin, this.currentY - 5, this.margin + 60, this.currentY - 5);
     
-    this.currentY += headerHeight + 5;
+    // Add highlighted title with background
+    this.pdf.setFillColor(139, 92, 246, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 180, 20, 3, 3, 'F');
+    
+    this.pdf.text('📈 PERFORMANCE SUMMARY', this.margin, this.currentY);
+    this.currentY += 20;
+
+    // Create summary cards layout
+    const cardWidth = (this.pageWidth - 3 * this.margin) / 2;
+    const cardHeight = 25;
+    
+    const summaryData = [
+      { title: 'Total Study Time', value: this.formatTime(data.totalStudyTime), icon: '⏱️' },
+      { title: 'Total Sessions', value: data.totalSessions.toString(), icon: '📊' },
+      { title: 'Average Session', value: this.formatTime(data.averageSessionTime), icon: '📈' },
+      { title: 'Average Efficiency', value: `${data.averageEfficiency.toFixed(1)}/5`, icon: '⭐' }
+    ];
+
+    summaryData.forEach((item, index) => {
+      const x = this.margin + (index % 2) * (cardWidth + this.margin);
+      const y = this.currentY + Math.floor(index / 2) * (cardHeight + 10);
+      
+      // Card background
+      this.pdf.setFillColor(248, 250, 252);
+      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'F');
+      
+      // Card border
+      this.pdf.setDrawColor(226, 232, 240);
+      this.pdf.setLineWidth(0.5);
+      this.pdf.roundedRect(x, y, cardWidth, cardHeight, 3, 3, 'S');
+      
+      // Icon and content
+      this.pdf.setFontSize(16);
+      this.pdf.text(item.icon, x + 5, y + 8);
+      
+      this.pdf.setFontSize(10);
+      this.pdf.setTextColor(107, 114, 128);
+      this.pdf.text(item.title, x + 15, y + 8);
+      
+      this.pdf.setFontSize(14);
+      this.pdf.setTextColor(31, 41, 55);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.text(item.value, x + 15, y + 18);
+      this.pdf.setFont('helvetica', 'normal');
+    });
+
+    this.currentY += 70;
   }
 
-  // Design 8: Enhanced Chart Section with Frames
   private async addChartSection(elementId: string, title: string): Promise<void> {
     const element = document.getElementById(elementId);
     if (!element) return;
 
-    this.addNewPageIfNeeded(100);
+    this.addNewPageIfNeeded(80);
     
-    // Advanced chart header
-    this.addAdvancedSectionHeader(`📊 ${title.toUpperCase()}`, this.colorPalette.secondary);
+    // Section header
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(59, 130, 246);
+    this.pdf.setFont('helvetica', 'bold');
+    
+    // Add decorative elements for chart titles
+    this.pdf.setFillColor(59, 130, 246, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 200, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(59, 130, 246, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 50, this.currentY - 10);
+    
+    this.pdf.text(`📊 ${title.toUpperCase()}`, this.margin, this.currentY);
+    this.currentY += 18;
 
     try {
       const canvas = await html2canvas(element, {
@@ -284,66 +250,55 @@ export class AdvancedPDFExportService {
         useCORS: true
       });
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.9);
-      const imgWidth = this.pageWidth - 2 * this.margin - 10;
-      const imgHeight = Math.min((canvas.height * imgWidth) / canvas.width, 120);
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      const imgWidth = this.pageWidth - 2 * this.margin;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      // Chart frame with shadow
-      this.pdf.setFillColor(0, 0, 0, 0.05);
-      this.pdf.roundedRect(this.margin - 2, this.currentY + 2, imgWidth + 14, imgHeight + 14, 3, 3, 'F');
+      // Check if we need a new page for the image
+      this.addNewPageIfNeeded(imgHeight + 10);
       
-      this.pdf.setFillColor(255, 255, 255);
-      this.pdf.roundedRect(this.margin - 2, this.currentY, imgWidth + 14, imgHeight + 14, 3, 3, 'F');
-      
-      this.pdf.setDrawColor(...this.colorPalette.neutral, 0.2);
-      this.pdf.setLineWidth(0.5);
-      this.pdf.roundedRect(this.margin - 2, this.currentY, imgWidth + 14, imgHeight + 14, 3, 3, 'S');
-      
-      this.pdf.addImage(imgData, 'JPEG', this.margin + 5, this.currentY + 7, imgWidth, imgHeight);
-      this.currentY += imgHeight + 25;
-      
+      this.pdf.addImage(imgData, 'JPEG', this.margin, this.currentY, imgWidth, imgHeight);
+      this.currentY += imgHeight + 15;
     } catch (error) {
       console.error(`Failed to capture ${title}:`, error);
       
-      // Enhanced error placeholder
+      // Add error placeholder
       this.pdf.setFillColor(254, 242, 242);
-      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 40, 3, 3, 'F');
-      
-      this.pdf.setDrawColor(239, 68, 68, 0.3);
-      this.pdf.setLineWidth(1);
-      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 40, 3, 3, 'S');
+      this.pdf.rect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 30, 'F');
       
       this.pdf.setTextColor(185, 28, 28);
-      this.pdf.setFontSize(14);
-      this.pdf.text(`⚠️ Chart Temporarily Unavailable: ${title}`, this.margin + 10, this.currentY + 20);
+      this.pdf.setFontSize(12);
+      this.pdf.text(`Failed to capture ${title}`, this.margin + 10, this.currentY + 20);
       
-      this.pdf.setFontSize(10);
-      this.pdf.text('This chart will be included in the next version of the report', this.margin + 10, this.currentY + 30);
-      
-      this.currentY += 50;
+      this.currentY += 40;
     }
   }
 
-  // Design 9: Enhanced Subject Analysis with Visual Matrix
   private addSubjectBreakdown(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(120);
+    this.addNewPageIfNeeded(100);
     
-    this.addAdvancedSectionHeader('📚 COMPREHENSIVE SUBJECT ANALYSIS', this.colorPalette.accent);
+    // Section header
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(16, 185, 129);
+    this.pdf.setFont('helvetica', 'bold');
+    
+    // Enhanced subject analysis header
+    this.pdf.setFillColor(16, 185, 129, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 160, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(16, 185, 129, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 45, this.currentY - 10);
+    
+    this.pdf.text('📚 SUBJECT ANALYSIS', this.margin, this.currentY);
+    this.currentY += 18;
 
-    // Create enhanced subject data
+    // Create subject data
     const subjectMap = new Map();
     data.sessions.forEach(session => {
-      const current = subjectMap.get(session.subject) || { 
-        subject: session.subject, 
-        hours: 0, 
-        sessions: 0, 
-        efficiency: 0,
-        totalEfficiency: 0
-      };
+      const current = subjectMap.get(session.subject) || { subject: session.subject, hours: 0, sessions: 0 };
       current.hours += session.duration / 60;
       current.sessions += 1;
-      current.totalEfficiency += session.efficiency || 0;
-      current.efficiency = current.totalEfficiency / current.sessions;
       subjectMap.set(session.subject, current);
     });
 
@@ -353,342 +308,183 @@ export class AdvancedPDFExportService {
       .slice(0, 8);
 
     if (subjectData.length === 0) {
-      this.renderNoDataPlaceholder('subject');
+      this.pdf.setTextColor(107, 114, 128);
+      this.pdf.setFontSize(12);
+      this.pdf.text('No subject data available', this.margin, this.currentY);
+      this.currentY += 20;
       return;
     }
 
-    // Enhanced table with visual elements
-    this.renderAdvancedSubjectTable(subjectData);
-  }
-
-  // Design 10: Advanced Subject Table
-  private renderAdvancedSubjectTable(subjectData: any[]): void {
-    const colWidths = [50, 25, 25, 30, 40];
-    const headerHeight = 15;
-    const rowHeight = 18;
+    // Table header
+    const colWidths = [60, 30, 30, 50];
+    const startX = this.margin;
     
-    // Table header with gradient
-    this.pdf.setFillColor(...this.colorPalette.accent);
-    this.pdf.roundedRect(this.margin, this.currentY, colWidths.reduce((sum, w) => sum + w, 0), headerHeight, 2, 2, 'F');
+    this.pdf.setFillColor(139, 92, 246);
+    this.pdf.rect(startX, this.currentY, colWidths.reduce((sum, w) => sum + w, 0), 10, 'F');
     
     this.pdf.setTextColor(255, 255, 255);
-    this.pdf.setFontSize(11);
+    this.pdf.setFontSize(10);
     this.pdf.setFont('helvetica', 'bold');
     
-    const headers = ['Subject', 'Hours', 'Sessions', 'Efficiency', 'Progress'];
-    let currentX = this.margin + 3;
-    headers.forEach((header, index) => {
-      this.pdf.text(header, currentX, this.currentY + 10);
+    let currentX = startX + 2;
+    ['Subject', 'Hours', 'Sessions', 'Progress'].forEach((header, index) => {
+      this.pdf.text(header, currentX, this.currentY + 7);
       currentX += colWidths[index];
     });
     
-    this.currentY += headerHeight + 5;
+    this.currentY += 15;
 
+    // Table rows
     const maxHours = Math.max(...subjectData.map(s => s.hours));
     
     subjectData.forEach((subject, index) => {
-      this.addNewPageIfNeeded(rowHeight + 5);
+      this.addNewPageIfNeeded(12);
       
-      // Alternate row backgrounds
+      // Alternate row colors
       if (index % 2 === 0) {
-        this.pdf.setFillColor(...this.colorPalette.light);
-        this.pdf.roundedRect(this.margin, this.currentY - 2, colWidths.reduce((sum, w) => sum + w, 0), rowHeight, 1, 1, 'F');
+        this.pdf.setFillColor(248, 250, 252);
+        this.pdf.rect(startX, this.currentY - 2, colWidths.reduce((sum, w) => sum + w, 0), 10, 'F');
       }
       
-      // Performance indicator stripe
-      const performanceColor = this.getPerformanceColor(subject.efficiency || 0);
-      this.pdf.setFillColor(...performanceColor);
-      this.pdf.rect(this.margin, this.currentY - 2, 2, rowHeight, 'F');
-      
-      this.pdf.setTextColor(...this.colorPalette.dark);
+      this.pdf.setTextColor(31, 41, 55);
       this.pdf.setFont('helvetica', 'normal');
-      this.pdf.setFontSize(10);
+      this.pdf.setFontSize(9);
       
-      currentX = this.margin + 3;
+      currentX = startX + 2;
       
-      // Subject name with truncation
-      const subjectName = subject.subject.length > 18 ? 
-        subject.subject.substring(0, 18) + '...' : subject.subject;
-      this.pdf.text(subjectName, currentX, this.currentY + 8);
+      // Subject name
+      this.pdf.text(subject.subject.length > 20 ? subject.subject.substring(0, 20) + '...' : subject.subject, currentX, this.currentY + 5);
       currentX += colWidths[0];
       
       // Hours
-      this.pdf.text(subject.hours.toString() + 'h', currentX, this.currentY + 8);
+      this.pdf.text(subject.hours.toString() + 'h', currentX, this.currentY + 5);
       currentX += colWidths[1];
       
       // Sessions
-      this.pdf.text(subject.sessions.toString(), currentX, this.currentY + 8);
+      this.pdf.text(subject.sessions.toString(), currentX, this.currentY + 5);
       currentX += colWidths[2];
       
-      // Efficiency with star rating
-      this.renderStarRating(currentX, this.currentY + 5, subject.efficiency || 0);
-      currentX += colWidths[3];
+      // Progress bar
+      const barWidth = 40;
+      const barHeight = 4;
+      const percentage = (subject.hours / maxHours);
       
-      // Enhanced progress bar
-      this.renderAdvancedProgressBar(currentX, this.currentY + 4, 35, (subject.hours / maxHours) * 100, performanceColor);
+      this.pdf.setFillColor(229, 231, 235);
+      this.pdf.rect(currentX, this.currentY + 2, barWidth, barHeight, 'F');
       
-      this.currentY += rowHeight + 2;
+      this.pdf.setFillColor(139, 92, 246);
+      this.pdf.rect(currentX, this.currentY + 2, barWidth * percentage, barHeight, 'F');
+      
+      this.currentY += 12;
     });
 
     this.currentY += 10;
   }
 
-  // Design 11: Star Rating System
-  private renderStarRating(x: number, y: number, rating: number): void {
-    const stars = Math.round(rating);
-    const starSize = 8;
-    
-    for (let i = 0; i < 5; i++) {
-      this.pdf.setTextColor(i < stars ? 255 : 200, i < stars ? 215 : 200, i < stars ? 0 : 200);
-      this.pdf.setFontSize(starSize);
-      this.pdf.text('★', x + i * 4, y + 3);
-    }
-  }
-
-  // Design 12: Advanced Progress Bar
-  private renderAdvancedProgressBar(x: number, y: number, width: number, percentage: number, color: number[]): void {
-    // Background with rounded edges
-    this.pdf.setFillColor(229, 231, 235);
-    this.pdf.roundedRect(x, y, width, 6, 1, 1, 'F');
-    
-    // Progress fill with rounded edges
-    const progressWidth = (width * percentage) / 100;
-    this.pdf.setFillColor(...color);
-    this.pdf.roundedRect(x, y, progressWidth, 6, 1, 1, 'F');
-    
-    // Percentage text
-    this.pdf.setFontSize(7);
-    this.pdf.setTextColor(...this.colorPalette.neutral);
-    this.pdf.text(`${Math.round(percentage)}%`, x + width + 3, y + 4);
-  }
-
-  // Design 13: Enhanced Insights with Visual Cards
   private addInsightsSection(data: AnalyticsData): void {
-    this.addNewPageIfNeeded(100);
+    this.addNewPageIfNeeded(80);
     
-    this.addAdvancedSectionHeader('💡 AI-POWERED INSIGHTS & STRATEGIC RECOMMENDATIONS', this.colorPalette.warning);
+    // Section header
+    this.pdf.setFontSize(20);
+    this.pdf.setTextColor(245, 158, 11);
+    this.pdf.setFont('helvetica', 'bold');
+    
+    // Enhanced insights header
+    this.pdf.setFillColor(245, 158, 11, 0.1);
+    this.pdf.roundedRect(this.margin - 5, this.currentY - 8, 220, 18, 3, 3, 'F');
+    
+    this.pdf.setDrawColor(245, 158, 11, 0.3);
+    this.pdf.setLineWidth(2);
+    this.pdf.line(this.margin, this.currentY - 10, this.margin + 60, this.currentY - 10);
+    
+    this.pdf.text('💡 KEY INSIGHTS & RECOMMENDATIONS', this.margin, this.currentY);
+    this.currentY += 18;
 
     const insights = [
       {
         icon: '📈',
-        title: 'Study Consistency Analysis',
-        description: `You've maintained ${(data.sessions.length / 7).toFixed(1)} sessions per week with strong momentum.`,
-        recommendation: 'Excellent consistency! Continue this pattern for optimal knowledge retention and skill development.',
-        priority: 'high',
-        actionable: true
+        title: 'Study Consistency',
+        description: `You've maintained an average of ${(data.sessions.length / 7).toFixed(1)} sessions per week.`,
+        recommendation: 'Try to maintain this consistent pace for optimal learning retention.'
       },
       {
         icon: '⭐',
-        title: 'Efficiency Performance Review',
-        description: `Current efficiency rating: ${data.averageEfficiency.toFixed(1)}/5 with upward trajectory.`,
-        recommendation: data.averageEfficiency >= 4 ? 
-          'Outstanding efficiency! You\'re in the top 15% of learners. Consider mentoring others.' : 
-          'Focus on 25-minute Pomodoro sessions with 5-minute breaks to boost concentration.',
-        priority: data.averageEfficiency >= 4 ? 'medium' : 'high',
-        actionable: true
+        title: 'Efficiency Trends',
+        description: `Your average efficiency rating is ${data.averageEfficiency.toFixed(1)}/5.`,
+        recommendation: data.averageEfficiency >= 4 ? 'Excellent work! Keep up the high efficiency.' : 'Consider shorter, more focused study sessions to improve efficiency.'
       },
       {
         icon: '🎯',
-        title: 'Session Optimization Strategy',
-        description: `Average session: ${this.formatTime(data.averageSessionTime)} - ideal for deep learning.`,
-        recommendation: data.averageSessionTime > 120 ? 
-          'Consider 90-minute sessions with 15-minute breaks for sustained focus.' : 
-          'Your session length is optimal. Consider adding review sessions for retention.',
-        priority: 'medium',
-        actionable: true
-      },
-      {
-        icon: '🧠',
-        title: 'Cognitive Load Assessment',
-        description: 'Your learning patterns indicate strong cognitive processing capabilities.',
-        recommendation: 'Implement spaced repetition techniques and interleaving for enhanced long-term retention.',
-        priority: 'medium',
-        actionable: true
+        title: 'Session Duration',
+        description: `Average session length: ${this.formatTime(data.averageSessionTime)}.`,
+        recommendation: data.averageSessionTime > 120 ? 'Consider breaking longer sessions with short breaks.' : 'You might benefit from slightly longer focused sessions.'
       }
     ];
 
-    insights.forEach((insight, index) => {
-      this.addNewPageIfNeeded(30);
-      this.renderAdvancedInsightCard(insight, index);
+    insights.forEach(insight => {
+      this.addNewPageIfNeeded(25);
+      
+      // Insight box
+      this.pdf.setFillColor(249, 250, 251);
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 20, 2, 2, 'F');
+      
+      this.pdf.setDrawColor(229, 231, 235);
+      this.pdf.setLineWidth(0.5);
+      this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 20, 2, 2, 'S');
+      
+      // Icon
+      this.pdf.setFontSize(14);
+      this.pdf.text(insight.icon, this.margin + 3, this.currentY + 7);
+      
+      // Title
+      this.pdf.setFontSize(12);
+      this.pdf.setTextColor(31, 41, 55);
+      this.pdf.setFont('helvetica', 'bold');
+      this.pdf.text(insight.title, this.margin + 12, this.currentY + 7);
+      
+      // Description
+      this.pdf.setFontSize(9);
+      this.pdf.setFont('helvetica', 'normal');
+      this.pdf.setTextColor(75, 85, 99);
+      const maxWidth = this.pageWidth - 2 * this.margin - 15;
+      this.pdf.text(insight.description, this.margin + 3, this.currentY + 12, { maxWidth });
+      
+      // Recommendation
+      this.pdf.setTextColor(16, 185, 129);
+      this.pdf.text(`💡 ${insight.recommendation}`, this.margin + 3, this.currentY + 17, { maxWidth });
+      
+      this.currentY += 25;
     });
   }
 
-  // Design 14: Advanced Insight Cards
-  private renderAdvancedInsightCard(insight: any, index: number): void {
-    const cardHeight = 25;
-    const priorityColors = {
-      high: this.colorPalette.error,
-      medium: this.colorPalette.warning,
-      low: this.colorPalette.success
-    };
-    
-    const priorityColor = priorityColors[insight.priority as keyof typeof priorityColors];
-    
-    // Card background with subtle gradient
-    this.pdf.setFillColor(...priorityColor, 0.05);
-    this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, cardHeight, 3, 3, 'F');
-    
-    // Priority indicator bar
-    this.pdf.setFillColor(...priorityColor);
-    this.pdf.roundedRect(this.margin, this.currentY, 3, cardHeight, 1, 1, 'F');
-    
-    // Card border
-    this.pdf.setDrawColor(...priorityColor, 0.2);
-    this.pdf.setLineWidth(0.5);
-    this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, cardHeight, 3, 3, 'S');
-    
-    // Icon with circular background
-    this.pdf.setFillColor(...priorityColor, 0.15);
-    this.pdf.circle(this.margin + 12, this.currentY + 8, 6, 'F');
-    this.pdf.setFontSize(12);
-    this.pdf.text(insight.icon, this.margin + 9, this.currentY + 11);
-    
-    // Priority badge
-    this.pdf.setFillColor(...priorityColor);
-    this.pdf.roundedRect(this.pageWidth - this.margin - 25, this.currentY + 2, 20, 8, 2, 2, 'F');
-    this.pdf.setFontSize(7);
-    this.pdf.setTextColor(255, 255, 255);
-    this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(insight.priority.toUpperCase(), this.pageWidth - this.margin - 22, this.currentY + 7);
-    
-    // Title
-    this.pdf.setFontSize(12);
-    this.pdf.setTextColor(...this.colorPalette.dark);
-    this.pdf.setFont('helvetica', 'bold');
-    this.pdf.text(insight.title, this.margin + 22, this.currentY + 8);
-    
-    // Description
-    this.pdf.setFontSize(9);
-    this.pdf.setFont('helvetica', 'normal');
-    this.pdf.setTextColor(...this.colorPalette.neutral);
-    const maxWidth = this.pageWidth - 2 * this.margin - 25;
-    this.pdf.text(insight.description, this.margin + 5, this.currentY + 14, { maxWidth });
-    
-    // Recommendation with icon
-    this.pdf.setTextColor(...priorityColor);
-    this.pdf.text(`💡 ${insight.recommendation}`, this.margin + 5, this.currentY + 20, { maxWidth });
-    
-    this.currentY += cardHeight + 5;
-  }
-
-  // Design 15: Professional Watermark System
-  private addWatermark(): void {
-    const pageCount = this.pdf.getNumberOfPages();
-    
-    for (let i = 1; i <= pageCount; i++) {
-      this.pdf.setPage(i);
-      this.addPageWatermark();
-    }
-  }
-
-  private addPageWatermark(): void {
-    this.pdf.saveGraphicsState();
-    
-    // Set transparency for watermark
-    this.pdf.setGState(this.pdf.GState({ opacity: 0.06 }));
-    
-    // Main diagonal watermark
-    this.pdf.setFontSize(48);
-    this.pdf.setTextColor(...this.colorPalette.primary);
-    this.pdf.setFont('helvetica', 'bold');
-    
-    const centerX = this.pageWidth / 2;
-    const centerY = this.pageHeight / 2;
-    
-    this.pdf.text('StudyFlow Analytics Pro', centerX, centerY, {
-      angle: -45,
-      align: 'center'
-    });
-    
-    // Secondary watermark
-    this.pdf.setFontSize(16);
-    this.pdf.setTextColor(...this.colorPalette.secondary);
-    this.pdf.text(this.telegramChannel, centerX, centerY + 25, {
-      angle: -45,
-      align: 'center'
-    });
-    
-    this.pdf.restoreGraphicsState();
-  }
-
-  // Enhanced Footer Design
   private addFooter(): void {
-    const pageCount = this.pdf.getNumberOfPages();
+    const footerY = this.pageHeight - 15;
     
-    for (let i = 1; i <= pageCount; i++) {
-      this.pdf.setPage(i);
-      this.renderAdvancedFooter(i, pageCount);
-    }
-  }
-
-  private renderAdvancedFooter(currentPage: number, totalPages: number): void {
-    const footerY = this.pageHeight - 20;
-    const footerHeight = 15;
-    
-    // Footer gradient background
-    for (let j = 0; j < footerHeight; j++) {
-      const opacity = 0.02 + (j / footerHeight) * 0.08;
-      this.pdf.setFillColor(...this.colorPalette.primary, opacity);
-      this.pdf.rect(0, footerY - 5 + j, this.pageWidth, 1, 'F');
+    // Enhanced footer with gradient
+    for (let i = 0; i < 10; i++) {
+      const opacity = 0.1 + (i / 10) * 0.1;
+      this.pdf.setFillColor(139, 92, 246, opacity);
+      this.pdf.rect(0, footerY - 5 + i, this.pageWidth, 1, 'F');
     }
     
-    // Decorative line
-    this.pdf.setDrawColor(...this.colorPalette.primary, 0.2);
+    // Add decorative line
+    this.pdf.setDrawColor(139, 92, 246, 0.3);
     this.pdf.setLineWidth(1);
     this.pdf.line(this.margin, footerY - 3, this.pageWidth - this.margin, footerY - 3);
     
-    // Footer content
     this.pdf.setFontSize(8);
-    this.pdf.setTextColor(...this.colorPalette.primary);
+    this.pdf.setTextColor(139, 92, 246);
     this.pdf.setFont('helvetica', 'bold');
+    this.pdf.text('🚀 StudyFlow Analytics - Powered by AI', this.margin, footerY);
     
-    // Left side
-    this.pdf.text('🚀 StudyFlow Analytics Pro - AI-Powered Learning Insights', this.margin, footerY);
-    
-    // Center
+    // Add telegram channel in footer
     this.pdf.setFont('helvetica', 'normal');
-    this.pdf.text(`💬 Join Community: ${this.telegramChannel} • Generated ${format(new Date(), 'PPP')}`, 
-      this.margin, footerY + 5);
+    this.pdf.text(`💬 Join our community: ${this.telegramChannel}`, this.margin, footerY + 5);
     
-    // Right side
-    this.pdf.text(`📄 ${currentPage} of ${totalPages}`, this.pageWidth - 30, footerY);
-    this.pdf.text('🔒 Confidential', this.pageWidth - 30, footerY + 5);
+    this.pdf.text(`📄 Page ${this.pdf.getNumberOfPages()}`, this.pageWidth - this.margin - 25, footerY);
   }
 
-  // Helper Methods
-  private drawHexagon(x: number, y: number, radius: number): void {
-    const points: number[][] = [];
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * 60 - 30) * (Math.PI / 180);
-      points.push([
-        x + Math.cos(angle) * radius,
-        y + Math.sin(angle) * radius
-      ]);
-    }
-    
-    this.pdf.lines(points.map(p => [p[0] - x, p[1] - y]), x, y, 'FD');
-  }
-
-  private getPerformanceColor(efficiency: number): number[] {
-    if (efficiency >= 4.5) return this.colorPalette.success;
-    if (efficiency >= 3.5) return this.colorPalette.warning;
-    if (efficiency >= 2.5) return this.colorPalette.secondary;
-    return this.colorPalette.error;
-  }
-
-  private renderNoDataPlaceholder(type: string): void {
-    this.pdf.setFillColor(...this.colorPalette.light);
-    this.pdf.roundedRect(this.margin, this.currentY, this.pageWidth - 2 * this.margin, 30, 3, 3, 'F');
-    
-    this.pdf.setTextColor(...this.colorPalette.neutral);
-    this.pdf.setFontSize(12);
-    this.pdf.text(`📊 No ${type} data available for analysis`, this.margin + 10, this.currentY + 20);
-    
-    this.currentY += 40;
-  }
-
-  // Main generation method (unchanged functionality)
-  async generateAdvancedReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
+  async generateReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
     try {
       // Add header
       this.addHeader();
@@ -728,7 +524,7 @@ export class AdvancedPDFExportService {
 
       // Generate filename
       const timestamp = format(new Date(), 'yyyy-MM-dd-HHmm');
-      const filename = `advanced-study-analytics-report-${timestamp}.pdf`;
+      const filename = `study-analytics-report-${timestamp}.pdf`;
 
       // Save the PDF
       this.pdf.save(filename);
