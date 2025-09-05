@@ -23,7 +23,7 @@ export interface AnalyticsData {
   totalSessions: number;
 }
 
-export class PDFExportService {
+export class AdvancedPDFExportService {
   private pdf: jsPDF;
   private currentY: number = 20;
   private pageHeight: number;
@@ -688,7 +688,7 @@ export class PDFExportService {
   }
 
   // Main generation method (unchanged functionality)
-  async generateReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
+  async generateAdvancedReport(data: AnalyticsData, options: ExportOptions): Promise<void> {
     try {
       // Add header
       this.addHeader();
