@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Study Schedule Planner States
+  // Study Schedule Planner States - Remove mock data, initialize from localStorage
   const [studySubjects, setStudySubjects] = useState<Array<{
     id: string;
     name: string;
@@ -49,17 +49,7 @@ export const Footer: React.FC = () => {
     totalHours: number;
     completedHours: number;
     deadline?: string;
-  }>>([
-    {
-      id: '1',
-      name: 'Mathematics',
-      color: 'blue',
-      priority: 'high',
-      totalHours: 20,
-      completedHours: 8,
-      deadline: '2024-02-15'
-    }
-  ]);
+  }>>([]);
 
   const [studySessions, setStudySessions] = useState<Array<{
     id: string;
@@ -96,6 +86,72 @@ export const Footer: React.FC = () => {
     startTime: '09:00',
     duration: 60
   });
+
+  // Local Storage Helper Functions
+  const saveToLocalStorage = (key: string, data: any) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error('Error saving to localStorage:', error);
+    }
+  };
+
+  const loadFromLocalStorage = (key: string) => {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? JSON.parse(data) : null;
+    } catch (error) {
+      console.error('Error loading from localStorage:', error);
+      return null;
+    }
+  };
+
+  // Load data from localStorage on component mount
+  useEffect(() => {
+    const savedSubjects = loadFromLocalStorage('studyTrackerSubjects');
+    const savedSessions = loadFromLocalStorage('studyTrackerSessions');
+    const savedCurrentSession = loadFromLocalStorage('studyTrackerCurrentSession');
+
+    if (savedSubjects && Array.isArray(savedSubjects)) {
+      setStudySubjects(savedSubjects);
+    }
+
+    if (savedSessions && Array.isArray(savedSessions)) {
+      setStudySessions(savedSessions);
+    }
+
+    if (savedCurrentSession) {
+      // Restore current session but set it as paused
+      setCurrentSession({
+        ...savedCurrentSession,
+        startTime: new Date(savedCurrentSession.startTime),
+        isRunning: false
+      });
+    }
+  }, []);
+
+  // Save studySubjects to localStorage whenever it changes
+  useEffect(() => {
+    if (studySubjects.length >= 0) { // Save even when empty
+      saveToLocalStorage('studyTrackerSubjects', studySubjects);
+    }
+  }, [studySubjects]);
+
+  // Save studySessions to localStorage whenever it changes
+  useEffect(() => {
+    if (studySessions.length >= 0) { // Save even when empty
+      saveToLocalStorage('studyTrackerSessions', studySessions);
+    }
+  }, [studySessions]);
+
+  // Save current session to localStorage whenever it changes
+  useEffect(() => {
+    if (currentSession) {
+      saveToLocalStorage('studyTrackerCurrentSession', currentSession);
+    } else {
+      localStorage.removeItem('studyTrackerCurrentSession');
+    }
+  }, [currentSession]);
 
   // Simulate real-time stats updates
   useEffect(() => {
@@ -233,7 +289,7 @@ export const Footer: React.FC = () => {
       deadline: newSubject.deadline || undefined
     };
     
-    setStudySubjects([...studySubjects, subject]);
+    setStudySubjects(prev => [...prev, subject]);
     setNewSubject({
       name: '',
       color: 'blue',
@@ -244,8 +300,8 @@ export const Footer: React.FC = () => {
   };
 
   const removeSubject = (id: string) => {
-    setStudySubjects(studySubjects.filter(subject => subject.id !== id));
-    setStudySessions(studySessions.filter(session => session.subjectId !== id));
+    setStudySubjects(prev => prev.filter(subject => subject.id !== id));
+    setStudySessions(prev => prev.filter(session => session.subjectId !== id));
   };
 
   const addStudySession = () => {
@@ -261,7 +317,7 @@ export const Footer: React.FC = () => {
       completed: false
     };
     
-    setStudySessions([...studySessions, session]);
+    setStudySessions(prev => [...prev, session]);
     setNewSession({
       subjectId: '',
       title: '',
@@ -981,70 +1037,83 @@ export const Footer: React.FC = () => {
                   </div>
 
                   {/* Subjects List */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {studySubjects.map(subject => (
-                      <div key={subject.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4">
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className={`w-3 h-3 rounded-full ${getColorClass(subject.color, 'bg')}`}></div>
-                            <h5 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{subject.name}</h5>
-                          </div>
-                          <button
-                            onClick={() => removeSubject(subject.id)}
-                            className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors touch-manipulation"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                        
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between">
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(subject.priority)}`}>
-                              {subject.priority.toUpperCase()}
-                            </span>
-                            {subject.deadline && (
-                              <span className="text-xs text-gray-500 dark:text-gray-400">
-                                Due: {new Date(subject.deadline).toLocaleDateString()}
-                              </span>
-                            )}
-                          </div>
-                          
-                          <div>
-                            <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                              <span className="font-medium">{Math.round((subject.completedHours / subject.totalHours) * 100)}%</span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full ${getColorClass(subject.color, 'bg')}`}
-                                style={{ width: `${Math.min((subject.completedHours / subject.totalHours) * 100, 100)}%` }}
-                              ></div>
-                            </div>
-                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              <span>{subject.completedHours.toFixed(1)}h completed</span>
-                              <span>{subject.totalHours}h total</span>
-                            </div>
-                          </div>
-                          
-                          <button
-                            onClick={() => startTimer(subject.id)}
-                            disabled={currentSession?.isRunning}
-                            className={`w-full px-3 py-2 bg-gradient-to-r ${
-                              getColorClass(subject.color, 'bg').includes('blue') ? 'from-blue-500 to-blue-600' :
-                              getColorClass(subject.color, 'bg').includes('green') ? 'from-green-500 to-green-600' :
-                              getColorClass(subject.color, 'bg').includes('purple') ? 'from-purple-500 to-purple-600' :
-                              getColorClass(subject.color, 'bg').includes('red') ? 'from-red-500 to-red-600' :
-                              getColorClass(subject.color, 'bg').includes('yellow') ? 'from-yellow-500 to-yellow-600' :
-                              'from-indigo-500 to-indigo-600'
-                            } text-white font-medium rounded-lg text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation`}
-                          >
-                            <PlayCircle className="w-4 h-4" />
-                            Start Study
-                          </button>
-                        </div>
+                  {studySubjects.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                      <BookOpen className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <h4 className="text-lg font-semibold mb-2">No subjects added yet</h4>
+                      <p className="mb-4">Start by adding your first study subject above</p>
+                      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 max-w-md mx-auto">
+                        <p className="text-sm text-blue-700 dark:text-blue-300">
+                          💡 <strong>Tip:</strong> Add subjects like "Mathematics", "Science", or "History" to organize your study schedule
+                        </p>
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {studySubjects.map(subject => (
+                        <div key={subject.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${getColorClass(subject.color, 'bg')}`}></div>
+                              <h5 className="font-semibold text-gray-900 dark:text-gray-100 truncate">{subject.name}</h5>
+                            </div>
+                            <button
+                              onClick={() => removeSubject(subject.id)}
+                              className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors touch-manipulation"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(subject.priority)}`}>
+                                {subject.priority.toUpperCase()}
+                              </span>
+                              {subject.deadline && (
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                  Due: {new Date(subject.deadline).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span className="text-gray-600 dark:text-gray-400">Progress</span>
+                                <span className="font-medium">{Math.round((subject.completedHours / subject.totalHours) * 100)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${getColorClass(subject.color, 'bg')}`}
+                                  style={{ width: `${Math.min((subject.completedHours / subject.totalHours) * 100, 100)}%` }}
+                                ></div>
+                              </div>
+                              <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span>{subject.completedHours.toFixed(1)}h completed</span>
+                                <span>{subject.totalHours}h total</span>
+                              </div>
+                            </div>
+                            
+                            <button
+                              onClick={() => startTimer(subject.id)}
+                              disabled={currentSession?.isRunning}
+                              className={`w-full px-3 py-2 bg-gradient-to-r ${
+                                getColorClass(subject.color, 'bg').includes('blue') ? 'from-blue-500 to-blue-600' :
+                                getColorClass(subject.color, 'bg').includes('green') ? 'from-green-500 to-green-600' :
+                                getColorClass(subject.color, 'bg').includes('purple') ? 'from-purple-500 to-purple-600' :
+                                getColorClass(subject.color, 'bg').includes('red') ? 'from-red-500 to-red-600' :
+                                getColorClass(subject.color, 'bg').includes('yellow') ? 'from-yellow-500 to-yellow-600' :
+                                'from-indigo-500 to-indigo-600'
+                              } text-white font-medium rounded-lg text-sm hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed touch-manipulation`}
+                            >
+                              <PlayCircle className="w-4 h-4" />
+                              Start Study
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1111,6 +1180,7 @@ export const Footer: React.FC = () => {
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <Calendar className="w-12 h-12 mx-auto mb-3 opacity-50" />
                         <p>No study sessions scheduled yet.</p>
+                        <p className="text-sm mt-2">Add subjects first, then schedule your study sessions</p>
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1240,36 +1310,44 @@ export const Footer: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4">
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Subject Progress</h4>
-                    <div className="space-y-4">
-                      {studySubjects.map(subject => (
-                        <div key={subject.id} className="flex items-center gap-4">
-                          <div className={`w-3 h-3 rounded-full ${getColorClass(subject.color, 'bg')} flex-shrink-0`}></div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-medium text-gray-900 dark:text-gray-100 truncate">{subject.name}</span>
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {subject.completedHours.toFixed(1)}/{subject.totalHours}h
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full ${getColorClass(subject.color, 'bg')}`}
-                                style={{ width: `${Math.min((subject.completedHours / subject.totalHours) * 100, 100)}%` }}
-                              ></div>
+                  {studySubjects.length > 0 ? (
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Subject Progress</h4>
+                      <div className="space-y-4">
+                        {studySubjects.map(subject => (
+                          <div key={subject.id} className="flex items-center gap-4">
+                            <div className={`w-3 h-3 rounded-full ${getColorClass(subject.color, 'bg')} flex-shrink-0`}></div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="font-medium text-gray-900 dark:text-gray-100 truncate">{subject.name}</span>
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                  {subject.completedHours.toFixed(1)}/{subject.totalHours}h
+                                </span>
+                              </div>
+                              <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div 
+                                  className={`h-2 rounded-full ${getColorClass(subject.color, 'bg')}`}
+                                  style={{ width: `${Math.min((subject.completedHours / subject.totalHours) * 100, 100)}%` }}
+                                ></div>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                      <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                      <p>No data available yet</p>
+                      <p className="text-sm mt-2">Add subjects and study sessions to see analytics</p>
+                    </div>
+                  )}
                 </div>
               )}
 
               <div className="mt-6 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
                 <p className="text-xs text-violet-600 dark:text-violet-400 text-center">
-                  📅 Organize your study schedule, track progress, and boost your productivity with smart time management
+                  📅 Your study data is automatically saved locally and will persist between sessions
                 </p>
               </div>
             </div>
