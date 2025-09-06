@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Download, Copy, Wand2, Sparkles, FileDown, CheckCircle, AlertCircle, Info, Upload, Eye, Clock3, Hash, BookText, Lightbulb as LightbulbIcon, Save } from 'lucide-react';
+import { Youtube, Linkedin, Github, Send, Heart, Users, Trophy, Clock, BookOpen, Star, TrendingUp, Shield, FileText, HelpCircle, MessageCircle, ArrowRight, X, Rocket, Calendar, Bell, Brain, Cpu, Activity, BarChart3, Lightbulb, Calculator, BookMarked, Target, Zap, PieChart, FlaskConical, StickyNote, GraduationCap, LineChart, Bookmark, Settings, ChevronRight, Plus, Minus, Divide, Equal, Search, Percent, RotateCcw, UserCheck, Award, Code, Download, Copy, Wand2, Sparkles, FileDown, CheckCircle, AlertCircle, Info, Upload, Eye, Clock3, Hash, BookText, Lightbulb as LightbulbIcon, Save, Link, FileImage, Loader2, Mic, Speaker, Volume2, RefreshCw, Globe, Filter, SortDesc, Tag, Bookmark as BookmarkIcon } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [stats, setStats] = useState({
@@ -40,30 +40,78 @@ export const Footer: React.FC = () => {
   const [mathType, setMathType] = useState('algebra');
   const [isLoading, setIsLoading] = useState(false);
 
-  // AI Notes Summarizer States
+  // Enhanced AI Notes Summarizer States
   const [noteText, setNoteText] = useState('');
-  const [summaryType, setSummaryType] = useState('bullet-points');
+  const [summaryType, setSummaryType] = useState('intelligent-summary');
   const [summaryLength, setSummaryLength] = useState('medium');
   const [aiSummary, setAiSummary] = useState('');
   const [keyPoints, setKeyPoints] = useState<string[]>([]);
-  const [aiAnalysis, setAiAnalysis] = useState<{
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  
+  // Advanced Features
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [urlToExtract, setUrlToExtract] = useState('');
+  const [isExtractingUrl, setIsExtractingUrl] = useState(false);
+  const [extractedContent, setExtractedContent] = useState('');
+  const [activeTab, setActiveTab] = useState('input');
+  
+  // Voice Features
+  const [isListening, setIsListening] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState<any>(null);
+  const [isReadingAloud, setIsReadingAloud] = useState(false);
+  
+  // API and Settings
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [savedApiKey, setSavedApiKey] = useState('');
+  
+  // Enhanced Analytics
+  const [advancedAnalysis, setAdvancedAnalysis] = useState<{
     wordCount: number;
     readingTime: number;
     complexity: string;
+    sentiment: string;
     topics: string[];
-  }>({ wordCount: 0, readingTime: 0, complexity: 'Low', topics: [] });
-  const [isAiProcessing, setIsAiProcessing] = useState(false);
+    entities: string[];
+    languages: string[];
+    readabilityScore: number;
+    cognitiveLoad: string;
+    mainThemes: Array<{theme: string, confidence: number}>;
+    keyInsights: string[];
+    suggestedActions: string[];
+  }>({
+    wordCount: 0,
+    readingTime: 0,
+    complexity: 'Low',
+    sentiment: 'Neutral',
+    topics: [],
+    entities: [],
+    languages: ['English'],
+    readabilityScore: 0,
+    cognitiveLoad: 'Low',
+    mainThemes: [],
+    keyInsights: [],
+    suggestedActions: []
+  });
+
+  // History and Organization
   const [summaryHistory, setSummaryHistory] = useState<Array<{
     id: string;
     title: string;
     summary: string;
+    originalContent: string;
     timestamp: string;
     type: string;
+    tags: string[];
+    favorite: boolean;
+    wordCount: number;
+    source: 'text' | 'file' | 'url';
+    analysis: any;
   }>>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [savedApiKey, setSavedApiKey] = useState('');
+  
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('newest');
+  const [filterTag, setFilterTag] = useState('all');
 
   // Simulate real-time stats updates
   useEffect(() => {
@@ -79,14 +127,45 @@ export const Footer: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Load saved API key from localStorage
+  // Load saved data and initialize features
   useEffect(() => {
-    const saved = localStorage.getItem('openai_api_key');
+    // Load saved API key
+    const saved = localStorage.getItem('gemini_api_key');
     if (saved) {
       setSavedApiKey(saved);
       setApiKey(saved);
     }
+    
+    // Load history from localStorage
+    const savedHistory = localStorage.getItem('notes_summary_history');
+    if (savedHistory) {
+      setSummaryHistory(JSON.parse(savedHistory));
+    }
+
+    // Initialize Speech Recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setNoteText(prev => prev + (prev ? ' ' : '') + transcript);
+      };
+      
+      recognition.onerror = () => setIsListening(false);
+      recognition.onend = () => setIsListening(false);
+      
+      setSpeechRecognition(recognition);
+    }
   }, []);
+
+  // Save history to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('notes_summary_history', JSON.stringify(summaryHistory));
+  }, [summaryHistory]);
 
   const handleFeatureClick = (featureName: string) => {
     if (featureName === 'Advanced Calculator') {
@@ -176,101 +255,190 @@ export const Footer: React.FC = () => {
     {
       icon: Wand2,
       title: "AI Notes Summarizer",
-      description: "Transform lengthy notes into concise summaries with AI-powered analysis, key points extraction, and smart insights.",
+      description: "Advanced AI-powered summarization with file support, URL extraction, voice features, and comprehensive analysis using Google Gemini.",
       gradient: "from-violet-500 to-purple-600",
       category: "AI Tools"
     }
   ];
 
-  // AI Notes Summarizer Functions
-  const analyzeText = (text: string) => {
+  // Enhanced Text Analysis with Advanced Features
+  const analyzeText = async (text: string) => {
     const words = text.trim().split(/\s+/).filter(word => word.length > 0);
     const wordCount = words.length;
-    const readingTime = Math.ceil(wordCount / 200); // Average reading speed: 200 WPM
+    const readingTime = Math.ceil(wordCount / 200);
     
-    // Simple complexity analysis
-    const avgWordLength = words.reduce((acc, word) => acc + word.length, 0) / words.length;
+    // Advanced complexity analysis
     const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const avgWordLength = words.reduce((acc, word) => acc + word.length, 0) / words.length;
     const avgSentenceLength = wordCount / sentences.length;
     
     let complexity = 'Low';
-    if (avgWordLength > 5 && avgSentenceLength > 20) {
+    let readabilityScore = 100;
+    
+    if (avgWordLength > 6 && avgSentenceLength > 25) {
+      complexity = 'Very High';
+      readabilityScore = 25;
+    } else if (avgWordLength > 5.5 && avgSentenceLength > 20) {
       complexity = 'High';
-    } else if (avgWordLength > 4 || avgSentenceLength > 15) {
+      readabilityScore = 45;
+    } else if (avgWordLength > 4.5 && avgSentenceLength > 15) {
       complexity = 'Medium';
+      readabilityScore = 70;
     }
 
-    // Extract potential topics (simplified - looks for capitalized words and common academic terms)
-    const topics = Array.from(new Set(
+    // Enhanced sentiment analysis
+    const positiveWords = ['excellent', 'amazing', 'wonderful', 'fantastic', 'great', 'good', 'positive', 'success', 'achievement', 'brilliant', 'outstanding', 'impressive'];
+    const negativeWords = ['terrible', 'awful', 'horrible', 'bad', 'negative', 'failure', 'problem', 'difficult', 'challenging', 'poor', 'disappointing'];
+    
+    const textLower = text.toLowerCase();
+    const positiveCount = positiveWords.filter(word => textLower.includes(word)).length;
+    const negativeCount = negativeWords.filter(word => textLower.includes(word)).length;
+    
+    let sentiment = 'Neutral';
+    if (positiveCount > negativeCount * 1.5) sentiment = 'Positive';
+    else if (negativeCount > positiveCount * 1.5) sentiment = 'Negative';
+
+    // Enhanced entity extraction
+    const entities = Array.from(new Set(
       words.filter(word => 
-        (word.length > 4 && /^[A-Z]/.test(word)) || 
-        ['theory', 'concept', 'principle', 'method', 'analysis', 'research'].some(term => 
-          word.toLowerCase().includes(term)
-        )
-      ).slice(0, 5)
+        (/^[A-Z][a-z]+$/.test(word) && word.length > 3) ||
+        (/^\d{4}$/.test(word)) || // Years
+        (/^[A-Z]{2,}$/.test(word)) // Acronyms
+      ).slice(0, 15)
     ));
 
-    setAiAnalysis({ wordCount, readingTime, complexity, topics });
-  };
+    // Advanced topic detection with confidence
+    const topicKeywords = {
+      'Science & Research': ['research', 'experiment', 'hypothesis', 'theory', 'analysis', 'data', 'study', 'method', 'laboratory', 'scientific'],
+      'Mathematics': ['equation', 'formula', 'calculation', 'number', 'variable', 'function', 'proof', 'theorem', 'algebra', 'geometry'],
+      'History & Social Studies': ['century', 'period', 'era', 'ancient', 'modern', 'revolution', 'war', 'empire', 'civilization', 'culture'],
+      'Literature & Language': ['author', 'character', 'plot', 'theme', 'narrative', 'poetry', 'novel', 'story', 'literary', 'writing'],
+      'Business & Economics': ['market', 'profit', 'strategy', 'management', 'finance', 'company', 'customer', 'sales', 'investment', 'economic'],
+      'Technology & Computing': ['software', 'hardware', 'digital', 'computer', 'internet', 'application', 'system', 'network', 'programming', 'database'],
+      'Health & Medicine': ['health', 'medical', 'treatment', 'diagnosis', 'patient', 'disease', 'therapy', 'clinical', 'healthcare', 'medicine'],
+      'Education & Learning': ['education', 'learning', 'teaching', 'student', 'academic', 'curriculum', 'knowledge', 'skill', 'training', 'instruction']
+    };
 
-  const saveApiKey = () => {
-    if (apiKey.trim()) {
-      localStorage.setItem('openai_api_key', apiKey.trim());
-      setSavedApiKey(apiKey.trim());
-      setShowApiKeyInput(false);
+    const detectedTopics = Object.entries(topicKeywords)
+      .map(([topic, keywords]) => ({
+        topic,
+        matches: keywords.filter(keyword => textLower.includes(keyword)).length,
+        confidence: Math.min(95, (keywords.filter(keyword => textLower.includes(keyword)).length / keywords.length) * 100 + 20)
+      }))
+      .filter(item => item.matches > 0)
+      .sort((a, b) => b.matches - a.matches)
+      .slice(0, 5);
+
+    const topics = detectedTopics.map(item => item.topic);
+    const mainThemes = detectedTopics.map(item => ({
+      theme: item.topic,
+      confidence: item.confidence
+    }));
+
+    // Cognitive load assessment
+    let cognitiveLoad = 'Low';
+    if (complexity === 'Very High' || wordCount > 1500) {
+      cognitiveLoad = 'Very High';
+    } else if (complexity === 'High' || wordCount > 800) {
+      cognitiveLoad = 'High';
+    } else if (complexity === 'Medium' || wordCount > 400) {
+      cognitiveLoad = 'Medium';
     }
+
+    // Generate key insights
+    const keyInsights = [
+      `Document contains ${wordCount} words with ${complexity.toLowerCase()} complexity`,
+      `Estimated reading time: ${readingTime} minutes`,
+      `Content sentiment appears ${sentiment.toLowerCase()}`,
+      `Primary focus areas: ${topics.slice(0, 3).join(', ')}`
+    ];
+
+    // Generate suggested actions
+    const suggestedActions = [
+      complexity === 'Very High' ? 'Consider breaking into smaller sections' : 'Review main concepts',
+      sentiment === 'Negative' ? 'Focus on identifying solutions' : 'Extract key learnings',
+      `Create ${summaryType === 'study-guide' ? 'flashcards' : 'mind map'} for better retention`,
+      'Schedule follow-up review session'
+    ];
+
+    setAdvancedAnalysis({
+      wordCount,
+      readingTime,
+      complexity,
+      sentiment,
+      topics,
+      entities,
+      languages: ['English'],
+      readabilityScore,
+      cognitiveLoad,
+      mainThemes,
+      keyInsights,
+      suggestedActions
+    });
   };
 
-  const callOpenAIAPI = async (prompt: string): Promise<string> => {
+  // Enhanced Gemini API Integration
+  const callGeminiAPI = async (prompt: string, systemPrompt?: string): Promise<string> => {
     if (!savedApiKey) {
-      throw new Error('OpenAI API key not configured');
+      throw new Error('Gemini API key not configured');
     }
 
     try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      const fullPrompt = systemPrompt ? `${systemPrompt}\n\nUser request: ${prompt}` : prompt;
+      
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${savedApiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${savedApiKey}`,
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          messages: [
+          contents: [{
+            parts: [{
+              text: fullPrompt
+            }]
+          }],
+          generationConfig: {
+            temperature: summaryType === 'creative-summary' ? 0.8 : 0.3,
+            topK: 40,
+            topP: 0.95,
+            maxOutputTokens: summaryLength === 'short' ? 300 : summaryLength === 'medium' ? 600 : 1200,
+          },
+          safetySettings: [
             {
-              role: 'system',
-              content: 'You are an expert academic assistant that helps students create clear, concise summaries of their study materials. Focus on extracting key concepts, main ideas, and important details.'
+              category: "HARM_CATEGORY_HARASSMENT",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
             },
             {
-              role: 'user',
-              content: prompt
+              category: "HARM_CATEGORY_HATE_SPEECH",
+              threshold: "BLOCK_MEDIUM_AND_ABOVE"
             }
-          ],
-          max_tokens: summaryLength === 'short' ? 300 : summaryLength === 'medium' ? 600 : 1000,
-          temperature: 0.3,
+          ]
         }),
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
         if (response.status === 401) {
-          throw new Error('Invalid API key. Please check your OpenAI API key.');
+          throw new Error('Invalid API key. Please check your Gemini API key.');
         } else if (response.status === 429) {
           throw new Error('Rate limit exceeded. Please try again later.');
         } else {
-          throw new Error(`API error: ${response.status}`);
+          throw new Error(errorData.error?.message || `API error: ${response.status}`);
         }
       }
 
       const data = await response.json();
-      return data.choices[0]?.message?.content || 'No summary generated';
+      return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No summary generated';
     } catch (error) {
-      console.error('OpenAI API Error:', error);
+      console.error('Gemini API Error:', error);
       throw error;
     }
   };
 
+  // Enhanced summary generation with advanced prompts
   const generateAISummary = async () => {
-    if (!noteText.trim()) {
-      alert('Please enter some text to summarize');
+    if (!noteText.trim() && !extractedContent) {
+      alert('Please enter some text or extract content from a URL to summarize');
       return;
     }
 
@@ -281,53 +449,76 @@ export const Footer: React.FC = () => {
 
     setIsAiProcessing(true);
     try {
-      analyzeText(noteText);
+      const contentToSummarize = extractedContent || noteText;
+      await analyzeText(contentToSummarize);
 
-      let prompt = '';
-      const lengthInstruction = summaryLength === 'short' ? 'very concise (2-3 sentences)' : 
+      let systemPrompt = '';
+      let userPrompt = '';
+      
+      const lengthInstruction = summaryLength === 'short' ? 'concise (2-3 sentences)' : 
                                summaryLength === 'medium' ? 'moderate length (1-2 paragraphs)' : 
-                               'detailed (3-4 paragraphs)';
+                               'comprehensive and detailed (3-4 paragraphs)';
 
       switch (summaryType) {
+        case 'intelligent-summary':
+          systemPrompt = 'You are an expert academic assistant that creates intelligent, context-aware summaries. Analyze the content structure, identify key concepts, and provide insights.';
+          userPrompt = `Create an intelligent ${lengthInstruction} summary of this content. Focus on main ideas, key relationships, and important insights:\n\n${contentToSummarize}`;
+          break;
         case 'bullet-points':
-          prompt = `Please create a ${lengthInstruction} bullet-point summary of the following text. Focus on the main ideas and key points:\n\n${noteText}`;
-          break;
-        case 'paragraph':
-          prompt = `Please create a ${lengthInstruction} paragraph summary of the following text. Capture the main themes and important details:\n\n${noteText}`;
-          break;
-        case 'key-insights':
-          prompt = `Please extract the key insights and main learning points from the following text in a ${lengthInstruction} format. Focus on the most important concepts:\n\n${noteText}`;
+          systemPrompt = 'You are a skilled note-taker who creates clear, organized bullet-point summaries for students and professionals.';
+          userPrompt = `Create a ${lengthInstruction} bullet-point summary of this content. Use clear, concise points:\n\n${contentToSummarize}`;
           break;
         case 'study-guide':
-          prompt = `Please create a ${lengthInstruction} study guide from the following text. Include main topics, key concepts, and important details that would help someone study this material:\n\n${noteText}`;
+          systemPrompt = 'You are an educational expert who creates comprehensive study guides to help students learn and retain information effectively.';
+          userPrompt = `Create a ${lengthInstruction} study guide from this content. Include key concepts, important details, and study tips:\n\n${contentToSummarize}`;
           break;
-        default:
-          prompt = `Please summarize the following text in a ${lengthInstruction} format:\n\n${noteText}`;
+        case 'executive-summary':
+          systemPrompt = 'You are a business analyst who creates executive summaries for decision-makers, focusing on key points and actionable insights.';
+          userPrompt = `Create a ${lengthInstruction} executive summary of this content. Focus on key findings, implications, and recommendations:\n\n${contentToSummarize}`;
+          break;
+        case 'creative-summary':
+          systemPrompt = 'You are a creative writer who makes summaries engaging and memorable while maintaining accuracy and key information.';
+          userPrompt = `Create a ${lengthInstruction} creative and engaging summary of this content. Make it interesting while preserving important information:\n\n${contentToSummarize}`;
+          break;
+        case 'technical-analysis':
+          systemPrompt = 'You are a technical analyst who breaks down complex information into clear, structured analysis with technical insights.';
+          userPrompt = `Provide a ${lengthInstruction} technical analysis of this content. Include methodology, findings, and technical implications:\n\n${contentToSummarize}`;
+          break;
       }
 
-      const summary = await callOpenAIAPI(prompt);
+      const summary = await callGeminiAPI(userPrompt, systemPrompt);
       setAiSummary(summary);
 
       // Extract key points using a separate API call
       try {
-        const keyPointsPrompt = `Extract 3-5 key points from this text as a simple list (one point per line, no bullets or numbers):\n\n${noteText}`;
-        const keyPointsResponse = await callOpenAIAPI(keyPointsPrompt);
-        const extractedPoints = keyPointsResponse.split('\n').filter(point => point.trim().length > 0).slice(0, 5);
+        const keyPointsPrompt = `Extract 5-7 key points from this text as a simple numbered list:\n\n${contentToSummarize}`;
+        const keyPointsResponse = await callGeminiAPI(keyPointsPrompt, 'You are an expert at extracting the most important points from any text. Provide clear, concise key points.');
+        const extractedPoints = keyPointsResponse.split('\n')
+          .filter(point => point.trim().length > 0)
+          .map(point => point.replace(/^\d+\.?\s*/, '').trim())
+          .filter(point => point.length > 10)
+          .slice(0, 7);
         setKeyPoints(extractedPoints);
       } catch (error) {
         console.error('Error extracting key points:', error);
         setKeyPoints(['Unable to extract key points']);
       }
 
-      // Save to history
+      // Save to history with enhanced metadata
       const summaryEntry = {
         id: Date.now().toString(),
-        title: noteText.slice(0, 50) + (noteText.length > 50 ? '...' : ''),
+        title: contentToSummarize.slice(0, 60) + (contentToSummarize.length > 60 ? '...' : ''),
         summary,
+        originalContent: contentToSummarize,
         timestamp: new Date().toLocaleString(),
-        type: summaryType
+        type: summaryType,
+        tags: advancedAnalysis.topics.slice(0, 3),
+        favorite: false,
+        wordCount: advancedAnalysis.wordCount,
+        source: extractedContent ? 'url' as const : selectedFiles.length > 0 ? 'file' as const : 'text' as const,
+        analysis: advancedAnalysis
       };
-      setSummaryHistory(prev => [summaryEntry, ...prev.slice(0, 9)]); // Keep last 10 summaries
+      setSummaryHistory(prev => [summaryEntry, ...prev.slice(0, 19)]); // Keep last 20 summaries
 
     } catch (error) {
       console.error('Error generating summary:', error);
@@ -341,18 +532,118 @@ export const Footer: React.FC = () => {
     }
   };
 
+  // Advanced file handling
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type === 'text/plain') {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        setNoteText(content);
-      };
-      reader.readAsText(file);
+    const files = event.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      const validFiles = fileArray.filter(file => 
+        file.type === 'text/plain' || 
+        file.type === 'application/pdf' || 
+        file.type.includes('document') ||
+        file.name.endsWith('.md') ||
+        file.name.endsWith('.txt')
+      );
+
+      if (validFiles.length === 0) {
+        alert('Please select valid text files (.txt, .md, .pdf, or document files)');
+        return;
+      }
+
+      setSelectedFiles(validFiles);
+      
+      // Read files content
+      validFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = e.target?.result as string;
+          setNoteText(prev => prev + (prev ? '\n\n' : '') + `=== ${file.name} ===\n${content}`);
+        };
+        reader.readAsText(file);
+      });
+    }
+  };
+
+  // URL content extraction
+  const extractFromURL = async () => {
+    if (!urlToExtract.trim()) {
+      alert('Please enter a valid URL');
+      return;
+    }
+
+    setIsExtractingUrl(true);
+    try {
+      // Using a simple approach - in a real app, you'd use a proper web scraping service
+      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlToExtract)}`;
+      const response = await fetch(proxyUrl);
+      const data = await response.json();
+      
+      // Simple text extraction from HTML
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(data.contents, 'text/html');
+      
+      // Remove script and style elements
+      const scripts = doc.querySelectorAll('script, style');
+      scripts.forEach(script => script.remove());
+      
+      const textContent = doc.body?.textContent || doc.textContent || '';
+      const cleanedContent = textContent
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 5000); // Limit to 5000 characters
+      
+      setExtractedContent(cleanedContent);
+      setNoteText(cleanedContent);
+      
+    } catch (error) {
+      console.error('Error extracting URL content:', error);
+      alert('Unable to extract content from this URL. Please try copying and pasting the text manually.');
+    } finally {
+      setIsExtractingUrl(false);
+    }
+  };
+
+  // Voice features
+  const startListening = () => {
+    if (speechRecognition) {
+      setIsListening(true);
+      speechRecognition.start();
     } else {
-      alert('Please select a text file (.txt)');
+      alert('Speech recognition is not supported in your browser');
+    }
+  };
+
+  const stopListening = () => {
+    if (speechRecognition) {
+      speechRecognition.stop();
+      setIsListening(false);
+    }
+  };
+
+  const readSummaryAloud = () => {
+    if ('speechSynthesis' in window) {
+      if (isReadingAloud) {
+        window.speechSynthesis.cancel();
+        setIsReadingAloud(false);
+      } else {
+        const utterance = new SpeechSynthesisUtterance(aiSummary);
+        utterance.rate = 0.8;
+        utterance.pitch = 1;
+        utterance.onend = () => setIsReadingAloud(false);
+        window.speechSynthesis.speak(utterance);
+        setIsReadingAloud(true);
+      }
+    } else {
+      alert('Text-to-speech is not supported in your browser');
+    }
+  };
+
+  // Utility functions
+  const saveApiKey = () => {
+    if (apiKey.trim()) {
+      localStorage.setItem('gemini_api_key', apiKey.trim());
+      setSavedApiKey(apiKey.trim());
+      setShowApiKeyInput(false);
     }
   };
 
@@ -367,22 +658,47 @@ export const Footer: React.FC = () => {
   const exportSummary = () => {
     if (!aiSummary) return;
     
-    const content = `Summary (${summaryType}, ${summaryLength})\n` +
-                   `Generated: ${new Date().toLocaleString()}\n\n` +
-                   `Original Text:\n${noteText}\n\n` +
-                   `Summary:\n${aiSummary}\n\n` +
-                   `Key Points:\n${keyPoints.map(point => `• ${point}`).join('\n')}\n\n` +
-                   `Analysis:\n` +
-                   `Word Count: ${aiAnalysis.wordCount}\n` +
-                   `Reading Time: ${aiAnalysis.readingTime} min\n` +
-                   `Complexity: ${aiAnalysis.complexity}\n` +
-                   `Topics: ${aiAnalysis.topics.join(', ')}`;
+    const content = `# AI Summary Report
+## Generated: ${new Date().toLocaleString()}
+### Type: ${summaryType} (${summaryLength})
+### Source: ${selectedFiles.length > 0 ? 'File Upload' : extractedContent ? 'URL Extraction' : 'Direct Input'}
 
-    const blob = new Blob([content], { type: 'text/plain' });
+## Original Content
+${noteText}
+
+## AI Summary
+${aiSummary}
+
+## Key Points
+${keyPoints.map(point => `• ${point}`).join('\n')}
+
+## Advanced Analysis
+- **Word Count:** ${advancedAnalysis.wordCount}
+- **Reading Time:** ${advancedAnalysis.readingTime} minutes
+- **Complexity:** ${advancedAnalysis.complexity}
+- **Sentiment:** ${advancedAnalysis.sentiment}
+- **Cognitive Load:** ${advancedAnalysis.cognitiveLoad}
+- **Readability Score:** ${advancedAnalysis.readabilityScore}/100
+
+### Main Themes
+${advancedAnalysis.mainThemes.map(theme => `• ${theme.theme} (${theme.confidence.toFixed(1)}% confidence)`).join('\n')}
+
+### Key Insights
+${advancedAnalysis.keyInsights.map(insight => `• ${insight}`).join('\n')}
+
+### Suggested Actions
+${advancedAnalysis.suggestedActions.map(action => `• ${action}`).join('\n')}
+
+---
+Generated by Study Tracker Pro AI Notes Summarizer
+Powered by Google Gemini AI
+`;
+
+    const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `summary-${Date.now()}.txt`;
+    a.download = `ai-summary-${Date.now()}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -393,11 +709,34 @@ export const Footer: React.FC = () => {
     setNoteText('');
     setAiSummary('');
     setKeyPoints([]);
-    setSelectedFile(null);
-    setAiAnalysis({ wordCount: 0, readingTime: 0, complexity: 'Low', topics: [] });
+    setSelectedFiles([]);
+    setUrlToExtract('');
+    setExtractedContent('');
+    setAdvancedAnalysis({
+      wordCount: 0,
+      readingTime: 0,
+      complexity: 'Low',
+      sentiment: 'Neutral',
+      topics: [],
+      entities: [],
+      languages: ['English'],
+      readabilityScore: 0,
+      cognitiveLoad: 'Low',
+      mainThemes: [],
+      keyInsights: [],
+      suggestedActions: []
+    });
   };
 
-  // Improved Calculator Functions
+  const toggleFavorite = (id: string) => {
+    setSummaryHistory(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, favorite: !item.favorite } : item
+      )
+    );
+  };
+
+  // Improved Calculator Functions (keeping existing functionality)
   const performCalculation = (firstValue: number, operator: string, secondValue: number): number => {
     switch (operator) {
       case '+':
@@ -543,13 +882,10 @@ export const Footer: React.FC = () => {
     ['x²', '1/x', 'π']
   ];
 
-  // Periodic Table Data (complete first 118 elements)
+  // Periodic Table Data (keeping existing)
   const periodicElements = [
-    // Period 1
     { symbol: 'H', name: 'Hydrogen', number: 1, mass: 1.008, category: 'nonmetal', period: 1, group: 1 },
     { symbol: 'He', name: 'Helium', number: 2, mass: 4.003, category: 'noble-gas', period: 1, group: 18 },
-    
-    // Period 2
     { symbol: 'Li', name: 'Lithium', number: 3, mass: 6.941, category: 'alkali-metal', period: 2, group: 1 },
     { symbol: 'Be', name: 'Beryllium', number: 4, mass: 9.012, category: 'alkaline-earth', period: 2, group: 2 },
     { symbol: 'B', name: 'Boron', number: 5, mass: 10.811, category: 'metalloid', period: 2, group: 13 },
@@ -558,8 +894,6 @@ export const Footer: React.FC = () => {
     { symbol: 'O', name: 'Oxygen', number: 8, mass: 15.999, category: 'nonmetal', period: 2, group: 16 },
     { symbol: 'F', name: 'Fluorine', number: 9, mass: 18.998, category: 'halogen', period: 2, group: 17 },
     { symbol: 'Ne', name: 'Neon', number: 10, mass: 20.180, category: 'noble-gas', period: 2, group: 18 },
-    
-    // Period 3
     { symbol: 'Na', name: 'Sodium', number: 11, mass: 22.990, category: 'alkali-metal', period: 3, group: 1 },
     { symbol: 'Mg', name: 'Magnesium', number: 12, mass: 24.305, category: 'alkaline-earth', period: 3, group: 2 },
     { symbol: 'Al', name: 'Aluminum', number: 13, mass: 26.982, category: 'post-transition', period: 3, group: 13 },
@@ -568,8 +902,6 @@ export const Footer: React.FC = () => {
     { symbol: 'S', name: 'Sulfur', number: 16, mass: 32.065, category: 'nonmetal', period: 3, group: 16 },
     { symbol: 'Cl', name: 'Chlorine', number: 17, mass: 35.453, category: 'halogen', period: 3, group: 17 },
     { symbol: 'Ar', name: 'Argon', number: 18, mass: 39.948, category: 'noble-gas', period: 3, group: 18 },
-    
-    // Period 4 (first 10 elements)
     { symbol: 'K', name: 'Potassium', number: 19, mass: 39.098, category: 'alkali-metal', period: 4, group: 1 },
     { symbol: 'Ca', name: 'Calcium', number: 20, mass: 40.078, category: 'alkaline-earth', period: 4, group: 2 },
     { symbol: 'Sc', name: 'Scandium', number: 21, mass: 44.956, category: 'transition-metal', period: 4, group: 3 },
@@ -596,7 +928,7 @@ export const Footer: React.FC = () => {
     return colors[category] || 'bg-gray-300 hover:bg-gray-400 text-gray-800';
   };
 
-  // Grade Calculator Functions
+  // Grade Calculator Functions (keeping existing)
   const addGrade = () => {
     setGrades([...grades, { subject: '', currentGrade: '', creditHours: '', targetGrade: '' }]);
   };
@@ -632,7 +964,7 @@ export const Footer: React.FC = () => {
     calculateGPA();
   }, [grades]);
 
-  // Improved Math Solver with API Integration
+  // Math Solver Functions (keeping existing)
   const solveMathProblem = async () => {
     if (!mathExpression.trim()) return;
     
@@ -642,26 +974,21 @@ export const Footer: React.FC = () => {
       let steps: string[] = [];
       
       if (mathType === 'algebra') {
-        // Enhanced algebraic equation solver
         if (mathExpression.includes('=')) {
           const [left, right] = mathExpression.split('=').map(s => s.trim());
           steps.push(`Original equation: ${mathExpression}`);
           steps.push(`Left side: ${left}`);
           steps.push(`Right side: ${right}`);
           
-          // Simple linear equation solver (enhanced)
           if (mathExpression.toLowerCase().includes('x')) {
             steps.push('Solving for x...');
             
-            // Parse simple linear equations like "2x + 3 = 7" or "x - 5 = 10"
             const parseLinearEquation = (expr: string, targetValue: number) => {
-              // Remove spaces and convert to lowercase
               const cleaned = expr.replace(/\s/g, '').toLowerCase();
               
               let coefficient = 1;
               let constant = 0;
               
-              // Handle cases like "2x + 3", "x - 5", etc.
               if (cleaned.includes('+')) {
                 const parts = cleaned.split('+');
                 const xPart = parts.find(p => p.includes('x')) || 'x';
@@ -702,14 +1029,11 @@ export const Footer: React.FC = () => {
             }
           }
         } else {
-          // Simple algebraic expression evaluation
           try {
-            // Replace common math functions and evaluate safely
             let expr = mathExpression.toLowerCase();
-            expr = expr.replace(/x/g, '1'); // Replace x with 1 for evaluation
-            expr = expr.replace(/\^/g, '**'); // Replace ^ with ** for exponentiation
+            expr = expr.replace(/x/g, '1');
+            expr = expr.replace(/\^/g, '**');
             
-            // Only allow safe mathematical operations
             if (/^[0-9+\-*/().\s**]+$/.test(expr)) {
               const result = Function(`"use strict"; return (${expr})`)();
               solution = result.toString();
@@ -725,20 +1049,17 @@ export const Footer: React.FC = () => {
         }
       } else if (mathType === 'arithmetic') {
         try {
-          // Safe arithmetic evaluation
           let expr = mathExpression;
           expr = expr.replace(/×/g, '*');
           expr = expr.replace(/÷/g, '/');
           expr = expr.replace(/\^/g, '**');
           
-          // Only allow safe arithmetic operations
           if (/^[0-9+\-*/().\s**]+$/.test(expr)) {
             const result = Function(`"use strict"; return (${expr})`)();
             solution = result.toString();
             steps.push(`Calculating: ${mathExpression}`);
             steps.push(`Step-by-step breakdown:`);
             
-            // Simple step-by-step for basic operations
             if (mathExpression.includes('+')) {
               const parts = mathExpression.split('+').map(p => p.trim());
               let runningTotal = parseFloat(parts[0]);
@@ -758,7 +1079,6 @@ export const Footer: React.FC = () => {
           steps.push('Please check your expression format');
         }
       } else if (mathType === 'geometry') {
-        // Basic geometry calculations
         const expr = mathExpression.toLowerCase();
         if (expr.includes('area') && expr.includes('circle')) {
           const radiusMatch = expr.match(/r\s*=\s*(\d+(?:\.\d+)?)/);
@@ -789,7 +1109,6 @@ export const Footer: React.FC = () => {
           steps.push('Example: "area of circle r=5" or "area of rectangle l=10 w=8"');
         }
       } else if (mathType === 'calculus') {
-        // Basic derivative calculations
         const expr = mathExpression.toLowerCase().replace(/\s/g, '');
         if (expr.includes('d/dx')) {
           if (expr.includes('x^2')) {
@@ -888,10 +1207,10 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* API Key Input Modal */}
+      {/* Enhanced API Key Input Modal */}
       {showApiKeyInput && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full mx-4 transform transition-all duration-300 scale-100">
             <div className="relative p-6">
               <button
                 onClick={() => setShowApiKeyInput(false)}
@@ -905,22 +1224,22 @@ export const Footer: React.FC = () => {
               </div>
 
               <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3 text-center">
-                OpenAI API Key Required
+                Google Gemini API Key Required
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 text-center">
-                Enter your OpenAI API key to enable AI-powered summarization
+                Enter your Google Gemini API key to enable advanced AI-powered summarization with enhanced features
               </p>
 
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    API Key
+                    Gemini API Key
                   </label>
                   <input
                     type="password"
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-..."
+                    placeholder="AIza..."
                     className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                   />
                 </div>
@@ -929,12 +1248,15 @@ export const Footer: React.FC = () => {
                   <div className="flex items-start gap-2">
                     <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
                     <div className="text-xs text-blue-700 dark:text-blue-300">
-                      <p className="font-medium mb-1">How to get your API key:</p>
-                      <p>1. Visit platform.openai.com</p>
-                      <p>2. Sign in or create an account</p>
-                      <p>3. Go to API Keys section</p>
-                      <p>4. Create a new API key</p>
-                      <p className="mt-2 font-medium">Your key will be stored locally and securely.</p>
+                      <p className="font-medium mb-2">How to get your Gemini API key:</p>
+                      <ol className="list-decimal list-inside space-y-1">
+                        <li>Visit <a href="https://makersuite.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline">Google AI Studio</a></li>
+                        <li>Sign in with your Google account</li>
+                        <li>Click "Create API Key"</li>
+                        <li>Copy your API key</li>
+                      </ol>
+                      <p className="mt-2 font-medium">✅ Your key is stored locally and securely</p>
+                      <p className="mt-1">🚀 Supports advanced features like file analysis, URL extraction, and voice input</p>
                     </div>
                   </div>
                 </div>
@@ -961,30 +1283,33 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* AI Notes Summarizer Modal */}
+      {/* Enhanced AI Notes Summarizer Modal */}
       {showAINotesSummarizer && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
             <div className="relative p-4 sm:p-6">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
-                    <Wand2 className="w-5 h-5 text-white" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    <Wand2 className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">
-                      AI Notes Summarizer
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      Advanced AI Notes Summarizer
+                      <span className="px-2 py-1 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs rounded-full font-medium">
+                        Gemini Powered
+                      </span>
                     </h3>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Transform lengthy notes into concise summaries with AI
+                      Transform content with advanced AI analysis, voice input, file support & URL extraction
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   {savedApiKey && (
-                    <div className="flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/20 rounded-lg">
-                      <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" />
-                      <span className="text-xs text-green-700 dark:text-green-300 font-medium">API Connected</span>
+                    <div className="flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/20 rounded-lg">
+                      <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      <span className="text-xs text-green-700 dark:text-green-300 font-medium">Gemini Connected</span>
                     </div>
                   )}
                   <button
@@ -996,17 +1321,40 @@ export const Footer: React.FC = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Input Section */}
+              {/* Enhanced Tab Navigation */}
+              <div className="flex flex-wrap gap-1 mb-6 p-1 bg-gray-100 dark:bg-gray-700 rounded-xl">
+                {[
+                  { id: 'input', label: 'Input & Analysis', icon: BookText },
+                  { id: 'summary', label: 'AI Summary', icon: Brain },
+                  { id: 'insights', label: 'Advanced Insights', icon: BarChart3 },
+                  { id: 'history', label: 'History', icon: Clock3 }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      activeTab === tab.id
+                        ? 'bg-white dark:bg-gray-800 text-violet-600 dark:text-violet-400 shadow-sm'
+                        : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Input & Analysis Tab */}
+              {activeTab === 'input' && (
                 <div className="space-y-6">
-                  {/* Configuration */}
-                  <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-violet-200 dark:border-violet-700">
+                  {/* Advanced Configuration Panel */}
+                  <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-violet-200 dark:border-violet-700">
                     <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                      <Settings className="w-4 h-4" />
-                      Summary Settings
+                      <Settings className="w-5 h-5" />
+                      Advanced Summary Configuration
                     </h4>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                           Summary Type
@@ -1016,299 +1364,754 @@ export const Footer: React.FC = () => {
                           onChange={(e) => setSummaryType(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
                         >
-                          <option value="bullet-points">Bullet Points</option>
-                          <option value="paragraph">Paragraph</option>
-                          <option value="key-insights">Key Insights</option>
-                          <option value="study-guide">Study Guide</option>
+                          <option value="intelligent-summary">🧠 Intelligent Summary</option>
+                          <option value="bullet-points">📝 Bullet Points</option>
+                          <option value="study-guide">📚 Study Guide</option>
+                          <option value="executive-summary">💼 Executive Summary</option>
+                          <option value="creative-summary">🎨 Creative Summary</option>
+                          <option value="technical-analysis">⚡ Technical Analysis</option>
                         </select>
                       </div>
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Length
+                          Length & Detail
                         </label>
                         <select
                           value={summaryLength}
                           onChange={(e) => setSummaryLength(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
                         >
-                          <option value="short">Short</option>
-                          <option value="medium">Medium</option>
-                          <option value="long">Detailed</option>
+                          <option value="short">📄 Concise</option>
+                          <option value="medium">📃 Balanced</option>
+                          <option value="long">📋 Comprehensive</option>
                         </select>
+                      </div>
+
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => setShowApiKeyInput(true)}
+                          className={`w-full px-3 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 ${
+                            savedApiKey 
+                              ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 cursor-default'
+                              : 'bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 hover:bg-violet-200 dark:hover:bg-violet-900/30'
+                          }`}
+                        >
+                          <Settings className="w-4 h-4" />
+                          {savedApiKey ? 'API Connected' : 'Setup Gemini API'}
+                        </button>
                       </div>
                     </div>
                   </div>
 
-                  {/* Input Methods */}
-                  <div>
-                    <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                      <BookText className="w-4 h-4" />
-                      Input Your Notes
-                    </h4>
-                    
-                    {/* File Upload */}
-                    <div className="mb-4">
-                      <label className="flex items-center justify-center w-full px-4 py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer hover:border-violet-500 dark:hover:border-violet-400 transition-colors group">
-                        <div className="text-center">
-                          <Upload className="w-8 h-8 text-gray-400 group-hover:text-violet-500 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600 dark:text-gray-400 group-hover:text-violet-600 dark:group-hover:text-violet-400">
-                            <span className="font-medium">Click to upload</span> or drag & drop
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                            Text files (.txt) supported
-                          </p>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Enhanced Input Methods */}
+                    <div className="space-y-4">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        <Upload className="w-5 h-5" />
+                        Multi-Source Input
+                      </h4>
+
+                      {/* File Upload with Enhanced Support */}
+                      <div className="space-y-3">
+                        <label className="flex items-center justify-center w-full px-4 py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl cursor-pointer hover:border-violet-500 dark:hover:border-violet-400 transition-colors group bg-gradient-to-br from-gray-50 to-violet-50 dark:from-gray-800 dark:to-violet-900/20">
+                          <div className="text-center">
+                            <FileImage className="w-10 h-10 text-gray-400 group-hover:text-violet-500 mx-auto mb-3" />
+                            <p className="text-base font-medium text-gray-700 dark:text-gray-300 group-hover:text-violet-700 dark:group-hover:text-violet-300 mb-1">
+                              Upload Multiple Files
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                              Drag & drop or click to select
+                            </p>
+                            <div className="flex flex-wrap justify-center gap-1 text-xs text-gray-400">
+                              <span className="px-2 py-1 bg-white dark:bg-gray-700 rounded">TXT</span>
+                              <span className="px-2 py-1 bg-white dark:bg-gray-700 rounded">MD</span>
+                              <span className="px-2 py-1 bg-white dark:bg-gray-700 rounded">PDF</span>
+                              <span className="px-2 py-1 bg-white dark:bg-gray-700 rounded">DOC</span>
+                            </div>
+                          </div>
+                          <input
+                            type="file"
+                            accept=".txt,.md,.pdf,.doc,.docx"
+                            onChange={handleFileUpload}
+                            multiple
+                            className="hidden"
+                          />
+                        </label>
+                        
+                        {selectedFiles.length > 0 && (
+                          <div className="space-y-2">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Selected Files:</p>
+                            {selectedFiles.map((file, index) => (
+                              <div key={index} className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+                                <span className="text-sm text-green-700 dark:text-green-300 truncate">{file.name}</span>
+                                <span className="text-xs text-green-600 dark:text-green-400">({(file.size / 1024).toFixed(1)}KB)</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* URL Extraction */}
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <Globe className="w-4 h-4" />
+                          Extract from URL
+                        </h5>
+                        <div className="flex gap-2">
+                          <input
+                            type="url"
+                            value={urlToExtract}
+                            onChange={(e) => setUrlToExtract(e.target.value)}
+                            placeholder="https://example.com/article"
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                          />
+                          <button
+                            onClick={extractFromURL}
+                            disabled={!urlToExtract.trim() || isExtractingUrl}
+                            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 text-sm"
+                          >
+                            {isExtractingUrl ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Link className="w-4 h-4" />
+                            )}
+                            {isExtractingUrl ? 'Extracting...' : 'Extract'}
+                          </button>
                         </div>
-                        <input
-                          type="file"
-                          accept=".txt"
-                          onChange={handleFileUpload}
-                          className="hidden"
-                        />
-                      </label>
-                      {selectedFile && (
-                        <div className="mt-2 flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
-                          <CheckCircle className="w-4 h-4" />
-                          <span>{selectedFile.name}</span>
+                        
+                        {extractedContent && (
+                          <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <p className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">Content extracted successfully!</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400">
+                              {extractedContent.length} characters extracted from URL
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Voice Input */}
+                      <div className="space-y-3">
+                        <h5 className="font-medium text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <Mic className="w-4 h-4" />
+                          Voice Input
+                        </h5>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={isListening ? stopListening : startListening}
+                            disabled={!speechRecognition}
+                            className={`flex-1 px-4 py-2 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 ${
+                              isListening 
+                                ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse' 
+                                : 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed'
+                            }`}
+                          >
+                            <Mic className="w-4 h-4" />
+                            {isListening ? 'Stop Recording' : 'Start Voice Input'}
+                          </button>
                         </div>
-                      )}
+                        
+                        {isListening && (
+                          <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                              <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                                Listening... Speak now
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
-                    {/* Text Area */}
-                    <div>
+                    {/* Enhanced Text Input Area */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                          <BookText className="w-5 h-5" />
+                          Text Content
+                        </h4>
+                        {noteText && (
+                          <button
+                            onClick={clearNotesSummarizer}
+                            className="text-sm text-red-500 hover:text-red-600 transition-colors flex items-center gap-1"
+                          >
+                            <X className="w-4 h-4" />
+                            Clear All
+                          </button>
+                        )}
+                      </div>
+
                       <textarea
                         value={noteText}
                         onChange={(e) => setNoteText(e.target.value)}
-                        placeholder="Paste your notes here or upload a text file above..."
-                        rows={12}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
+                        placeholder="Enter your content here, upload files, extract from URL, or use voice input..."
+                        rows={16}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none"
                       />
                       
                       {noteText && (
-                        <div className="mt-2 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center gap-4">
                             <span className="flex items-center gap-1">
-                              <Hash className="w-3 h-3" />
-                              {noteText.trim().split(/\s+/).length} words
+                              <Hash className="w-4 h-4" />
+                              {noteText.trim().split(/\s+/).filter(w => w.length > 0).length} words
                             </span>
                             <span className="flex items-center gap-1">
-                              <Clock3 className="w-3 h-3" />
-                              ~{Math.ceil(noteText.trim().split(/\s+/).length / 200)} min read
+                              <Clock3 className="w-4 h-4" />
+                              ~{Math.ceil(noteText.trim().split(/\s+/).filter(w => w.length > 0).length / 200)} min read
                             </span>
                           </div>
-                          <button
-                            onClick={clearNotesSummarizer}
-                            className="flex items-center gap-1 text-red-500 hover:text-red-600 transition-colors"
-                          >
-                            <X className="w-3 h-3" />
-                            Clear
-                          </button>
+                          <div className="flex items-center gap-2">
+                            {noteText.length > 10000 && (
+                              <span className="text-orange-500 flex items-center gap-1">
+                                <AlertCircle className="w-4 h-4" />
+                                Large content
+                              </span>
+                            )}
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    {/* Generate Button */}
-                    <div className="mt-4 flex gap-2">
+                      {/* Enhanced Generate Button */}
                       <button
                         onClick={generateAISummary}
-                        disabled={!noteText.trim() || isAiProcessing}
-                        className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 touch-manipulation"
+                        disabled={(!noteText.trim() && !extractedContent) || isAiProcessing}
+                        className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-semibold hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-105 text-lg"
                       >
                         {isAiProcessing ? (
                           <>
-                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Processing...
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Processing with Gemini AI...
                           </>
                         ) : (
                           <>
-                            <Sparkles className="w-4 h-4" />
-                            Generate Summary
+                            <Sparkles className="w-5 h-5" />
+                            Generate Advanced Summary
+                            <ZapIcon className="w-5 h-5" />
                           </>
                         )}
                       </button>
-                      
-                      {!savedApiKey && (
-                        <button
-                          onClick={() => setShowApiKeyInput(true)}
-                          className="px-4 py-3 bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors flex items-center gap-2 touch-manipulation"
-                        >
-                          <Settings className="w-4 h-4" />
-                          Setup API
-                        </button>
-                      )}
                     </div>
                   </div>
                 </div>
+              )}
 
-                {/* Output Section */}
+              {/* AI Summary Tab */}
+              {activeTab === 'summary' && (
                 <div className="space-y-6">
-                  {/* AI Summary */}
-                  {aiSummary && (
-                    <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-violet-200 dark:border-violet-700">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                          <Brain className="w-4 h-4" />
-                          AI Summary
-                        </h4>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => copyToClipboard(aiSummary)}
-                            className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors touch-manipulation"
-                            title="Copy summary"
-                          >
-                            <Copy className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={exportSummary}
-                            className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors touch-manipulation"
-                            title="Export summary"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      
-                      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-violet-200 dark:border-violet-600">
-                        <div className="prose prose-sm dark:prose-invert max-w-none">
-                          <p className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
-                            {aiSummary}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400">
-                        <Sparkles className="w-3 h-3" />
-                        <span>Generated with AI • {summaryType} • {summaryLength}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Key Points */}
-                  {keyPoints.length > 0 && (
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                        <LightbulbIcon className="w-4 h-4" />
-                        Key Points
-                      </h4>
-                      
-                      <div className="space-y-2">
-                        {keyPoints.map((point, index) => (
-                          <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-600">
-                            <div className="w-5 h-5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
-                              {index + 1}
-                            </div>
-                            <span className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
-                              {point}
+                  {aiSummary ? (
+                    <>
+                      {/* AI Summary Display */}
+                      <div className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl p-4 sm:p-6 border border-violet-200 dark:border-violet-700">
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <Brain className="w-5 h-5" />
+                            AI Summary
+                            <span className="px-2 py-1 bg-gradient-to-r from-violet-500 to-purple-600 text-white text-xs rounded-full">
+                              {summaryType.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
                             </span>
+                          </h4>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={readSummaryAloud}
+                              className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                              title={isReadingAloud ? "Stop reading" : "Read aloud"}
+                            >
+                              {isReadingAloud ? <Volume2 className="w-4 h-4" /> : <Speaker className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={() => copyToClipboard(aiSummary)}
+                              className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                              title="Copy summary"
+                            >
+                              <Copy className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={exportSummary}
+                              className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                              title="Export summary"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
                           </div>
-                        ))}
+                        </div>
+                        
+                        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mb-4 border border-violet-200 dark:border-violet-600 shadow-sm">
+                          <div className="prose prose-sm dark:prose-invert max-w-none">
+                            <div className="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap">
+                              {aiSummary}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 text-xs text-violet-600 dark:text-violet-400">
+                          <Sparkles className="w-3 h-3" />
+                          <span>Generated with Google Gemini • {summaryType} • {summaryLength}</span>
+                        </div>
                       </div>
+
+                      {/* Enhanced Key Points */}
+                      {keyPoints.length > 0 && (
+                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 sm:p-6 border border-blue-200 dark:border-blue-700">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                            <LightbulbIcon className="w-5 h-5" />
+                            Key Points & Insights
+                          </h4>
+                          
+                          <div className="space-y-3">
+                            {keyPoints.map((point, index) => (
+                              <div key={index} className="flex items-start gap-3 bg-white dark:bg-gray-800 rounded-lg p-4 border border-blue-200 dark:border-blue-600 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1">
+                                  {index + 1}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                                    {point}
+                                  </p>
+                                  <button
+                                    onClick={() => copyToClipboard(point)}
+                                    className="mt-2 text-xs text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-1"
+                                  >
+                                    <Copy className="w-3 h-3" />
+                                    Copy point
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Brain className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        No Summary Generated Yet
+                      </h4>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
+                        Go to the Input tab to add content and generate your AI summary
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('input')}
+                        className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors"
+                      >
+                        Go to Input
+                      </button>
                     </div>
                   )}
+                </div>
+              )}
 
-                  {/* Text Analysis */}
-                  {aiAnalysis.wordCount > 0 && (
-                    <div className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-xl p-4 sm:p-6 border border-green-200 dark:border-green-700">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4" />
-                        Text Analysis
-                      </h4>
-                      
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-green-600 dark:text-green-400">
-                            {aiAnalysis.wordCount}
+              {/* Advanced Insights Tab */}
+              {activeTab === 'insights' && (
+                <div className="space-y-6">
+                  {advancedAnalysis.wordCount > 0 ? (
+                    <>
+                      {/* Comprehensive Analysis Dashboard */}
+                      <div className="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-xl p-4 sm:p-6 border border-green-200 dark:border-green-700">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-6 flex items-center gap-2">
+                          <BarChart3 className="w-5 h-5" />
+                          Advanced Content Analysis
+                        </h4>
+                        
+                        {/* Enhanced Metrics Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                          <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-3 border border-green-200 dark:border-green-600">
+                            <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+                              {advancedAnalysis.wordCount.toLocaleString()}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Words</div>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">Words</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                            {aiAnalysis.readingTime}
+                          <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-3 border border-blue-200 dark:border-blue-600">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                              {advancedAnalysis.readingTime}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Min Read</div>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">Min Read</div>
-                        </div>
-                        <div className="text-center">
-                          <div className={`text-lg font-bold ${
-                            aiAnalysis.complexity === 'High' ? 'text-red-600 dark:text-red-400' :
-                            aiAnalysis.complexity === 'Medium' ? 'text-yellow-600 dark:text-yellow-400' :
-                            'text-green-600 dark:text-green-400'
-                          }`}>
-                            {aiAnalysis.complexity}
+                          <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-3 border border-purple-200 dark:border-purple-600">
+                            <div className={`text-2xl font-bold mb-1 ${
+                              advancedAnalysis.readabilityScore >= 80 ? 'text-green-600 dark:text-green-400' :
+                              advancedAnalysis.readabilityScore >= 60 ? 'text-yellow-600 dark:text-yellow-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {advancedAnalysis.readabilityScore}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Readability</div>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">Complexity</div>
-                        </div>
-                        <div className="text-center">
-                          <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                            {aiAnalysis.topics.length}
+                          <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-3 border border-orange-200 dark:border-orange-600">
+                            <div className={`text-xl font-bold mb-1 ${
+                              advancedAnalysis.complexity === 'Low' ? 'text-green-600 dark:text-green-400' :
+                              advancedAnalysis.complexity === 'Medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                              advancedAnalysis.complexity === 'High' ? 'text-orange-600 dark:text-orange-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {advancedAnalysis.complexity}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Complexity</div>
                           </div>
-                          <div className="text-xs text-gray-600 dark:text-gray-400">Topics</div>
+                          <div className="text-center bg-white dark:bg-gray-800 rounded-lg p-3 border border-pink-200 dark:border-pink-600">
+                            <div className={`text-xl font-bold mb-1 ${
+                              advancedAnalysis.sentiment === 'Positive' ? 'text-green-600 dark:text-green-400' :
+                              advancedAnalysis.sentiment === 'Negative' ? 'text-red-600 dark:text-red-400' :
+                              'text-blue-600 dark:text-blue-400'
+                            }`}>
+                              {advancedAnalysis.sentiment}
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">Sentiment</div>
+                          </div>
                         </div>
+
+                        {/* Main Themes with Confidence */}
+                        {advancedAnalysis.mainThemes.length > 0 && (
+                          <div className="mb-6">
+                            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Main Themes & Topics</h5>
+                            <div className="space-y-2">
+                              {advancedAnalysis.mainThemes.slice(0, 6).map((theme, index) => (
+                                <div key={index} className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-600">
+                                  <span className="font-medium text-gray-800 dark:text-gray-200">{theme.theme}</span>
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-24 bg-gray-200 dark:bg-gray-600 rounded-full h-2">
+                                      <div
+                                        className="bg-gradient-to-r from-green-500 to-teal-600 h-2 rounded-full transition-all duration-500"
+                                        style={{ width: `${theme.confidence}%` }}
+                                      ></div>
+                                    </div>
+                                    <span className="text-sm font-medium text-green-600 dark:text-green-400">
+                                      {theme.confidence.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Key Insights */}
+                        {advancedAnalysis.keyInsights.length > 0 && (
+                          <div className="mb-6">
+                            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Key Insights</h5>
+                            <div className="space-y-2">
+                              {advancedAnalysis.keyInsights.map((insight, index) => (
+                                <div key={index} className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-600">
+                                  <LightbulbIcon className="w-4 h-4 text-yellow-500 flex-shrink-0 mt-0.5" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">{insight}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Suggested Actions */}
+                        {advancedAnalysis.suggestedActions.length > 0 && (
+                          <div>
+                            <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Suggested Actions</h5>
+                            <div className="space-y-2">
+                              {advancedAnalysis.suggestedActions.map((action, index) => (
+                                <div key={index} className="flex items-start gap-3 p-3 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-600">
+                                  <Target className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                                  <span className="text-sm text-gray-700 dark:text-gray-300">{action}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
 
-                      {aiAnalysis.topics.length > 0 && (
-                        <div>
-                          <h5 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Topics:</h5>
+                      {/* Entity Analysis */}
+                      {advancedAnalysis.entities.length > 0 && (
+                        <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 border border-purple-200 dark:border-purple-700">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                            <Tag className="w-5 h-5" />
+                            Detected Entities & Keywords
+                          </h4>
                           <div className="flex flex-wrap gap-2">
-                            {aiAnalysis.topics.map((topic, index) => (
+                            {advancedAnalysis.entities.map((entity, index) => (
                               <span
                                 key={index}
-                                className="px-2 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-full text-xs font-medium"
+                                className="px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-full text-sm font-medium border border-purple-200 dark:border-purple-600"
                               >
-                                {topic}
+                                {entity}
                               </span>
                             ))}
                           </div>
                         </div>
                       )}
-                    </div>
-                  )}
 
-                  {/* History */}
-                  {summaryHistory.length > 0 && (
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
-                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        Recent Summaries
-                      </h4>
-                      
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {summaryHistory.slice(0, 5).map((item) => (
-                          <div
-                            key={item.id}
-                            className="flex items-center justify-between p-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-violet-300 dark:hover:border-violet-600 transition-colors cursor-pointer"
-                            onClick={() => {
-                              setAiSummary(item.summary);
-                              setSummaryType(item.type);
-                            }}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                                {item.title}
-                              </p>
-                              <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {item.timestamp} • {item.type}
-                              </p>
+                      {/* Cognitive Load Assessment */}
+                      <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-4 sm:p-6 border border-orange-200 dark:border-orange-700">
+                        <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
+                          <Cpu className="w-5 h-5" />
+                          Cognitive Load Assessment
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-600">
+                            <div className={`text-2xl font-bold mb-2 ${
+                              advancedAnalysis.cognitiveLoad === 'Low' ? 'text-green-600 dark:text-green-400' :
+                              advancedAnalysis.cognitiveLoad === 'Medium' ? 'text-yellow-600 dark:text-yellow-400' :
+                              advancedAnalysis.cognitiveLoad === 'High' ? 'text-orange-600 dark:text-orange-400' :
+                              'text-red-600 dark:text-red-400'
+                            }`}>
+                              {advancedAnalysis.cognitiveLoad}
                             </div>
-                            <ChevronRight className="w-4 h-4 text-gray-400" />
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Cognitive Load</div>
                           </div>
-                        ))}
+                          <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-600">
+                            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                              {Math.ceil(advancedAnalysis.readingTime * 1.5)}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Study Time (min)</div>
+                          </div>
+                          <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-600">
+                            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                              {advancedAnalysis.topics.length}
+                            </div>
+                            <div className="text-sm text-gray-600 dark:text-gray-400">Focus Areas</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 p-3 bg-white dark:bg-gray-800 rounded-lg border border-orange-200 dark:border-orange-600">
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <strong>Recommendation:</strong> {
+                              advancedAnalysis.cognitiveLoad === 'Very High' ? 'Break this content into smaller chunks for better comprehension and retention.' :
+                              advancedAnalysis.cognitiveLoad === 'High' ? 'Consider taking breaks during study and use active recall techniques.' :
+                              advancedAnalysis.cognitiveLoad === 'Medium' ? 'This content is well-balanced for focused study sessions.' :
+                              'This content is easy to digest and perfect for quick review sessions.'
+                            }
+                          </p>
+                        </div>
                       </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <BarChart3 className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        No Analysis Available
+                      </h4>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
+                        Add content and generate a summary to see advanced insights
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('input')}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                      >
+                        Start Analysis
+                      </button>
                     </div>
                   )}
                 </div>
-              </div>
+              )}
 
-              <div className="mt-6 p-4 bg-violet-50 dark:bg-violet-900/20 rounded-lg">
-                <p className="text-xs text-violet-600 dark:text-violet-400 text-center">
-                  🤖 Powered by OpenAI GPT • Transform your study notes into clear, actionable summaries
-                </p>
+              {/* Enhanced History Tab */}
+              {activeTab === 'history' && (
+                <div className="space-y-6">
+                  {summaryHistory.length > 0 ? (
+                    <>
+                      {/* History Controls */}
+                      <div className="flex flex-wrap items-center justify-between gap-4">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                            <Clock3 className="w-5 h-5" />
+                            Summary History
+                            <span className="px-2 py-1 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                              {summaryHistory.length}
+                            </span>
+                          </h4>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className="px-3 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-2"
+                          >
+                            <Filter className="w-4 h-4" />
+                            Filters
+                          </button>
+                          <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                          >
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="wordcount">Word Count</option>
+                            <option value="favorites">Favorites</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Filter Panel */}
+                      {showFilters && (
+                        <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by type:</span>
+                            {['all', 'intelligent-summary', 'study-guide', 'bullet-points', 'executive-summary'].map(type => (
+                              <button
+                                key={type}
+                                onClick={() => setFilterTag(type)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                  filterTag === type
+                                    ? 'bg-violet-500 text-white'
+                                    : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500'
+                                }`}
+                              >
+                                {type === 'all' ? 'All' : type.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* History Items */}
+                      <div className="space-y-4">
+                        {summaryHistory
+                          .filter(item => filterTag === 'all' || item.type === filterTag)
+                          .sort((a, b) => {
+                            switch (sortBy) {
+                              case 'oldest':
+                                return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
+                              case 'wordcount':
+                                return b.wordCount - a.wordCount;
+                              case 'favorites':
+                                return (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0);
+                              default:
+                                return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
+                            }
+                          })
+                          .map((item) => (
+                            <div
+                              key={item.id}
+                              className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700 hover:border-violet-300 dark:hover:border-violet-600 transition-all hover:shadow-md"
+                            >
+                              <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h5 className="font-medium text-gray-900 dark:text-gray-100 truncate">
+                                      {item.title}
+                                    </h5>
+                                    <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                                      item.source === 'url' ? 'bg-blue-500' :
+                                      item.source === 'file' ? 'bg-green-500' :
+                                      'bg-gray-500'
+                                    }`}></span>
+                                  </div>
+                                  
+                                  <div className="flex flex-wrap items-center gap-2 mb-3">
+                                    <span className="px-2 py-1 bg-violet-100 dark:bg-violet-900/20 text-violet-700 dark:text-violet-300 text-xs rounded-full">
+                                      {item.type.replace('-', ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {item.wordCount} words
+                                    </span>
+                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                      {item.timestamp}
+                                    </span>
+                                    {item.tags.map((tag, tagIndex) => (
+                                      <span
+                                        key={tagIndex}
+                                        className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full"
+                                      >
+                                        {tag}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  
+                                  <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                                    {item.summary}
+                                  </p>
+                                </div>
+                                
+                                <div className="flex flex-col items-center gap-2">
+                                  <button
+                                    onClick={() => toggleFavorite(item.id)}
+                                    className={`p-2 rounded-lg transition-colors ${
+                                      item.favorite
+                                        ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+                                        : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
+                                    }`}
+                                  >
+                                    <BookmarkIcon className={`w-4 h-4 ${item.favorite ? 'fill-current' : ''}`} />
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setNoteText(item.originalContent);
+                                      setAiSummary(item.summary);
+                                      if (item.analysis) {
+                                        setAdvancedAnalysis(item.analysis);
+                                      }
+                                      setActiveTab('summary');
+                                    }}
+                                    className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12">
+                      <Clock3 className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                      <h4 className="text-lg font-medium text-gray-500 dark:text-gray-400 mb-2">
+                        No History Yet
+                      </h4>
+                      <p className="text-sm text-gray-400 dark:text-gray-500 mb-4">
+                        Generate your first summary to see it here
+                      </p>
+                      <button
+                        onClick={() => setActiveTab('input')}
+                        className="px-4 py-2 bg-violet-500 text-white rounded-lg hover:bg-violet-600 transition-colors"
+                      >
+                        Create Summary
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Enhanced Footer */}
+              <div className="mt-8 p-4 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 rounded-xl border border-violet-200 dark:border-violet-700">
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                    <span className="text-sm font-medium text-violet-700 dark:text-violet-300">
+                      Powered by Google Gemini AI
+                    </span>
+                    <Sparkles className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+                  </div>
+                  <p className="text-xs text-violet-600 dark:text-violet-400">
+                    🚀 Advanced AI summarization with file support, URL extraction, voice features & comprehensive analysis
+                  </p>
+                  
+                  <div className="flex items-center justify-center gap-4 mt-3 pt-3 border-t border-violet-200 dark:border-violet-600">
+                    <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                      <FileImage className="w-3 h-3" />
+                      <span>Multi-file Support</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                      <Globe className="w-3 h-3" />
+                      <span>URL Extraction</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                      <Mic className="w-3 h-3" />
+                      <span>Voice Input</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+                      <Brain className="w-3 h-3" />
+                      <span>Deep Analysis</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Advanced Calculator Modal */}
+      {/* Advanced Calculator Modal (keeping existing) */}
       {showCalculator && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
@@ -1436,7 +2239,7 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* Periodic Table Modal */}
+      {/* Periodic Table Modal (keeping existing) */}
       {showPeriodicTable && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-7xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
@@ -1628,7 +2431,7 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* Grade Calculator Modal */}
+      {/* Grade Calculator Modal (keeping existing) */}
       {showGradeCalculator && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
@@ -1767,7 +2570,7 @@ export const Footer: React.FC = () => {
         </div>
       )}
 
-      {/* Math Solver Modal */}
+      {/* Math Solver Modal (keeping existing) */}
       {showMathSolver && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[95vh] overflow-y-auto transform transition-all duration-300 scale-100">
@@ -1993,7 +2796,7 @@ export const Footer: React.FC = () => {
                 </h2>
               </div>
               <p className="text-sm text-gray-600 dark:text-gray-400 max-w-xl mx-auto">
-                Powerful tools to enhance your learning experience with AI
+                Powerful tools to enhance your learning experience with advanced AI
               </p>
             </div>
 
@@ -2046,7 +2849,7 @@ export const Footer: React.FC = () => {
                 <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
                 <div className="flex items-center gap-1">
                   <Brain className="w-4 h-4 text-violet-500" />
-                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">AI Powered</span>
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">Gemini AI Powered</span>
                 </div>
                 <div className="w-px h-4 bg-gray-300 dark:bg-gray-600"></div>
                 <div className="flex items-center gap-1">
@@ -2117,7 +2920,7 @@ export const Footer: React.FC = () => {
                   </a>
                 </div>
                 <span className="text-gray-500 dark:text-gray-500">
-                  Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">TRMS</span>
+                  Powered by <span className="font-semibold text-blue-600 dark:text-blue-400">Google Gemini</span>
                 </span>
               </div>
 
@@ -2133,4 +2936,12 @@ export const Footer: React.FC = () => {
   );
 };
 
-export default Footer;
+function App() {
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
