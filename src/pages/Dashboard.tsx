@@ -1,14 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
-import { ExamCountdown } from './components/dashboard/ExamCountdown';
-import { StudyTimer } from './components/dashboard/StudyTimer';
-import { QuickNotes } from './components/dashboard/QuickNotes';
-import { StudyTaskList } from './components/dashboard/StudyTaskList';
-import { Card } from './components/ui/Card';
-import { EnhancedTextBanner } from './components/banner/EnhancedTextBanner';
-import { useAuth } from './contexts/AuthContext';
-import { getUserExams, getUserSessions } from './services/firestore';
-import { Exam, StudySession } from './types';
+import { ExamCountdown } from '../components/dashboard/ExamCountdown';
+import { StudyTimer } from '../components/dashboard/StudyTimer';
+import { Card } from '../components/ui/Card';
+import { EnhancedTextBanner } from '../components/banner/EnhancedTextBanner';
+import { useAuth } from '../contexts/AuthContext';
+import { getUserExams, getUserSessions } from '../services/firestore';
+import { Exam, StudySession } from '../types';
 
 // Modern hero themes
 const heroThemes = [
@@ -426,16 +424,6 @@ export const Dashboard: React.FC = () => {
           />
         </div>
 
-        {/* Productivity Tools Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-10">
-          <div>
-            <QuickNotes />
-          </div>
-          <div>
-            <StudyTaskList />
-          </div>
-        </div>
-
         {/* Analytics and Deadlines */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
           
@@ -808,9 +796,3 @@ export const Dashboard: React.FC = () => {
     </div>
   );
 };
-
-function App() {
-  return <Dashboard />;
-}
-
-export default App;
