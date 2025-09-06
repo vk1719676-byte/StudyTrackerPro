@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users } from 'lucide-react';
+import { BookOpen, Target, TrendingUp, Award, Sparkles, Zap, Star, Calendar, Clock, Trophy, ChevronRight, Brain, Flame, Activity, BarChart3, AlertCircle, CheckCircle2, Timer, X, Lightbulb, Rocket, Plus, ArrowRight, TrendingDown, Users, ChevronLeft, MapPin, Edit3, Save, RotateCcw } from 'lucide-react';
 import { ExamCountdown } from '../components/dashboard/ExamCountdown';
 import { StudyTimer } from '../components/dashboard/StudyTimer';
 import { Card } from '../components/ui/Card';
@@ -158,6 +158,288 @@ const SessionCard: React.FC<{
     </div>
   </ModernCard>
 );
+
+// Study Schedule Planner Component
+const StudySchedulePlanner: React.FC<{
+  exams: Exam[];
+  sessions: StudySession[];
+}> = ({ exams, sessions }) => {
+  const [currentWeek, setCurrentWeek] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [plannedSessions, setPlannedSessions] = useState<{[key: string]: {subject: string; time: string; duration: number}[]}>({});
+
+  // Get current week dates
+  const getWeekDates = (weekOffset: number = 0) => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    const startOfWeek = new Date(today);
+    startOfWeek.setDate(today.getDate() - currentDay + (weekOffset * 7));
+    
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(startOfWeek);
+      date.setDate(startOfWeek.getDate() + i);
+      dates.push(date);
+    }
+    return dates;
+  };
+
+  const weekDates = getWeekDates(currentWeek);
+  const weekNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Get sessions for a specific date
+  const getSessionsForDate = (date: Date) => {
+    const dateStr = date.toDateString();
+    return sessions.filter(session => 
+      new Date(session.date).toDateString() === dateStr
+    );
+  };
+
+  // Get planned sessions for a date
+  const getPlannedSessionsForDate = (date: Date) => {
+    const dateKey = date.toDateString();
+    return plannedSessions[dateKey] || [];
+  };
+
+  // Add planned session
+  const addPlannedSession = (date: Date, subject: string, time: string, duration: number) => {
+    const dateKey = date.toDateString();
+    setPlannedSessions(prev => ({
+      ...prev,
+      [dateKey]: [...(prev[dateKey] || []), { subject, time, duration }]
+    }));
+  };
+
+  // Get exams for a specific date
+  const getExamsForDate = (date: Date) => {
+    const dateStr = date.toDateString();
+    return exams.filter(exam => 
+      new Date(exam.date).toDateString() === dateStr
+    );
+  };
+
+  const subjects = ['Mathematics', 'Physics', 'Chemistry', 'Biology', 'History', 'English', 'Computer Science'];
+  const timeSlots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00'];
+
+  return (
+    <ModernCard className="p-8 h-full">
+      {/* Header */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+        <div className="flex items-center gap-4">
+          <div className="p-4 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-3xl shadow-xl">
+            <Calendar className="w-8 h-8 text-white drop-shadow-sm" />
+          </div>
+          <div>
+            <h2 className="text-3xl font-black text-gray-900 dark:text-gray-100 mb-2">Study Schedule</h2>
+            <p className="text-gray-600 dark:text-gray-400 text-lg">Plan your week for success</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {/* Week Navigation */}
+          <div className="flex items-center gap-3 bg-gray-100 dark:bg-gray-700 rounded-2xl p-2">
+            <button
+              onClick={() => setCurrentWeek(prev => prev - 1)}
+              className="p-3 hover:bg-white dark:hover:bg-gray-600 rounded-xl transition-all duration-200 group"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:scale-110 transition-transform" />
+            </button>
+            <div className="px-6 py-2 font-bold text-gray-900 dark:text-gray-100 min-w-[140px] text-center">
+              {currentWeek === 0 ? 'This Week' : 
+               currentWeek > 0 ? `${currentWeek} Week${currentWeek > 1 ? 's' : ''} Ahead` : 
+               `${Math.abs(currentWeek)} Week${Math.abs(currentWeek) > 1 ? 's' : ''} Ago`}
+            </div>
+            <button
+              onClick={() => setCurrentWeek(prev => prev + 1)}
+              className="p-3 hover:bg-white dark:hover:bg-gray-600 rounded-xl transition-all duration-200 group"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:scale-110 transition-transform" />
+            </button>
+          </div>
+
+          {/* Edit Mode Toggle */}
+          <button
+            onClick={() => setIsEditing(!isEditing)}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all duration-300 ${
+              isEditing 
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg' 
+                : 'bg-purple-500 hover:bg-purple-600 text-white shadow-lg'
+            }`}
+          >
+            {isEditing ? (
+              <>
+                <Save className="w-5 h-5" />
+                Save Plan
+              </>
+            ) : (
+              <>
+                <Edit3 className="w-5 h-5" />
+                Plan Week
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Weekly Schedule Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-7 gap-4 lg:gap-2">
+        {weekDates.map((date, index) => {
+          const dayName = weekNames[index];
+          const isToday = date.toDateString() === new Date().toDateString();
+          const sessionsForDay = getSessionsForDate(date);
+          const plannedForDay = getPlannedSessionsForDate(date);
+          const examsForDay = getExamsForDate(date);
+          const totalStudyTime = sessionsForDay.reduce((total, session) => total + session.duration, 0);
+          
+          return (
+            <div
+              key={date.toDateString()}
+              className={`relative overflow-hidden rounded-2xl border-2 transition-all duration-300 ${
+                isToday 
+                  ? 'border-purple-400 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 dark:from-purple-900/30 dark:via-indigo-900/30 dark:to-blue-900/30 shadow-lg shadow-purple-200/30 dark:shadow-purple-900/20' 
+                  : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 hover:border-gray-300 dark:hover:border-gray-600'
+              }`}
+            >
+              {/* Day Header */}
+              <div className={`p-4 border-b border-gray-200/50 dark:border-gray-700/50 ${
+                isToday ? 'bg-purple-500' : 'bg-gray-100 dark:bg-gray-800'
+              }`}>
+                <div className="text-center">
+                  <div className={`text-sm font-bold uppercase tracking-wider mb-1 ${
+                    isToday ? 'text-white' : 'text-gray-600 dark:text-gray-400'
+                  }`}>
+                    {dayName}
+                  </div>
+                  <div className={`text-xl font-black ${
+                    isToday ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+                  }`}>
+                    {date.getDate()}
+                  </div>
+                  {isToday && (
+                    <div className="text-xs text-white/80 font-semibold">TODAY</div>
+                  )}
+                </div>
+              </div>
+
+              {/* Day Content */}
+              <div className="p-4 space-y-3 min-h-[300px]">
+                {/* Exams */}
+                {examsForDay.map((exam) => (
+                  <div key={exam.id} className="relative overflow-hidden bg-gradient-to-r from-red-500 to-pink-500 text-white p-3 rounded-xl shadow-lg">
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="relative">
+                      <div className="flex items-center gap-2 mb-2">
+                        <AlertCircle className="w-4 h-4 drop-shadow-sm" />
+                        <span className="text-xs font-bold uppercase tracking-wide">EXAM</span>
+                      </div>
+                      <div className="font-bold text-sm truncate">{exam.name}</div>
+                      <div className="text-xs opacity-90">{exam.subject}</div>
+                    </div>
+                  </div>
+                ))}
+
+                {/* Completed Sessions */}
+                {sessionsForDay.map((session, idx) => (
+                  <div key={idx} className="bg-gradient-to-r from-emerald-100 to-green-100 dark:from-emerald-900/30 dark:to-green-900/30 p-3 rounded-xl border border-emerald-200 dark:border-emerald-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">COMPLETED</span>
+                    </div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{session.subject}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{Math.round(session.duration)}m • {session.topic}</div>
+                  </div>
+                ))}
+
+                {/* Planned Sessions */}
+                {plannedForDay.map((planned, idx) => (
+                  <div key={idx} className="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 p-3 rounded-xl border border-blue-200 dark:border-blue-700">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-bold text-blue-700 dark:text-blue-400 uppercase tracking-wide">PLANNED</span>
+                    </div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">{planned.subject}</div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">{planned.time} • {planned.duration}m</div>
+                  </div>
+                ))}
+
+                {/* Add Session Button (Edit Mode) */}
+                {isEditing && (
+                  <button
+                    onClick={() => {
+                      const subject = subjects[Math.floor(Math.random() * subjects.length)];
+                      const time = timeSlots[Math.floor(Math.random() * timeSlots.length)];
+                      const duration = [60, 90, 120][Math.floor(Math.random() * 3)];
+                      addPlannedSession(date, subject, time, duration);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl text-gray-500 dark:text-gray-400 hover:border-purple-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all duration-300 group"
+                  >
+                    <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-semibold">Add Session</span>
+                  </button>
+                )}
+
+                {/* Day Summary */}
+                {(sessionsForDay.length > 0 || plannedForDay.length > 0) && (
+                  <div className="pt-3 mt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                      <div className="font-semibold">
+                        {totalStudyTime > 0 && `${Math.round(totalStudyTime)}m studied`}
+                        {totalStudyTime > 0 && plannedForDay.length > 0 && ' • '}
+                        {plannedForDay.length > 0 && `${plannedForDay.length} planned`}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Week Summary */}
+      <div className="mt-8 p-6 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-600">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-6">
+            <div className="text-center">
+              <div className="text-2xl font-black text-gray-900 dark:text-gray-100">
+                {sessions.filter(session => {
+                  const sessionDate = new Date(session.date);
+                  return weekDates.some(date => date.toDateString() === sessionDate.toDateString());
+                }).length}
+              </div>
+              <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">Sessions</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-gray-900 dark:text-gray-100">
+                {Math.round(sessions.filter(session => {
+                  const sessionDate = new Date(session.date);
+                  return weekDates.some(date => date.toDateString() === sessionDate.toDateString());
+                }).reduce((total, session) => total + session.duration, 0) / 60)}h
+              </div>
+              <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">Study Time</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-black text-gray-900 dark:text-gray-100">
+                {Object.values(plannedSessions).flat().length}
+              </div>
+              <div className="text-sm font-semibold text-gray-600 dark:text-gray-400">Planned</div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setCurrentWeek(0)}
+              className="flex items-center gap-2 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-xl font-semibold transition-all duration-300 border border-gray-300 dark:border-gray-600"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Current Week
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModernCard>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -422,6 +704,11 @@ export const Dashboard: React.FC = () => {
             color="text-orange-600 dark:text-orange-400"
             bgGradient="bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30"
           />
+        </div>
+
+        {/* Study Schedule Planner - NEW FEATURE */}
+        <div className="mb-10">
+          <StudySchedulePlanner exams={exams} sessions={sessions} />
         </div>
 
         {/* Analytics and Deadlines */}
